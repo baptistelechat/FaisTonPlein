@@ -69,27 +69,28 @@ _Objectif : Comprendre les tendances._
 
 ## 4. Wireframes (Low-Fidelity)
 
-### 4.1 Vue Principale (Map + Bottom Sheet)
+### 4.1 Vue Principale (Full-Screen Map)
 
 ```text
 +-------------------------------------+
-|  [Menu]      FaisTonPlein    [Filt] |  <-- Header flottant
+|  [ SEARCH BAR (Nominatim API)    ]  |  <-- Floating Command Menu (Top)
+|  [ (o) SP98  ( ) E10  ( ) Diesel ]  |  <-- Scrollable Badges
 |                                     |
 |          ( CARTE INTERACTIVE )      |
 |                                     |
-|      [Pin 1.85€]                    |
-|                  [Pin 1.79€]        |
+|      [1.85€]  <-- PriceMarker       |
+|                  [1.79€]            |
 |          (You)                      |
 |                                     |
 |                                     |
-|  [  Recentre  ]      [  Analyste  ] |  <-- FABs / Toggles
+|                                [⚙]  |  <-- Floating Action Buttons
+|                                [≣]  |      (Settings / List)
 +-------------------------------------+
-|  ____                               |  <-- Drag Handle
+|  ____                               |  <-- Bottom Drawer (Vaul)
 |  Total Access Relais   (2.5 km)     |
 |  SP98: 1.85€  |  E10: 1.79€         |
 |  [ Y Aller ]         [ Détails ]    |
 +-------------------------------------+
-   (Bottom Sheet rétractable)
 ```
 
 ### 4.2 Vue Liste (Alternative)

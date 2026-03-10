@@ -36,7 +36,7 @@ story_location: "_bmad-output/docs/stories"
 development_status:
   # Epic 1: Exploration Géographique
   epic-1-exploration-geographique: in-progress
-  us-01-01-carte-interactive: ready-for-dev
+  us-01-01-carte-interactive: review
   us-01-02-liste-des-stations: backlog
   us-01-03-detail-d-une-station: backlog
   us-01-04-filtre-carburant: backlog
