@@ -46,10 +46,10 @@
 
 **Critères d'Acceptation :**
 
-- [ ] Création d'un script de consolidation mensuelle (Batch).
-- [ ] Le script fusionne les petits fichiers (par heure) en un fichier mensuel optimisé.
+- [ ] Création d'un script de consolidation journalier/mensuelle/annuelle (Batch).
+- [ ] Le script fusionne les petits fichiers (par heure) en un fichier optimisé.
 - [ ] **Important** : Les fichiers sources (par heure) sont CONSERVÉS pour garder l'historique précis.
-- [ ] Structure cible : `history/YYYY/MM/code_departement=XX/data_0.parquet` (ajouté aux côtés des dossiers `day=DD/hour=HH`).
+- [ ] Structure cible : `consolidated/YYYY/MM/DD/code_departement=XX/data_0.parquet` / `consolidated/YYYY/MM/code_departement=XX/data_0.parquet` / `consolidated/YYYY/code_departement=XX/data_0.parquet`
 - [ ] Planification via CRON (ex: 1er du mois).
 
 ---
