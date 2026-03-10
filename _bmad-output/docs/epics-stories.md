@@ -8,6 +8,38 @@
 
 ***
 
+## E00 - Fondations Techniques
+
+**Objectif :** Mettre en place l'architecture de base et le pipeline de données.
+
+### US-00-01 : Pipeline ETL (Data.gouv -> HuggingFace)
+
+**En tant que** développeur,
+**Je veux** automatiser la récupération, la transformation et la publication des données,
+**Afin de** fournir des fichiers Parquet optimisés et à jour à l'application.
+
+**Critères d'Acceptation :**
+
+- [ ] Script Node.js/TypeScript pour télécharger le CSV depuis data.gouv.fr.
+- [ ] Conversion des données en format Parquet (avec compression).
+- [ ] Partitionnement des fichiers par département.
+- [ ] Upload automatique vers un Dataset Hugging Face.
+- [ ] Exécution planifiée (GitHub Actions) ou manuelle.
+
+### US-00-02 : Intégration Client DuckDB-WASM
+
+**En tant que** développeur,
+**Je veux** intégrer DuckDB-WASM dans l'application Next.js,
+**Afin de** pouvoir requêter les fichiers Parquet directement dans le navigateur.
+
+**Critères d'Acceptation :**
+
+- [ ] Initialisation de DuckDB-WASM dans un Web Worker.
+- [ ] Chargement d'un fichier Parquet (ex: département test) depuis Hugging Face.
+- [ ] Exécution d'une requête SQL simple (SELECT * FROM prices LIMIT 10) avec affichage des résultats.
+
+***
+
 ## E01 - Exploration Géographique
 
 **Objectif :** Permettre à l'utilisateur de visualiser et trouver les stations services autour de lui.

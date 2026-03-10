@@ -154,9 +154,9 @@ function DefaultLoader() {
   return (
     <div className="absolute inset-0 flex items-center justify-center">
       <div className="flex gap-1">
-        <span className="size-1.5 rounded-full bg-muted-foreground/60 animate-pulse" />
-        <span className="size-1.5 rounded-full bg-muted-foreground/60 animate-pulse [animation-delay:150ms]" />
-        <span className="size-1.5 rounded-full bg-muted-foreground/60 animate-pulse [animation-delay:300ms]" />
+        <span className="bg-muted-foreground/60 size-1.5 animate-pulse rounded-full" />
+        <span className="bg-muted-foreground/60 size-1.5 animate-pulse rounded-full [animation-delay:150ms]" />
+        <span className="bg-muted-foreground/60 size-1.5 animate-pulse rounded-full [animation-delay:300ms]" />
       </div>
     </div>
   );
@@ -284,6 +284,7 @@ const Map = forwardRef<MapRef, MapProps>(function Map(
         }
       } catch (e) {
         // Ignore style update errors
+        console.error("Error updating map style:", e);
       }
     };
 
@@ -361,7 +362,7 @@ const Map = forwardRef<MapRef, MapProps>(function Map(
     <MapContext.Provider value={contextValue}>
       <div
         ref={containerRef}
-        className={cn("relative w-full h-full", className)}
+        className={cn("relative h-full w-full", className)}
       >
         {!isLoaded && <DefaultLoader />}
         {/* SSR-safe: children render only when map is loaded on client */}
@@ -619,7 +620,7 @@ function MarkerPopup({
   return createPortal(
     <div
       className={cn(
-        "relative rounded-md border bg-popover p-3 text-popover-foreground shadow-md animate-in fade-in-0 zoom-in-95",
+        "bg-popover text-popover-foreground animate-in fade-in-0 zoom-in-95 relative rounded-md border p-3 shadow-md",
         className,
       )}
     >
@@ -627,7 +628,7 @@ function MarkerPopup({
         <button
           type="button"
           onClick={handleClose}
-          className="absolute top-1 right-1 z-10 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+          className="ring-offset-background focus:ring-ring absolute top-1 right-1 z-10 rounded-sm opacity-70 transition-opacity hover:opacity-100 focus:ring-2 focus:ring-offset-2 focus:outline-none"
           aria-label="Close popup"
         >
           <X className="h-4 w-4" />
@@ -705,7 +706,7 @@ function MarkerTooltip({
   return createPortal(
     <div
       className={cn(
-        "rounded-md bg-foreground px-2 py-1 text-xs text-background shadow-md animate-in fade-in-0 zoom-in-95",
+        "bg-foreground text-background animate-in fade-in-0 zoom-in-95 rounded-md px-2 py-1 text-xs shadow-md",
         className,
       )}
     >
@@ -738,7 +739,7 @@ function MarkerLabel({
     <div
       className={cn(
         "absolute left-1/2 -translate-x-1/2 whitespace-nowrap",
-        "text-[10px] font-medium text-foreground",
+        "text-foreground text-[10px] font-medium",
         positionClasses[position],
         className,
       )}
@@ -774,7 +775,7 @@ const positionClasses = {
 
 function ControlGroup({ children }: { children: React.ReactNode }) {
   return (
-    <div className="flex flex-col rounded-md border border-border bg-background shadow-sm overflow-hidden [&>button:not(:last-child)]:border-b [&>button:not(:last-child)]:border-border">
+    <div className="border-border bg-background [&>button:not(:last-child)]:border-border flex flex-col overflow-hidden rounded-md border shadow-sm [&>button:not(:last-child)]:border-b">
       {children}
     </div>
   );
@@ -797,8 +798,8 @@ function ControlButton({
       aria-label={label}
       type="button"
       className={cn(
-        "flex items-center justify-center size-8 hover:bg-accent dark:hover:bg-accent/40 transition-colors",
-        disabled && "opacity-50 pointer-events-none cursor-not-allowed",
+        "hover:bg-accent dark:hover:bg-accent/40 flex size-8 items-center justify-center transition-colors",
+        disabled && "pointer-events-none cursor-not-allowed opacity-50",
       )}
       disabled={disabled}
     >
@@ -1045,7 +1046,7 @@ function MapPopup({
   return createPortal(
     <div
       className={cn(
-        "relative rounded-md border bg-popover p-3 text-popover-foreground shadow-md animate-in fade-in-0 zoom-in-95",
+        "bg-popover text-popover-foreground animate-in fade-in-0 zoom-in-95 relative rounded-md border p-3 shadow-md",
         className,
       )}
     >
@@ -1053,7 +1054,7 @@ function MapPopup({
         <button
           type="button"
           onClick={handleClose}
-          className="absolute top-1 right-1 z-10 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+          className="ring-offset-background focus:ring-ring absolute top-1 right-1 z-10 rounded-sm opacity-70 transition-opacity hover:opacity-100 focus:ring-2 focus:ring-offset-2 focus:outline-none"
           aria-label="Close popup"
         >
           <X className="h-4 w-4" />

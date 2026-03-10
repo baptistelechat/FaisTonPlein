@@ -73,12 +73,12 @@ export default function InteractiveMap({ children }: { children?: ReactNode }) {
   }, [setUserLocation, userLocation]);
 
   return (
-    <div className="relative w-full h-full bg-slate-100">
+    <div className="relative h-full w-full bg-slate-100">
       <Map
         theme="light"
         viewport={viewport}
         onViewportChange={setViewport}
-        className="w-full h-full"
+        className="h-full w-full"
       >
         <MapControls />
         {children}
@@ -86,11 +86,11 @@ export default function InteractiveMap({ children }: { children?: ReactNode }) {
         {/* User Location Marker */}
         {userLocation && (
           <MapMarker longitude={userLocation[0]} latitude={userLocation[1]}>
-            <div className="relative flex items-center justify-center size-6 group">
+            <div className="group relative flex size-6 items-center justify-center">
               <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-blue-500 opacity-75 duration-1000"></span>
-              <div className="relative inline-flex h-4 w-4 rounded-full bg-blue-600 border-[3px] border-white shadow-lg ring-1 ring-black/10"></div>
+              <div className="relative inline-flex h-4 w-4 rounded-full border-[3px] border-white bg-blue-600 shadow-lg ring-1 ring-black/10"></div>
               {/* Tooltip */}
-              <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-black/80 text-white text-[10px] font-bold px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap">
+              <div className="pointer-events-none absolute -top-8 left-1/2 -translate-x-1/2 rounded bg-black/80 px-2 py-1 text-[10px] font-bold whitespace-nowrap text-white opacity-0 transition-opacity group-hover:opacity-100">
                 Vous êtes ici
               </div>
             </div>
@@ -131,10 +131,10 @@ export default function InteractiveMap({ children }: { children?: ReactNode }) {
       </Map>
 
       {isLoading && (
-        <div className="absolute inset-0 flex items-center justify-center bg-background/20 backdrop-blur-[2px] z-50 pointer-events-none">
-          <div className="bg-background/90 p-4 rounded-2xl shadow-xl flex flex-col items-center gap-3 border border-border/50">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
-            <span className="text-sm font-medium text-muted-foreground">
+        <div className="bg-background/20 pointer-events-none absolute inset-0 z-50 flex items-center justify-center backdrop-blur-[2px]">
+          <div className="bg-background/90 border-border/50 flex flex-col items-center gap-3 rounded-2xl border p-4 shadow-xl">
+            <Loader2 className="text-primary h-8 w-8 animate-spin" />
+            <span className="text-muted-foreground text-sm font-medium">
               Chargement des prix...
             </span>
           </div>

@@ -21,7 +21,7 @@ export function PriceMarker({ price, isSelected }: PriceMarkerProps) {
   return (
     <div
       className={cn(
-        "relative flex flex-col items-center justify-center rounded-lg border shadow-sm transition-all duration-300 cursor-pointer group",
+        "group relative flex cursor-pointer flex-col items-center justify-center rounded-lg border shadow-sm transition-all duration-300",
         isSelected
           ? "bg-primary text-primary-foreground border-primary z-50 scale-110 shadow-xl"
           : cn("bg-background hover:scale-105 hover:shadow-md", statusColor),
@@ -34,7 +34,7 @@ export function PriceMarker({ price, isSelected }: PriceMarkerProps) {
             isSelected ? "text-primary-foreground" : "text-current opacity-70",
           )}
         />
-        <span className="text-sm font-extrabold font-mono tracking-tight leading-none">
+        <span className="font-mono text-sm leading-none font-extrabold tracking-tight">
           {price.toFixed(3)}€
         </span>
       </div>
@@ -42,7 +42,7 @@ export function PriceMarker({ price, isSelected }: PriceMarkerProps) {
       {/* Triangle pointer */}
       <div
         className={cn(
-          "absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-3 h-3 rotate-45 border-b border-r",
+          "absolute -bottom-1.5 left-1/2 h-3 w-3 -translate-x-1/2 rotate-45 border-r border-b",
           isSelected
             ? "border-primary bg-primary"
             : cn(statusColor.split(" ")[2], statusColor.split(" ")[1]), // Use background and border color from statusColor

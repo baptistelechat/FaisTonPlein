@@ -9,21 +9,11 @@ import {
   CommandList,
 } from "@/components/ui/command";
 import { useMap } from "@/components/ui/map";
+import { searchAddresses, type SearchResult } from "@/lib/api-adresse";
 import { useAppStore } from "@/store/useAppStore";
 import { Loader2, MapPin } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-
-type SearchResult = {
-  properties: {
-    id: string;
-    label: string;
-    context: string;
-  };
-  geometry: {
-    coordinates: [number, number];
-  };
-};
 
 export function SearchBar() {
   const { searchQuery, setSearchQuery } = useAppStore();
@@ -50,20 +40,9 @@ export function SearchBar() {
 
       setLoading(true);
       try {
-        const response = await fetch(
-          `https://api-adresse.data.gouv.fr/search/?q=${encodeURIComponent(
-            searchQuery,
-          )}&limit=5&autocomplete=1`,
-        );
-        const data = await response.json();
-
-        // API Adresse returns a FeatureCollection, we want the features array
-        if (data && data.features) {
-          setResults(data.features);
-          if (data.features.length > 0) setOpen(true);
-        } else {
-          setResults([]);
-        }
+        const results = await searchAddresses(searchQuery);
+        setResults(results);
+        if (results.length > 0) setOpen(true);
       } catch (error) {
         console.error("Search error:", error);
       } finally {
@@ -100,7 +79,7 @@ export function SearchBar() {
 
   return (
     <div className="w-full max-w-md">
-      <Command className="rounded-xl border border-primary shadow-md bg-background">
+      <Command className="border-primary bg-background rounded-xl border shadow-md">
         <CommandInput
           placeholder="Rechercher une ville..."
           value={searchQuery}
@@ -112,7 +91,7 @@ export function SearchBar() {
         {open && (
           <CommandList className="max-h-75">
             {loading && (
-              <div className="flex items-center justify-center p-4 text-sm text-muted-foreground">
+              <div className="text-muted-foreground flex items-center justify-center p-4 text-sm">
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 Recherche...
               </div>
@@ -128,12 +107,12 @@ export function SearchBar() {
                   onSelect={() => handleSelect(item)}
                   className="cursor-pointer items-start"
                 >
-                  <MapPin className="mr-2 h-4 w-4 shrink-0 mt-1" />
+                  <MapPin className="mt-1 mr-2 h-4 w-4 shrink-0" />
                   <div className="flex flex-col overflow-hidden">
                     <span className="truncate font-medium">
                       {item.properties.label}
                     </span>
-                    <span className="truncate text-xs text-muted-foreground">
+                    <span className="text-muted-foreground truncate text-xs">
                       {item.properties.context}
                     </span>
                   </div>

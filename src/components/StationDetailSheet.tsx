@@ -18,22 +18,22 @@ export function StationDetailSheet() {
   };
 
   return (
-    <div className="flex flex-col h-full bg-background animate-in slide-in-from-bottom duration-300">
-      <div className="flex flex-col p-6 space-y-6">
+    <div className="bg-background animate-in slide-in-from-bottom flex h-full flex-col duration-300">
+      <div className="flex flex-col space-y-6 p-6">
         {/* Header */}
         <div className="flex flex-col space-y-2">
           <div className="flex items-center justify-between">
-            <h2 className="text-2xl font-bold font-heading tracking-tight">
+            <h2 className="font-heading text-2xl font-bold tracking-tight">
               {selectedStation.name}
             </h2>
             <Badge
               variant="outline"
-              className="text-emerald-500 border-emerald-500/30 bg-emerald-500/5"
+              className="border-emerald-500/30 bg-emerald-500/5 text-emerald-500"
             >
               Ouvert 24/7
             </Badge>
           </div>
-          <p className="text-sm text-muted-foreground flex items-center gap-1.5">
+          <p className="text-muted-foreground flex items-center gap-1.5 text-sm">
             <MapPin className="h-3.5 w-3.5" />
             {selectedStation.address}
           </p>
@@ -44,17 +44,17 @@ export function StationDetailSheet() {
           {selectedStation.prices.map((price) => (
             <div
               key={price.fuel_type}
-              className={`flex flex-col p-3 rounded-xl border transition-all ${
+              className={`flex flex-col rounded-xl border p-3 transition-all ${
                 price.fuel_type === selectedFuel
                   ? "border-primary bg-primary/5 shadow-sm"
                   : "border-border/50 bg-muted/30"
               }`}
             >
-              <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-1">
+              <span className="text-muted-foreground mb-1 text-[10px] font-bold tracking-widest uppercase">
                 {price.fuel_type}
               </span>
               <div className="flex items-baseline gap-1">
-                <span className="text-xl font-extrabold font-mono tracking-tighter">
+                <span className="font-mono text-xl font-extrabold tracking-tighter">
                   {price.price.toFixed(3)}
                 </span>
                 <span className="text-xs font-semibold opacity-70">€/L</span>
@@ -68,7 +68,7 @@ export function StationDetailSheet() {
           <Button
             onClick={handleNavigate}
             size="lg"
-            className="w-full h-14 text-base font-bold rounded-2xl shadow-lg shadow-primary/20 hover:shadow-primary/30 active:scale-95 transition-all gap-2"
+            className="shadow-primary/20 hover:shadow-primary/30 h-14 w-full gap-2 rounded-2xl text-base font-bold shadow-lg transition-all active:scale-95"
           >
             <Navigation className="h-5 w-5" />Y Aller (Google Maps)
           </Button>
@@ -76,7 +76,7 @@ export function StationDetailSheet() {
           <div className="grid grid-cols-2 gap-3">
             <Button
               variant="outline"
-              className="h-12 rounded-xl gap-2 font-semibold"
+              className="h-12 gap-2 rounded-xl font-semibold"
               disabled={true}
             >
               <History className="h-4 w-4" />
@@ -84,7 +84,7 @@ export function StationDetailSheet() {
             </Button>
             <Button
               variant="outline"
-              className="h-12 rounded-xl gap-2 font-semibold"
+              className="h-12 gap-2 rounded-xl font-semibold"
               onClick={() => setSelectedStation(null)}
             >
               Fermer
@@ -93,8 +93,8 @@ export function StationDetailSheet() {
         </div>
 
         {/* Services */}
-        <div className="space-y-3 pt-4 border-t border-border/50">
-          <h4 className="text-sm font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
+        <div className="border-border/50 space-y-3 border-t pt-4">
+          <h4 className="text-muted-foreground flex items-center gap-2 text-sm font-bold tracking-wider uppercase">
             <CreditCard className="h-4 w-4" />
             Services disponibles
           </h4>
@@ -103,7 +103,7 @@ export function StationDetailSheet() {
               <Badge
                 key={service}
                 variant="secondary"
-                className="px-2.5 py-1 rounded-lg font-medium text-xs"
+                className="rounded-lg px-2.5 py-1 text-xs font-medium"
               >
                 {service}
               </Badge>
