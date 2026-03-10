@@ -1,0 +1,63 @@
+generated: 2026-03-10
+project: FaisTonPlein
+project_key: FTP
+tracking_system: file-system
+story_location: "_bmad-output/docs/stories"
+
+# STATUS DEFINITIONS:
+# ==================
+# Epic Status:
+#   - backlog: Epic not yet started
+#   - in-progress: Epic actively being worked on
+#   - done: All stories in epic completed
+#
+# Epic Status Transitions:
+#   - backlog → in-progress: Automatically when first story is created (via create-story)
+#   - in-progress → done: Manually when all stories reach 'done' status
+#
+# Story Status:
+#   - backlog: Story only exists in epic file
+#   - ready-for-dev: Story file created in stories folder
+#   - in-progress: Developer actively working on implementation
+#   - review: Ready for code review (via Dev's code-review workflow)
+#   - done: Story completed
+#
+# Retrospective Status:
+#   - optional: Can be completed but not required
+#   - done: Retrospective has been completed
+#
+# WORKFLOW NOTES:
+# ===============
+# - Epic transitions to 'in-progress' automatically when first story is created
+# - Stories can be worked in parallel if team capacity allows
+# - SM typically creates next story after previous one is 'done' to incorporate learnings
+# - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
+
+development_status:
+  # Epic 1: Exploration Géographique
+  epic-1-exploration-geographique: backlog
+  us-01-01-carte-interactive: backlog
+  us-01-02-liste-des-stations: backlog
+  us-01-03-detail-d-une-station: backlog
+  us-01-04-filtre-carburant: backlog
+  epic-1-retrospective: optional
+
+  # Epic 2: Comparaison Économique
+  epic-2-comparaison-economique: backlog
+  us-02-01-prix-a-jour-et-fraicheur: backlog
+  us-02-02-calcul-du-cout-du-plein: backlog
+  us-02-03-tri-intelligent-prix-distance: backlog
+  epic-2-retrospective: optional
+
+  # Epic 3: Intelligence & Analyse
+  epic-3-intelligence-analyse: backlog
+  us-03-01-indicateur-de-tendance: backlog
+  us-03-02-mode-analyste: backlog
+  us-03-03-graphique-historique: backlog
+  epic-3-retrospective: optional
+
+  # Epic 4: Résilience (Offline)
+  epic-4-resilience-offline: backlog
+  us-04-01-cache-departemental: backlog
+  us-04-02-consultation-offline: backlog
+  epic-4-retrospective: optional
