@@ -1,3 +1,9 @@
+packages:
+  - 'etl'
+
 ignoredBuiltDependencies:
   - sharp
   - unrs-resolver
+
+onlyBuiltDependencies:
+  - duckdb
