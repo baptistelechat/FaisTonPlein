@@ -38,6 +38,8 @@ development_status:
   epic-0-fondations-techniques: in-progress
   us-00-01-pipeline-etl: done
   us-00-02-integration-duckdb: backlog
+  us-00-03-consolidation-historique: backlog
+  epic-0-retrospective: optional
 
   # Epic 1: Exploration Géographique
   epic-1-exploration-geographique: in-progress

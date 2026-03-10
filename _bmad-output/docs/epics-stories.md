@@ -36,7 +36,21 @@
 
 - [ ] Initialisation de DuckDB-WASM dans un Web Worker.
 - [ ] Chargement d'un fichier Parquet (ex: département test) depuis Hugging Face.
-- [ ] Exécution d'une requête SQL simple (SELECT \* FROM prices LIMIT 10) avec affichage des résultats.
+- [ ] Exécution d'une requête SQL simple (SELECT * FROM prices LIMIT 10) avec affichage des résultats.
+
+### US-00-03 : Consolidation des Données Historiques
+
+**En tant que** data engineer,
+**Je veux** consolider mensuellement les fichiers de données historiques,
+**Afin de** maintenir des performances de lecture optimales pour l'analyse sans perdre la granularité fine.
+
+**Critères d'Acceptation :**
+
+- [ ] Création d'un script de consolidation mensuelle (Batch).
+- [ ] Le script fusionne les petits fichiers (par heure) en un fichier mensuel optimisé.
+- [ ] **Important** : Les fichiers sources (par heure) sont CONSERVÉS pour garder l'historique précis.
+- [ ] Structure cible : `history/YYYY/MM/code_departement=XX/data_0.parquet` (ajouté aux côtés des dossiers `day=DD/hour=HH`).
+- [ ] Planification via CRON (ex: 1er du mois).
 
 ---
 
