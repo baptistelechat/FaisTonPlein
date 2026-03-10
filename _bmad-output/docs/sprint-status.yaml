@@ -35,13 +35,13 @@ story_location: "_bmad-output/docs/stories"
 
 development_status:
   # Epic 0: Fondations Techniques
-  epic-0-fondations-techniques: backlog
-  us-00-01-pipeline-etl: backlog
+  epic-0-fondations-techniques: in-progress
+  us-00-01-pipeline-etl: done
   us-00-02-integration-duckdb: backlog
 
   # Epic 1: Exploration Géographique
   epic-1-exploration-geographique: in-progress
-  us-01-01-carte-interactive: review
+  us-01-01-carte-interactive: done
   us-01-02-liste-des-stations: backlog
   us-01-03-detail-d-une-station: backlog
   us-01-04-filtre-carburant: backlog

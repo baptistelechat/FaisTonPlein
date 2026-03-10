@@ -6,7 +6,7 @@
 **Version :** 1.0
 **Source :** [PRD](../planning/prd-faistonplein.md)
 
-***
+---
 
 ## E00 - Fondations Techniques
 
@@ -36,9 +36,9 @@
 
 - [ ] Initialisation de DuckDB-WASM dans un Web Worker.
 - [ ] Chargement d'un fichier Parquet (ex: département test) depuis Hugging Face.
-- [ ] Exécution d'une requête SQL simple (SELECT * FROM prices LIMIT 10) avec affichage des résultats.
+- [ ] Exécution d'une requête SQL simple (SELECT \* FROM prices LIMIT 10) avec affichage des résultats.
 
-***
+---
 
 ## E01 - Exploration Géographique
 
@@ -67,7 +67,7 @@
 
 - [ ] Affichage d'une liste sous la carte (ou via un toggle).
 - [ ] Chaque élément affiche : Nom, Distance, Prix du carburant sélectionné.
-- [ ] Possibilité de trier par Distance  ou Prix.
+- [ ] Possibilité de trier par Distance ou Prix.
 
 ### US-01-03 : Détail d'une Station
 
@@ -94,7 +94,7 @@
 - [ ] La carte et la liste se mettent à jour instantanément.
 - [ ] Le choix est sauvegardé pour les prochaines sessions.
 
-***
+---
 
 ## E02 - Comparaison Économique
 
@@ -134,7 +134,7 @@
 - [ ] Algorithme prenant en compte la consommation moyenne (paramétrable ou défaut).
 - [ ] Affichage du surcoût lié au détour.
 
-***
+---
 
 ## E03 - Intelligence & Analyse
 
@@ -173,7 +173,7 @@
 - [ ] Graphique linéaire interactif (Recharts).
 - [ ] Affichage des points de données au survol.
 
-***
+---
 
 ## E04 - Résilience (Offline)
 
@@ -202,4 +202,3 @@
 - [ ] L'application se lance sans réseau.
 - [ ] Accès complet à la carte et liste (données en cache).
 - [ ] Indicateur "Mode Hors Ligne".
-
