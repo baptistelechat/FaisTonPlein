@@ -24,16 +24,23 @@ export const DuckDBProvider = ({ children }: { children: React.ReactNode }) => {
   const [conn, setConn] = useState<duckdb.AsyncDuckDBConnection | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
+  
+  // Track initialization status to prevent double init in React Strict Mode
+  const isInitializing = React.useRef(false);
 
   useEffect(() => {
     // Check if we are in the browser
     if (typeof window === 'undefined') return;
+
+    // Prevent double initialization
+    if (db || isInitializing.current) return;
 
     let isMounted = true;
     let newDb: duckdb.AsyncDuckDB | null = null;
     let newConn: duckdb.AsyncDuckDBConnection | null = null;
 
     const initDuckDB = async () => {
+      isInitializing.current = true;
       try {
         const MANUAL_BUNDLES: duckdb.DuckDBBundles = {
           mvp: {
@@ -71,6 +78,8 @@ export const DuckDBProvider = ({ children }: { children: React.ReactNode }) => {
           setError(err instanceof Error ? err : new Error('Unknown error'));
           setIsLoading(false);
         }
+      } finally {
+        isInitializing.current = false;
       }
     };
 

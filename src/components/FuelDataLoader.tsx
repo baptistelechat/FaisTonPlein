@@ -6,19 +6,18 @@ import { useAppStore } from '@/store/useAppStore';
 import { mapRawDataToStation, RawStationData } from '@/lib/mappers';
 import { toast } from 'sonner';
 
-const DEPARTEMENT = 85;
-
 export const FuelDataLoader = () => {
   const { db, isLoading: isDbLoading, error: dbError } = useDuckDB();
-  const { setStations, setIsLoading } = useAppStore();
+  const { setStations, setIsLoading, selectedDepartment } = useAppStore();
   const [dataLoaded, setDataLoaded] = useState(false);
+  const [currentDepartment, setCurrentDepartment] = useState<string | null>(null);
 
   useEffect(() => {
     let isMounted = true;
 
     const loadData = async () => {
-      // If data is already loaded, ensure loading is false and exit
-      if (dataLoaded) {
+      // If data is already loaded for this department, ensure loading is false and exit
+      if (dataLoaded && currentDepartment === selectedDepartment) {
         setIsLoading(false);
         return;
       }
@@ -29,8 +28,8 @@ export const FuelDataLoader = () => {
       try {
         const conn = await db.connect();
         
-        // URL for DEPARTEMENT (Hardcoded for now as per US-00-02)
-        const url = `https://huggingface.co/datasets/baptistelechat/fais-ton-plein_dataset/resolve/main/data/latest/code_departement=${DEPARTEMENT}/data_0.parquet`;
+        // URL for DEPARTEMENT
+        const url = `https://huggingface.co/datasets/baptistelechat/fais-ton-plein_dataset/resolve/main/data/latest/code_departement=${selectedDepartment}/data_0.parquet`;
         
         // Load Parquet file
         await conn.query(`
@@ -49,14 +48,15 @@ export const FuelDataLoader = () => {
             console.log(`Loaded ${stations.length} stations from DuckDB`);
             setStations(stations);
             setDataLoaded(true);
-            toast.success(`${stations.length} stations chargées (${DEPARTEMENT})`);
+            setCurrentDepartment(selectedDepartment);
+            toast.success(`${stations.length} stations chargées (${selectedDepartment})`);
         }
         
         await conn.close();
       } catch (err) {
         if (isMounted) {
             console.error("Failed to load fuel data:", err);
-            toast.error("Erreur lors du chargement des données carburant");
+            toast.error(`Erreur lors du chargement des données carburant (${selectedDepartment})`);
         }
       } finally {
         if (isMounted) {
@@ -72,7 +72,7 @@ export const FuelDataLoader = () => {
     return () => {
         isMounted = false;
     };
-  }, [db, isDbLoading, dbError, dataLoaded, setStations, setIsLoading]);
+  }, [db, isDbLoading, dbError, dataLoaded, setStations, setIsLoading, selectedDepartment, currentDepartment]);
 
   if (dbError) {
     return null; // Or show a global error banner

@@ -37,7 +37,7 @@ development_status:
   # Epic 0: Fondations Techniques
   epic-0-fondations-techniques: in-progress
   us-00-01-pipeline-etl: done
-  us-00-02-integration-duckdb: ready-for-dev
+  us-00-02-integration-duckdb: review
   us-00-03-consolidation-historique: backlog
   epic-0-retrospective: optional
 

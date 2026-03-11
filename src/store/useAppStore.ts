@@ -23,6 +23,7 @@ type AppStore = {
   isLoading: boolean;
   userLocation: [number, number] | null;
   selectedFuel: FuelType;
+  selectedDepartment: string;
   searchQuery: string;
   selectedStation: Station | null;
 
@@ -30,6 +31,7 @@ type AppStore = {
   setIsLoading: (loading: boolean) => void;
   setUserLocation: (loc: [number, number] | null) => void;
   setSelectedFuel: (fuel: FuelType) => void;
+  setSelectedDepartment: (dept: string) => void;
   setSearchQuery: (query: string) => void;
   setSelectedStation: (station: Station | null) => void;
 };
@@ -39,6 +41,7 @@ export const useAppStore = create<AppStore>((set) => ({
   isLoading: false,
   userLocation: null,
   selectedFuel: "E10",
+  selectedDepartment: "75",
   searchQuery: "",
   selectedStation: null,
 
@@ -46,6 +49,7 @@ export const useAppStore = create<AppStore>((set) => ({
   setIsLoading: (isLoading) => set({ isLoading }),
   setUserLocation: (userLocation) => set({ userLocation }),
   setSelectedFuel: (selectedFuel) => set({ selectedFuel }),
+  setSelectedDepartment: (selectedDepartment) => set({ selectedDepartment }),
   setSearchQuery: (searchQuery) => set({ searchQuery }),
   setSelectedStation: (selectedStation) => set({ selectedStation }),
 }));

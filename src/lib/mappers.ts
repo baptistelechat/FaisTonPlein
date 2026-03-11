@@ -54,13 +54,11 @@ export function mapRawDataToStation(raw: RawStationData): Station {
   let prices: FuelPrice[] = [];
   try {
     if (raw.prix) {
-      const parsedPrices: RawFuelPrice[] | RawFuelPrice = JSON.parse(raw.prix);
-      const pricesArray = Array.isArray(parsedPrices)
+      const parsedPrices = JSON.parse(raw.prix);
+      const pricesArray: RawFuelPrice[] = Array.isArray(parsedPrices)
         ? parsedPrices
         : [parsedPrices];
 
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
       prices = pricesArray
         .map((p) => {
           const type = mapFuelType(p["@nom"]);
