@@ -40,6 +40,7 @@ function mapFuelType(rawName: string): FuelType | "Unknown" {
 
 export function mapRawDataToStation(raw: RawStationData): Station {
   // Convert lat/lon from integers (e.g. 4884200) to float (48.84200)
+  // Data.gouv provides coordinates multiplied by 100,000
   const lat = Number(raw.latitude) / 100000;
   const lon = Number(raw.longitude) / 100000;
 

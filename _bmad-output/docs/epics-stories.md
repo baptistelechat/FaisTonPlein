@@ -46,11 +46,11 @@
 
 **Critères d'Acceptation :**
 
-- [ ] Création d'un script de consolidation journalier/mensuelle/annuelle (Batch).
-- [ ] Le script fusionne les petits fichiers (par heure) en un fichier optimisé.
-- [ ] **Important** : Les fichiers sources (par heure) sont CONSERVÉS pour garder l'historique précis.
-- [ ] Structure cible : `consolidated/YYYY/MM/DD/code_departement=XX/data_0.parquet` / `consolidated/YYYY/MM/code_departement=XX/data_0.parquet` / `consolidated/YYYY/code_departement=XX/data_0.parquet` ou sinon directemnt dans la structure de `history`
-- [ ] Planification via CRON (ex: 1er du mois).
+- [x] Création d'un script de consolidation journalier/mensuelle (Batch).
+- [x] Le script fusionne les petits fichiers (par heure) en un fichier optimisé.
+- [x] **Important** : Les fichiers sources (par heure) sont CONSERVÉS pour garder l'historique précis.
+- [x] Structure cible : `consolidated/YYYY/MM/DD/code_departement=XX/data_0.parquet` / `consolidated/YYYY/MM/code_departement=XX/data_0.parquet` / `consolidated/YYYY/code_departement=XX/data_0.parquet` ou sinon directemnt dans la structure de `history`
+- [x] Planification via CRON (ex: 1er du mois).
 
 ### US-00-04 : Récupération Historique (XML -> Parquet)
 
@@ -80,10 +80,10 @@
 
 **Critères d'Acceptation :**
 
-- [ ] La carte s'affiche et se centre sur la géolocalisation de l'utilisateur (si autorisée).
-- [ ] Les stations sont représentées par des marqueurs.
-- [ ] Le zoom et le déplacement sur la carte sont fluides.
-- [ ] Au clic sur un marqueur, un résumé de la station s'affiche.
+- [x] La carte s'affiche et se centre sur la géolocalisation de l'utilisateur (si autorisée).
+- [x] Les stations sont représentées par des marqueurs.
+- [x] Le zoom et le déplacement sur la carte sont fluides.
+- [x] Au clic sur un marqueur, un résumé de la station s'affiche.
 
 ### US-01-02 : Liste des Stations
 

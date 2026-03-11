@@ -27,6 +27,8 @@ type AppStore = {
   lastUpdate: string | null;
   searchQuery: string;
   selectedStation: Station | null;
+  flyToStation: Station | null;
+  listSortBy: "price" | "distance";
 
   setStations: (stations: Station[]) => void;
   setIsLoading: (loading: boolean) => void;
@@ -36,6 +38,8 @@ type AppStore = {
   setLastUpdate: (date: string | null) => void;
   setSearchQuery: (query: string) => void;
   setSelectedStation: (station: Station | null) => void;
+  setFlyToStation: (station: Station | null) => void;
+  setListSortBy: (sortBy: "price" | "distance") => void;
 };
 
 export const useAppStore = create<AppStore>((set) => ({
@@ -43,10 +47,12 @@ export const useAppStore = create<AppStore>((set) => ({
   isLoading: false,
   userLocation: null,
   selectedFuel: "E10",
-  selectedDepartment: "75",
+  selectedDepartment: "85",
   lastUpdate: null,
   searchQuery: "",
   selectedStation: null,
+  flyToStation: null,
+  listSortBy: "price",
 
   setStations: (stations) => set({ stations }),
   setIsLoading: (isLoading) => set({ isLoading }),
@@ -54,6 +60,8 @@ export const useAppStore = create<AppStore>((set) => ({
   setSelectedFuel: (selectedFuel) => set({ selectedFuel }),
   setSelectedDepartment: (selectedDepartment) => set({ selectedDepartment }),
   setLastUpdate: (lastUpdate) => set({ lastUpdate }),
-  setSearchQuery: (searchQuery) => set({ searchQuery }),
-  setSelectedStation: (selectedStation) => set({ selectedStation }),
+  setSearchQuery: (query) => set({ searchQuery: query }),
+  setSelectedStation: (station) => set({ selectedStation: station }),
+  setFlyToStation: (station) => set({ flyToStation: station }),
+  setListSortBy: (sortBy) => set({ listSortBy: sortBy }),
 }));

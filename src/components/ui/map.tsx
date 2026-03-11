@@ -309,7 +309,6 @@ const Map = forwardRef<MapRef, MapProps>(function Map(
   // Sync controlled viewport to map
   useEffect(() => {
     if (!mapInstance || !isControlled || !viewport) return;
-    if (mapInstance.isMoving()) return;
 
     const current = getViewport(mapInstance);
     const next = {
@@ -328,6 +327,10 @@ const Map = forwardRef<MapRef, MapProps>(function Map(
     ) {
       return;
     }
+
+    // Do not use jumpTo if we are in the middle of a flyTo animation
+    // The parent component might be controlling the viewport via flyTo
+    if (mapInstance.isMoving()) return;
 
     internalUpdateRef.current = true;
     mapInstance.jumpTo(next);

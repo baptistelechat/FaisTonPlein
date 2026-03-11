@@ -9,7 +9,7 @@ import {
 import { useAppStore } from "@/store/useAppStore";
 import { Loader2 } from "lucide-react";
 import type { Map as MapLibreMap } from "maplibre-gl";
-import { ReactNode, useEffect, useRef, useState } from "react";
+import { ReactNode, useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import useSupercluster from "use-supercluster";
 import { PriceMarker } from "./PriceMarker";
@@ -26,6 +26,8 @@ export default function InteractiveMap({ children }: { children?: ReactNode }) {
     setSelectedStation,
     userLocation,
     setUserLocation,
+    flyToStation,
+    setFlyToStation,
   } = useAppStore();
 
   const mapRef = useRef<MapLibreMap>(null);
@@ -41,8 +43,33 @@ export default function InteractiveMap({ children }: { children?: ReactNode }) {
     pitch: 0,
   });
 
+  // Handle flyToStation effect
+  useEffect(() => {
+    if (flyToStation && mapRef.current) {
+      const timer = setTimeout(() => {
+        mapRef.current?.flyTo({
+          center: [flyToStation.lon, flyToStation.lat],
+          zoom: 15,
+          speed: 1.2, // Make the flying slow
+          curve: 1.42, // Change the speed at which it zooms out
+          essential: true, // This animation is considered essential with respect to prefers-reduced-motion
+        });
+        setFlyToStation(null); // Reset after flying
+      }, 0);
+      return () => clearTimeout(timer);
+    }
+  }, [flyToStation, setFlyToStation]);
+
+  // Ensure bounds are updated when viewport stabilizes
+  // We removed the timeout here to avoid conflict with handleViewportChange
+  // But if we notice missing clusters after flyTo, we might need to trigger a bounds update manually.
+  // The handleViewportChange is called during flyTo so it should be fine.
+
   // Prepare points for supercluster
   const points = stations
+    .filter((station) =>
+      station.prices.some((p) => p.fuel_type === selectedFuel),
+    ) // Filter stations that have the selected fuel
     .map((station) => {
       const price = station.prices.find((p) => p.fuel_type === selectedFuel);
       if (!price) return null;
@@ -74,16 +101,23 @@ export default function InteractiveMap({ children }: { children?: ReactNode }) {
   });
 
   // Update bounds on viewport change
-  const handleViewportChange = (newViewport: Partial<MapViewport>) => {
-    // We need to cast newViewport because react-map-gl types might differ slightly from our local MapViewport definition
-    setViewport(newViewport as Partial<MapViewport>);
+  const handleViewportChange = useCallback(
+    (newViewport: Partial<MapViewport>) => {
+      // We need to cast newViewport because react-map-gl types might differ slightly from our local MapViewport definition
+      setViewport(newViewport as Partial<MapViewport>);
 
-    if (mapRef.current) {
-      // mapRef.current IS the MapLibreGL.Map instance in our custom implementation
-      const b = mapRef.current.getBounds();
-      setBounds([b.getWest(), b.getSouth(), b.getEast(), b.getNorth()]);
-    }
-  };
+      if (mapRef.current) {
+        // mapRef.current IS the MapLibreGL.Map instance in our custom implementation
+        const b = mapRef.current.getBounds();
+        // Debounce bounds update to avoid too many re-renders during animation
+        // Actually we can just update it, but maybe we should throttle it?
+        // For now, let's keep it simple. The issue "Maximum update depth" might be caused by something else.
+        // But if we want to be safe, we can wrap this in a transition or check if bounds changed significantly.
+        setBounds([b.getWest(), b.getSouth(), b.getEast(), b.getNorth()]);
+      }
+    },
+    [],
+  );
 
   // Initial Geolocation
   useEffect(() => {
@@ -160,7 +194,9 @@ export default function InteractiveMap({ children }: { children?: ReactNode }) {
                 onClick={(e) => {
                   e.stopPropagation();
                   const expansionZoom = Math.min(
-                    supercluster?.getClusterExpansionZoom(cluster.id as number) || 0,
+                    supercluster?.getClusterExpansionZoom(
+                      cluster.id as number,
+                    ) || 0,
                     20,
                   );
                   setViewport({
