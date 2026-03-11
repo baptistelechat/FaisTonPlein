@@ -131,6 +131,27 @@ async function runETL() {
       `COPY fuel_prices_partitioned TO '${path.join(OUTPUT_DIR, "latest")}' (FORMAT PARQUET, PARTITION_BY (code_departement), OVERWRITE_OR_IGNORE);`,
     );
 
+    // Generate metadata.json for each department in "latest"
+    console.log("   -> Generating metadata.json for each department...");
+    const latestDir = path.join(OUTPUT_DIR, "latest");
+    if (fs.existsSync(latestDir)) {
+      const deptDirs = fs.readdirSync(latestDir, { withFileTypes: true });
+      for (const entry of deptDirs) {
+        if (entry.isDirectory() && entry.name.startsWith("code_departement=")) {
+          const deptPath = path.join(latestDir, entry.name);
+          const metadata = {
+            last_updated: now,
+            source: "data.economie.gouv.fr",
+            // We could add more stats here by querying DuckDB if needed
+          };
+          fs.writeFileSync(
+            path.join(deptPath, "metadata.json"),
+            JSON.stringify(metadata, null, 2),
+          );
+        }
+      }
+    }
+
     // 2. HISTORY (For Analytics/Backup)
     // Creates new folders for each hour, preserving history in the repo.
     console.log("   -> Generating 'history' (by date/hour)...");

@@ -8,7 +8,7 @@ import { toast } from 'sonner';
 
 export const FuelDataLoader = () => {
   const { db, isLoading: isDbLoading, error: dbError } = useDuckDB();
-  const { setStations, setIsLoading, selectedDepartment } = useAppStore();
+  const { setStations, setIsLoading, selectedDepartment, setLastUpdate } = useAppStore();
   const [dataLoaded, setDataLoaded] = useState(false);
   const [currentDepartment, setCurrentDepartment] = useState<string | null>(null);
 
@@ -29,12 +29,28 @@ export const FuelDataLoader = () => {
         const conn = await db.connect();
         
         // URL for DEPARTEMENT
-        const url = `https://huggingface.co/datasets/baptistelechat/fais-ton-plein_dataset/resolve/main/data/latest/code_departement=${selectedDepartment}/data_0.parquet`;
+        const baseUrl = `https://huggingface.co/datasets/baptistelechat/fais-ton-plein_dataset/resolve/main/data/latest/code_departement=${selectedDepartment}`;
+        const parquetUrl = `${baseUrl}/data_0.parquet`;
+        const metadataUrl = `${baseUrl}/metadata.json`;
+
+        // Try loading metadata first (non-blocking for parquet load but useful for UI)
+        try {
+          fetch(metadataUrl)
+            .then(res => res.json())
+            .then(meta => {
+              if (isMounted && meta.last_updated) {
+                setLastUpdate(meta.last_updated);
+              }
+            })
+            .catch(err => console.warn("Failed to load metadata", err));
+        } catch (e) {
+          console.warn("Metadata fetch error", e);
+        }
         
         // Load Parquet file
         await conn.query(`
           CREATE OR REPLACE TABLE fuel_prices AS 
-          SELECT * FROM read_parquet('${url}');
+          SELECT * FROM read_parquet('${parquetUrl}');
         `);
 
         // Query all stations
@@ -72,7 +88,7 @@ export const FuelDataLoader = () => {
     return () => {
         isMounted = false;
     };
-  }, [db, isDbLoading, dbError, dataLoaded, setStations, setIsLoading, selectedDepartment, currentDepartment]);
+  }, [db, isDbLoading, dbError, dataLoaded, setStations, setIsLoading, selectedDepartment, currentDepartment, setLastUpdate]);
 
   if (dbError) {
     return null; // Or show a global error banner

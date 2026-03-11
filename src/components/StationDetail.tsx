@@ -6,8 +6,8 @@ import { useAppStore } from "@/store/useAppStore";
 import { CreditCard, History, MapPin, Navigation } from "lucide-react";
 import { toast } from "sonner";
 
-export function StationDetailSheet() {
-  const { selectedStation, setSelectedStation, selectedFuel } = useAppStore();
+export function StationDetail() {
+  const { selectedStation, selectedFuel } = useAppStore();
 
   if (!selectedStation) return null;
 
@@ -65,51 +65,41 @@ export function StationDetailSheet() {
 
         {/* Action Buttons */}
         <div className="grid grid-cols-1 gap-3 pt-2">
-          <Button
-            onClick={handleNavigate}
-            size="lg"
-            className="shadow-primary/20 hover:shadow-primary/30 h-14 w-full gap-2 rounded-2xl text-base font-bold shadow-lg transition-all active:scale-95"
-          >
+          <Button onClick={handleNavigate} size="xl" className="w-full">
             <Navigation className="h-5 w-5" />Y Aller (Google Maps)
           </Button>
 
-          <div className="grid grid-cols-2 gap-3">
-            <Button
-              variant="outline"
-              className="h-12 gap-2 rounded-xl font-semibold"
-              disabled={true}
-            >
-              <History className="h-4 w-4" />
-              Historique
-            </Button>
-            <Button
-              variant="outline"
-              className="h-12 gap-2 rounded-xl font-semibold"
-              onClick={() => setSelectedStation(null)}
-            >
-              Fermer
-            </Button>
-          </div>
+          <Button
+            variant="outline"
+            size="lg"
+            disabled={true}
+            className="w-full"
+          >
+            <History className="h-4 w-4" />
+            Historique
+          </Button>
         </div>
 
         {/* Services */}
-        <div className="border-border/50 space-y-3 border-t pt-4">
-          <h4 className="text-muted-foreground flex items-center gap-2 text-sm font-bold tracking-wider uppercase">
-            <CreditCard className="h-4 w-4" />
-            Services disponibles
-          </h4>
-          <div className="flex flex-wrap gap-2">
-            {selectedStation.services.map((service) => (
-              <Badge
-                key={service}
-                variant="secondary"
-                className="rounded-lg px-2.5 py-1 text-xs font-medium"
-              >
-                {service}
-              </Badge>
-            ))}
+        {selectedStation.services && selectedStation.services.length > 0 && (
+          <div className="border-border/50 space-y-3 border-t pt-4">
+            <h4 className="text-muted-foreground flex items-center gap-2 text-sm font-bold tracking-wider uppercase">
+              <CreditCard className="h-4 w-4" />
+              Services disponibles
+            </h4>
+            <div className="flex flex-wrap gap-2">
+              {selectedStation.services.map((service) => (
+                <Badge
+                  key={service}
+                  variant="outline"
+                  className="bg-background/80 hover:bg-background border-border/60 rounded-full px-3 py-1 font-medium shadow-sm transition-colors"
+                >
+                  {service}
+                </Badge>
+              ))}
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );
