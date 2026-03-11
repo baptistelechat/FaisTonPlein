@@ -4,6 +4,39 @@ import fs from "fs";
 import path from "path";
 import { HF_REPO, HF_TOKEN } from "./config";
 
+/**
+ * Uploads files to Hugging Face with retry logic.
+ */
+export async function uploadFilesWithRetry(
+  params: Parameters<typeof uploadFiles>[0],
+  retries = 5,
+  delay = 2000,
+) {
+  for (let i = 0; i < retries; i++) {
+    try {
+      return await uploadFiles(params);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (error: any) {
+      const isLastAttempt = i === retries - 1;
+      if (isLastAttempt) {
+        console.error(
+          chalk.red(`❌ Upload failed after ${retries} attempts: ${error.message}`),
+        );
+        throw error;
+      }
+
+      console.warn(
+        chalk.yellow(
+          `⚠️ Upload failed (attempt ${i + 1}/${retries}): ${error.message}`,
+        ),
+      );
+      console.warn(chalk.yellow(`⏳ Retrying in ${delay / 1000}s...`));
+      await new Promise((resolve) => setTimeout(resolve, delay));
+      delay *= 2; // Exponential backoff
+    }
+  }
+}
+
 export async function ensureRepoExists() {
   if (!HF_TOKEN || !HF_REPO) return;
   try {
@@ -99,8 +132,8 @@ export async function uploadDirectory(dir: string, repo: string, token: string, 
   console.log(
     chalk.green(`✅ Found ${filesToUpload.length} files to upload.`),
   );
-  
-  await uploadFiles({
+
+  await uploadFilesWithRetry({
     repo: { type: "dataset", name: repo },
     credentials: { accessToken: token },
     files: filesToUpload,

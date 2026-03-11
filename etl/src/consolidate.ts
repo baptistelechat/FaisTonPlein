@@ -1,11 +1,10 @@
-import { uploadFiles } from "@huggingface/hub";
 import chalk from "chalk";
 import { Database } from "duckdb";
 import fs from "fs";
 import path from "path";
 import { HF_REPO, HF_TOKEN, OUTPUT_DIR } from "./config";
 import { initDB, runSQL } from "./db";
-import { listParquetFiles } from "./hf";
+import { listParquetFiles, uploadFilesWithRetry } from "./hf";
 
 interface ConsolidationOptions {
   db: Database;
@@ -263,7 +262,7 @@ export async function consolidateData({
           `   Found ${filesToUpload.length} consolidated files to upload.`,
         ),
       );
-      await uploadFiles({
+      await uploadFilesWithRetry({
         repo: { type: "dataset", name: hfRepo },
         credentials: { accessToken: hfToken },
         files: filesToUpload,
