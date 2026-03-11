@@ -6,7 +6,8 @@
   "scripts": {
     "start": "node dist/index.js",
     "build": "tsc",
-    "dev": "ts-node index.ts"
+    "dev": "ts-node index.ts",
+    "consolidate": "ts-node src/manual-consolidate.ts"
   },
   "dependencies": {
     "@huggingface/hub": "^0.15.1",

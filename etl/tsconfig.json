@@ -9,6 +9,6 @@
     "outDir": "./dist",
     "rootDir": "./"
   },
-  "include": ["index.ts"],
+  "include": ["*.ts", "src/manual-consolidate.ts"],
   "exclude": ["node_modules"]
 }

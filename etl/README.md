@@ -84,7 +84,22 @@ PM2 permet de lancer le script en arrière-plan et de le redémarrer automatique
 - Il télécharge le fichier CSV depuis `data.economie.gouv.fr`.
 - Il utilise DuckDB pour convertir le CSV en Parquet, partitionné par `code_departement`.
 - Il upload le dossier `data/` sur le repo Hugging Face spécifié.
+- Il consolide ensuite les données historiques (Journalier et Mensuel) pour optimiser la lecture.
 - Il attend ensuite la prochaine exécution planifiée via `node-cron`.
+
+## Consolidation des Données
+
+Le pipeline inclut une étape de consolidation automatique :
+
+1. **Consolidation Journalière** :
+   - Chaque exécution vérifie les données du jour.
+   - Fusionne les fichiers horaires en un fichier partitionné par jour : `consolidated/daily/year=YYYY/month=MM/day=DD/...`
+   - Conserve la granularité fine dans `history/`.
+
+2. **Consolidation Mensuelle** :
+   - Le dernier jour du mois, fusionne les données journalières en un fichier mensuel : `consolidated/monthly/year=YYYY/month=MM/...`
+
+Ceci permet des requêtes analytiques rapides sur des périodes plus longues sans lire des milliers de petits fichiers.
 
 ## Dépannage
 

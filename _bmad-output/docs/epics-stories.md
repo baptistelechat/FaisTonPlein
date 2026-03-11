@@ -20,11 +20,11 @@
 
 **Critères d'Acceptation :**
 
-- [ ] Script Node.js/TypeScript pour télécharger le CSV depuis data.gouv.fr.
-- [ ] Conversion des données en format Parquet (avec compression).
-- [ ] Partitionnement des fichiers par département.
-- [ ] Upload automatique vers un Dataset Hugging Face.
-- [ ] Exécution planifiée (GitHub Actions) ou manuelle.
+- [x] Script Node.js/TypeScript pour télécharger le CSV depuis data.gouv.fr.
+- [x] Conversion des données en format Parquet (avec compression).
+- [x] Partitionnement des fichiers par département.
+- [x] Upload automatique vers un Dataset Hugging Face.
+- [x] Exécution planifiée (GitHub Actions) ou manuelle.
 
 ### US-00-02 : Intégration Client DuckDB-WASM
 
@@ -34,9 +34,9 @@
 
 **Critères d'Acceptation :**
 
-- [ ] Initialisation de DuckDB-WASM dans un Web Worker.
-- [ ] Chargement d'un fichier Parquet (ex: département test) depuis Hugging Face.
-- [ ] Exécution d'une requête SQL simple (SELECT \* FROM prices LIMIT 10) avec affichage des résultats.
+- [x] Initialisation de DuckDB-WASM dans un Web Worker.
+- [x] Chargement d'un fichier Parquet (ex: département test) depuis Hugging Face.
+- [x] Exécution d'une requête SQL simple (SELECT \* FROM prices LIMIT 10) avec affichage des résultats.
 
 ### US-00-03 : Consolidation des Données Historiques
 

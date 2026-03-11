@@ -43,7 +43,7 @@ export const useAppStore = create<AppStore>((set) => ({
   isLoading: false,
   userLocation: null,
   selectedFuel: "E10",
-  selectedDepartment: "85",
+  selectedDepartment: "75",
   lastUpdate: null,
   searchQuery: "",
   selectedStation: null,
