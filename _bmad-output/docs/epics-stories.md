@@ -60,11 +60,11 @@
 
 **Critères d'Acceptation :**
 
-- [ ] Script de téléchargement des archives annuelles (2007-2025) (XML dans ZIP).
-- [ ] Script de téléchargement des flux quotidiens (30 derniers jours) avec déduplication (ne pas écraser/dupliquer les jours déjà acquis).
-- [ ] Parsing des fichiers XML pour extraire les données (stations, prix, ruptures).
-- [ ] Conversion et intégration dans le pipeline existant (Parquet + HuggingFace).
-- [ ] Gestion des cas limites (fichiers corrompus, jours manquants).
+- [x] Script de téléchargement des archives annuelles (2007-2025) (XML dans ZIP).
+- [x] Script de téléchargement des flux quotidiens (30 derniers jours) avec déduplication (ne pas écraser/dupliquer les jours déjà acquis).
+- [x] Parsing des fichiers XML pour extraire les données (stations, prix, ruptures).
+- [x] Conversion et intégration dans le pipeline existant (Parquet + HuggingFace).
+- [x] Gestion des cas limites (fichiers corrompus, jours manquants).
 
 ***
 

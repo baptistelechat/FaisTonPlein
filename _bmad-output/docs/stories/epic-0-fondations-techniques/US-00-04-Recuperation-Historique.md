@@ -4,7 +4,7 @@
 **Epic:** E00 - Fondations Techniques
 **Priority:** Must Have
 **Story Points:** 8
-**Status:** Ready for Dev
+**Status:** Done
 
 ## User Story
 
@@ -14,12 +14,12 @@
 
 ## Acceptance Criteria
 
-- [ ] Script de téléchargement des archives annuelles (2007-2025) (XML dans ZIP).
-- [ ] Script de téléchargement des flux quotidiens (30 derniers jours) avec déduplication (ne pas écraser/dupliquer les jours déjà acquis).
-- [ ] Parsing des fichiers XML pour extraire les données (stations, prix, ruptures).
-- [ ] Conversion et intégration dans le pipeline existant (Parquet + HuggingFace).
-- [ ] Gestion des cas limites (fichiers corrompus, jours manquants).
-- [ ] **Important** : Le script doit trier les données dans la structure de dossier actuelle `history`.
+- [x] Script de téléchargement des archives annuelles (2007-2025) (XML dans ZIP).
+- [x] Script de téléchargement des flux quotidiens (30 derniers jours) avec déduplication (ne pas écraser/dupliquer les jours déjà acquis).
+- [x] Parsing des fichiers XML pour extraire les données (stations, prix, ruptures).
+- [x] Conversion et intégration dans le pipeline existant (Parquet + HuggingFace).
+- [x] Gestion des cas limites (fichiers corrompus, jours manquants).
+- [x] **Important** : Le script doit trier les données dans la structure de dossier actuelle `history`.
 
 ## Technical Notes
 
@@ -38,7 +38,7 @@
 
 ## Definition of Done
 
-- [ ] Script d'import historique créé et fonctionnel.
-- [ ] Données historiques (2007-2025) correctement téléchargées, converties et classées dans `history/`.
-- [ ] Vérification de l'intégrité des données importées.
-- [ ] Code commité et documenté.
+- [x] Script d'import historique créé et fonctionnel.
+- [x] Données historiques (2007-2025) correctement téléchargées, converties et classées dans `history/`.
+- [x] Vérification de l'intégrité des données importées.
+- [x] Code commité et documenté.

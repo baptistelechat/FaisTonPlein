@@ -8,8 +8,7 @@
     "build": "tsc",
     "dev": "ts-node index.ts",
     "consolidate": "ts-node src/manual-consolidate.ts",
-    "import-history": "ts-node src/scripts/import-history.ts",
-    "upload-history": "ts-node src/scripts/upload-history.ts"
+    "import-history": "ts-node src/scripts/import-history.ts"
   },
   "dependencies": {
     "@huggingface/hub": "^0.15.1",
