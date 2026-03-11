@@ -1,3 +1,5 @@
+import { DuckDBProvider } from "@/components/DuckDBProvider";
+import { FuelDataLoader } from "@/components/FuelDataLoader";
 import type { Metadata } from "next";
 import { Manrope, Space_Grotesk } from "next/font/google";
 import "./globals.css";
@@ -29,7 +31,10 @@ export default function RootLayout({
       <body
         className={`${manrope.variable} ${spaceGrotesk.variable} bg-background text-foreground font-sans antialiased`}
       >
-        {children}
+        <DuckDBProvider>
+          <FuelDataLoader />
+          {children}
+        </DuckDBProvider>
       </body>
     </html>
   );

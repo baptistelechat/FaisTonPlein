@@ -1,0 +1,81 @@
+import { Database } from "duckdb";
+import fs from "fs";
+import path from "path";
+import { CSV_URL, OUTPUT_DIR } from "./config";
+import { runSQL } from "./db";
+
+export async function processFuelData(db: Database) {
+  // Create table from CSV
+  // We select specific columns to ensure clean schema if needed, but SELECT * is fine for now
+  console.log("📥 Downloading and parsing CSV...");
+  await runSQL(
+    db,
+    `CREATE OR REPLACE TABLE fuel_prices AS SELECT * FROM read_csv_auto('${CSV_URL}');`,
+  );
+
+  // Clean output dir
+  if (fs.existsSync(OUTPUT_DIR)) {
+    fs.rmSync(OUTPUT_DIR, { recursive: true, force: true });
+  }
+  fs.mkdirSync(OUTPUT_DIR);
+
+  // Write to Parquet partitioned in two ways:
+  // 1. "latest": Partitioned by Department only (for the App) -> Fast access, always up to date.
+  // 2. "history": Partitioned by Date/Time (for Analytics) -> Archival, keeps history.
+  console.log("📦 Writing partitioned Parquet files...");
+
+  // Add timestamp columns for partitioning
+  await runSQL(
+    db,
+    `
+      CREATE OR REPLACE TABLE fuel_prices_partitioned AS 
+      SELECT 
+          *,
+          strftime(now(), '%Y') as year,
+          strftime(now(), '%m') as month,
+          strftime(now(), '%d') as day,
+          strftime(now(), '%H') as hour,
+          now() as extraction_date
+      FROM fuel_prices 
+      WHERE code_departement IS NOT NULL;
+  `,
+  );
+
+  // 1. LATEST (For App Client)
+  // Overwrites the file for each department, so the URL is stable.
+  console.log("   -> Generating 'latest' (by department)...");
+  await runSQL(
+    db,
+    `COPY fuel_prices_partitioned TO '${path.join(OUTPUT_DIR, "latest")}' (FORMAT PARQUET, PARTITION_BY (code_departement), OVERWRITE_OR_IGNORE);`,
+  );
+
+  // Generate metadata.json for each department in "latest"
+  console.log("   -> Generating metadata.json for each department...");
+  const latestDir = path.join(OUTPUT_DIR, "latest");
+  if (fs.existsSync(latestDir)) {
+    const deptDirs = fs.readdirSync(latestDir, { withFileTypes: true });
+    const now = new Date().toISOString();
+    for (const entry of deptDirs) {
+      if (entry.isDirectory() && entry.name.startsWith("code_departement=")) {
+        const deptPath = path.join(latestDir, entry.name);
+        const metadata = {
+          last_updated: now,
+          source: "data.economie.gouv.fr",
+          // We could add more stats here by querying DuckDB if needed
+        };
+        fs.writeFileSync(
+          path.join(deptPath, "metadata.json"),
+          JSON.stringify(metadata, null, 2),
+        );
+      }
+    }
+  }
+
+  // 2. HISTORY (For Analytics/Backup)
+  // Creates new folders for each hour, preserving history in the repo.
+  console.log("   -> Generating 'history' (by date/hour)...");
+  await runSQL(
+    db,
+    `COPY fuel_prices_partitioned TO '${path.join(OUTPUT_DIR, "history")}' (FORMAT PARQUET, PARTITION_BY (year, month, day, hour, code_departement), OVERWRITE_OR_IGNORE);`,
+  );
+}

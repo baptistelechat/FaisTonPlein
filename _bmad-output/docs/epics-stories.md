@@ -20,11 +20,11 @@
 
 **Critères d'Acceptation :**
 
-- [ ] Script Node.js/TypeScript pour télécharger le CSV depuis data.gouv.fr.
-- [ ] Conversion des données en format Parquet (avec compression).
-- [ ] Partitionnement des fichiers par département.
-- [ ] Upload automatique vers un Dataset Hugging Face.
-- [ ] Exécution planifiée (GitHub Actions) ou manuelle.
+- [x] Script Node.js/TypeScript pour télécharger le CSV depuis data.gouv.fr.
+- [x] Conversion des données en format Parquet (avec compression).
+- [x] Partitionnement des fichiers par département.
+- [x] Upload automatique vers un Dataset Hugging Face.
+- [x] Exécution planifiée (GitHub Actions) ou manuelle.
 
 ### US-00-02 : Intégration Client DuckDB-WASM
 
@@ -34,9 +34,37 @@
 
 **Critères d'Acceptation :**
 
-- [ ] Initialisation de DuckDB-WASM dans un Web Worker.
-- [ ] Chargement d'un fichier Parquet (ex: département test) depuis Hugging Face.
-- [ ] Exécution d'une requête SQL simple (SELECT * FROM prices LIMIT 10) avec affichage des résultats.
+- [x] Initialisation de DuckDB-WASM dans un Web Worker.
+- [x] Chargement d'un fichier Parquet (ex: département test) depuis Hugging Face.
+- [x] Exécution d'une requête SQL simple (SELECT \* FROM prices LIMIT 10) avec affichage des résultats.
+
+### US-00-03 : Consolidation des Données Historiques
+
+**En tant que** data engineer,
+**Je veux** consolider les fichiers de données historiques,
+**Afin de** maintenir des performances de lecture optimales pour l'analyse sans perdre la granularité fine (jour/mois/année).
+
+**Critères d'Acceptation :**
+
+- [ ] Création d'un script de consolidation journalier/mensuelle/annuelle (Batch).
+- [ ] Le script fusionne les petits fichiers (par heure) en un fichier optimisé.
+- [ ] **Important** : Les fichiers sources (par heure) sont CONSERVÉS pour garder l'historique précis.
+- [ ] Structure cible : `consolidated/YYYY/MM/DD/code_departement=XX/data_0.parquet` / `consolidated/YYYY/MM/code_departement=XX/data_0.parquet` / `consolidated/YYYY/code_departement=XX/data_0.parquet` ou sinon directemnt dans la structure de `history`
+- [ ] Planification via CRON (ex: 1er du mois).
+
+### US-00-04 : Récupération Historique (XML -> Parquet)
+
+**En tant que** data engineer,
+**Je veux** récupérer et intégrer les données historiques (annuelles et quotidiennes) depuis prix-carburants.gouv.fr,
+**Afin de** constituer une base de données complète pour l'analyse des tendances sur le long terme. Ce sera un script a part que je lance une fois et que je ne relance plus jamais. Il faut trier les données dans la structure de dossier actuelle `history`
+
+**Critères d'Acceptation :**
+
+- [x] Script de téléchargement des archives annuelles (2007-2025) (XML dans ZIP).
+- [x] Script de téléchargement des flux quotidiens (30 derniers jours) avec déduplication (ne pas écraser/dupliquer les jours déjà acquis).
+- [x] Parsing des fichiers XML pour extraire les données (stations, prix, ruptures).
+- [x] Conversion et intégration dans le pipeline existant (Parquet + HuggingFace).
+- [x] Gestion des cas limites (fichiers corrompus, jours manquants).
 
 ***
 
@@ -67,7 +95,7 @@
 
 - [ ] Affichage d'une liste sous la carte (ou via un toggle).
 - [ ] Chaque élément affiche : Nom, Distance, Prix du carburant sélectionné.
-- [ ] Possibilité de trier par Distance  ou Prix.
+- [ ] Possibilité de trier par Distance ou Prix.
 
 ### US-01-03 : Détail d'une Station
 

@@ -8,8 +8,10 @@ import {
 } from "@/components/ui/map";
 import { useAppStore } from "@/store/useAppStore";
 import { Loader2 } from "lucide-react";
-import { ReactNode, useEffect, useState } from "react";
+import type { Map as MapLibreMap } from "maplibre-gl";
+import { ReactNode, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
+import useSupercluster from "use-supercluster";
 import { PriceMarker } from "./PriceMarker";
 
 const DEFAULT_CENTER: [number, number] = [2.3522, 48.8566]; // Paris [lon, lat]
@@ -18,7 +20,6 @@ const DEFAULT_ZOOM = 13;
 export default function InteractiveMap({ children }: { children?: ReactNode }) {
   const {
     stations,
-    fetchStations,
     isLoading,
     selectedFuel,
     selectedStation,
@@ -27,6 +28,12 @@ export default function InteractiveMap({ children }: { children?: ReactNode }) {
     setUserLocation,
   } = useAppStore();
 
+  const mapRef = useRef<MapLibreMap>(null);
+
+  const [bounds, setBounds] = useState<[number, number, number, number] | null>(
+    null,
+  );
+
   const [viewport, setViewport] = useState<Partial<MapViewport>>({
     center: DEFAULT_CENTER,
     zoom: DEFAULT_ZOOM,
@@ -34,9 +41,49 @@ export default function InteractiveMap({ children }: { children?: ReactNode }) {
     pitch: 0,
   });
 
-  useEffect(() => {
-    fetchStations();
-  }, [fetchStations]);
+  // Prepare points for supercluster
+  const points = stations
+    .map((station) => {
+      const price = station.prices.find((p) => p.fuel_type === selectedFuel);
+      if (!price) return null;
+      return {
+        type: "Feature",
+        properties: {
+          cluster: false,
+          stationId: station.id,
+          price: price.price,
+          fuelType: selectedFuel,
+          isSelected: selectedStation?.id === station.id,
+        },
+        geometry: {
+          type: "Point",
+          coordinates: [station.lon, station.lat],
+        },
+      };
+    })
+    .filter((p) => p !== null);
+
+  // Get clusters
+
+  const { clusters, supercluster } = useSupercluster({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    points: points as any[],
+    bounds: bounds ?? undefined,
+    zoom: viewport.zoom || DEFAULT_ZOOM,
+    options: { radius: 75, maxZoom: 15 }, // radius: cluster size in pixels
+  });
+
+  // Update bounds on viewport change
+  const handleViewportChange = (newViewport: Partial<MapViewport>) => {
+    // We need to cast newViewport because react-map-gl types might differ slightly from our local MapViewport definition
+    setViewport(newViewport as Partial<MapViewport>);
+
+    if (mapRef.current) {
+      // mapRef.current IS the MapLibreGL.Map instance in our custom implementation
+      const b = mapRef.current.getBounds();
+      setBounds([b.getWest(), b.getSouth(), b.getEast(), b.getNorth()]);
+    }
+  };
 
   // Initial Geolocation
   useEffect(() => {
@@ -75,9 +122,10 @@ export default function InteractiveMap({ children }: { children?: ReactNode }) {
   return (
     <div className="relative h-full w-full bg-slate-100">
       <Map
+        ref={mapRef}
         theme="light"
         viewport={viewport}
-        onViewportChange={setViewport}
+        onViewportChange={handleViewportChange}
         className="h-full w-full"
       >
         <MapControls />
@@ -87,8 +135,8 @@ export default function InteractiveMap({ children }: { children?: ReactNode }) {
         {userLocation && (
           <MapMarker longitude={userLocation[0]} latitude={userLocation[1]}>
             <div className="group relative flex size-6 items-center justify-center">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-blue-500 opacity-75 duration-1000"></span>
-              <div className="relative inline-flex h-4 w-4 rounded-full border-[3px] border-white bg-blue-600 shadow-lg ring-1 ring-black/10"></div>
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-indigo-500 opacity-75 duration-1000"></span>
+              <div className="relative inline-flex h-4 w-4 rounded-full border-[3px] border-white bg-indigo-600 shadow-lg ring-1 ring-black/10"></div>
               {/* Tooltip */}
               <div className="pointer-events-none absolute -top-8 left-1/2 -translate-x-1/2 rounded bg-black/80 px-2 py-1 text-[10px] font-bold whitespace-nowrap text-white opacity-0 transition-opacity group-hover:opacity-100">
                 Vous êtes ici
@@ -97,33 +145,65 @@ export default function InteractiveMap({ children }: { children?: ReactNode }) {
           </MapMarker>
         )}
 
-        {/* Station Markers */}
-        {stations.map((station) => {
-          const price = station.prices.find(
-            (p) => p.fuel_type === selectedFuel,
-          );
-          if (!price) return null;
+        {/* Clusters and Markers */}
+        {clusters.map((cluster) => {
+          const [longitude, latitude] = cluster.geometry.coordinates;
+          const { cluster: isCluster, point_count: pointCount } =
+            cluster.properties;
 
+          if (isCluster) {
+            return (
+              <MapMarker
+                key={`cluster-${cluster.id}`}
+                latitude={latitude}
+                longitude={longitude}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  const expansionZoom = Math.min(
+                    supercluster?.getClusterExpansionZoom(cluster.id as number) || 0,
+                    20,
+                  );
+                  setViewport({
+                    ...viewport,
+                    zoom: expansionZoom,
+                    center: [longitude, latitude],
+                  });
+                }}
+              >
+                <div className="bg-primary flex h-10 w-10 items-center justify-center rounded-full border-2 border-white font-bold text-white shadow-lg">
+                  {pointCount}
+                </div>
+              </MapMarker>
+            );
+          }
+
+          // Render individual station marker
           return (
             <MapMarker
-              key={station.id}
-              longitude={station.lon}
-              latitude={station.lat}
+              key={`station-${cluster.properties.stationId}`}
+              latitude={latitude}
+              longitude={longitude}
               onClick={(e) => {
                 e.stopPropagation();
-                setSelectedStation(station);
-                setViewport((prev) => ({
-                  ...prev,
-                  center: [station.lon, station.lat],
-                  zoom: 15,
-                  duration: 800,
-                }));
+                // Find original station object
+                const station = stations.find(
+                  (s) => s.id === cluster.properties.stationId,
+                );
+                if (station) {
+                  setSelectedStation(station);
+                  setViewport((prev) => ({
+                    ...prev,
+                    center: [station.lon, station.lat],
+                    zoom: 15,
+                    duration: 800,
+                  }));
+                }
               }}
             >
               <PriceMarker
-                price={price.price}
-                fuelType={selectedFuel}
-                isSelected={selectedStation?.id === station.id}
+                price={cluster.properties.price}
+                fuelType={cluster.properties.fuelType}
+                isSelected={cluster.properties.isSelected}
               />
             </MapMarker>
           );
