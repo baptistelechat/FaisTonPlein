@@ -14,6 +14,7 @@ export async function ensureRepoExists() {
       private: false, // Public by default
     });
     console.log(chalk.green(`✅ Repo ${HF_REPO} created.`));
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
     // If error is "repo already exists", we ignore it.
     const errorMsg = error?.message || String(error);
@@ -54,13 +55,14 @@ export async function listParquetFiles(
         files.push(`hf://datasets/${repo}/${file.path}`);
       }
     }
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (err: any) {
     console.warn(chalk.yellow(`⚠️  Failed to list files in ${pathPrefix}: ${err.message}`));
   }
   return files;
 }
 
-export async function uploadDirectory(dir: string, repo: string, token: string, commitTitle: string = "Update data") {
+export async function uploadDirectory(dir: string, repo: string, token: string, commitTitle: string = "Update data", targetPath: string = "data") {
   console.log(`⬆️ Uploading to Hugging Face (${repo})...`);
 
   // Prepare files for upload
@@ -78,11 +80,8 @@ export async function uploadDirectory(dir: string, repo: string, token: string, 
       if (entry.isDirectory()) {
         scanDir(fullPath, baseDir);
       } else {
-        // We assume we are uploading 'data' folder content to 'data/' in the repo
-        // If dir is '.../data', relPath is 'latest/...'
-        // We want repo path to be 'data/latest/...'
         filesToUpload.push({
-          path: `data/${relPath}`,
+          path: `${targetPath}/${relPath}`.replace(/\/+/g, '/'), // Avoid double slashes
           content: new Blob([fs.readFileSync(fullPath)]),
         });
       }

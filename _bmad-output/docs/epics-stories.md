@@ -6,7 +6,7 @@
 **Version :** 1.0
 **Source :** [PRD](../planning/prd-faistonplein.md)
 
----
+***
 
 ## E00 - Fondations Techniques
 
@@ -52,7 +52,21 @@
 - [ ] Structure cible : `consolidated/YYYY/MM/DD/code_departement=XX/data_0.parquet` / `consolidated/YYYY/MM/code_departement=XX/data_0.parquet` / `consolidated/YYYY/code_departement=XX/data_0.parquet` ou sinon directemnt dans la structure de `history`
 - [ ] Planification via CRON (ex: 1er du mois).
 
----
+### US-00-04 : Récupération Historique (XML -> Parquet)
+
+**En tant que** data engineer,
+**Je veux** récupérer et intégrer les données historiques (annuelles et quotidiennes) depuis prix-carburants.gouv.fr,
+**Afin de** constituer une base de données complète pour l'analyse des tendances sur le long terme. Ce sera un script a part que je lance une fois et que je ne relance plus jamais. Il faut trier les données dans la structure de dossier actuelle `history`
+
+**Critères d'Acceptation :**
+
+- [ ] Script de téléchargement des archives annuelles (2007-2025) (XML dans ZIP).
+- [ ] Script de téléchargement des flux quotidiens (30 derniers jours) avec déduplication (ne pas écraser/dupliquer les jours déjà acquis).
+- [ ] Parsing des fichiers XML pour extraire les données (stations, prix, ruptures).
+- [ ] Conversion et intégration dans le pipeline existant (Parquet + HuggingFace).
+- [ ] Gestion des cas limites (fichiers corrompus, jours manquants).
+
+***
 
 ## E01 - Exploration Géographique
 
@@ -108,7 +122,7 @@
 - [ ] La carte et la liste se mettent à jour instantanément.
 - [ ] Le choix est sauvegardé pour les prochaines sessions.
 
----
+***
 
 ## E02 - Comparaison Économique
 
@@ -148,7 +162,7 @@
 - [ ] Algorithme prenant en compte la consommation moyenne (paramétrable ou défaut).
 - [ ] Affichage du surcoût lié au détour.
 
----
+***
 
 ## E03 - Intelligence & Analyse
 
@@ -187,7 +201,7 @@
 - [ ] Graphique linéaire interactif (Recharts).
 - [ ] Affichage des points de données au survol.
 
----
+***
 
 ## E04 - Résilience (Offline)
 
@@ -216,3 +230,4 @@
 - [ ] L'application se lance sans réseau.
 - [ ] Accès complet à la carte et liste (données en cache).
 - [ ] Indicateur "Mode Hors Ligne".
+

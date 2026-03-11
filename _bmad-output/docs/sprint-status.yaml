@@ -39,6 +39,7 @@ development_status:
   us-00-01-pipeline-etl: done
   us-00-02-integration-duckdb: done
   us-00-03-consolidation-historique: done
+  us-00-04-recuperation-historique: review
   epic-0-retrospective: optional
 
   # Epic 1: Exploration Géographique
