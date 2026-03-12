@@ -19,7 +19,13 @@ import { PulseMarker } from "./PulseMarker";
 const DEFAULT_CENTER: [number, number] = [2.3522, 48.8566]; // Paris [lon, lat]
 const DEFAULT_ZOOM = 13;
 
-export default function InteractiveMap({ children }: { children?: ReactNode }) {
+export default function InteractiveMap({
+  children,
+  mobileDrawerSnap,
+}: {
+  children?: ReactNode;
+  mobileDrawerSnap?: number | string | null;
+}) {
   const {
     stations,
     isLoading,
@@ -34,7 +40,7 @@ export default function InteractiveMap({ children }: { children?: ReactNode }) {
     setFlyToLocation,
     searchLocation,
     setSelectedDepartment,
-    setSearchLocation
+    setSearchLocation,
   } = useAppStore();
 
   const mapRef = useRef<MapLibreMap>(null);
@@ -244,6 +250,14 @@ export default function InteractiveMap({ children }: { children?: ReactNode }) {
           onLocate={(coords) => {
             handleGeolocation(coords);
           }}
+          style={
+            typeof mobileDrawerSnap === "number" && mobileDrawerSnap < 0.82
+              ? {
+                  bottom: `calc(${mobileDrawerSnap * 100}dvh)`,
+                  transition: "bottom 0.3s cubic-bezier(0.32, 0.72, 0, 1)",
+                }
+              : undefined
+          }
         />
         {children}
 

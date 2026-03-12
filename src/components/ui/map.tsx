@@ -765,6 +765,8 @@ type MapControlsProps = {
   showFullscreen?: boolean;
   /** Additional CSS classes for the controls container */
   className?: string;
+  /** Inline styles for the controls container */
+  style?: React.CSSProperties;
   /** Callback with user coordinates when located */
   onLocate?: (coords: { longitude: number; latitude: number }) => void;
 };
@@ -818,6 +820,7 @@ function MapControls({
   showLocate = false,
   showFullscreen = false,
   className,
+  style,
   onLocate,
 }: MapControlsProps) {
   const { map } = useMap();
@@ -877,6 +880,7 @@ function MapControls({
         positionClasses[position],
         className,
       )}
+      style={style}
     >
       {showLocate && (
         <ControlGroup>

@@ -29,7 +29,7 @@ export function MobileLayout() {
     <>
       {/* Map Layer */}
       <div className="absolute inset-0 z-0">
-        <InteractiveMap>
+        <InteractiveMap mobileDrawerSnap={snap}>
           {/* Floating Header (Mobile) */}
           <div className="pointer-events-none absolute top-0 right-0 left-0 z-20 flex flex-col items-center gap-3 p-4">
             {/* Search Trigger Button */}
@@ -68,7 +68,7 @@ export function MobileLayout() {
         }}
         modal={false}
         dismissible={false}
-        snapPoints={[0.15, 0.45, 0.85]}
+        snapPoints={[0.15, 0.45, 0.82]}
         activeSnapPoint={snap}
         setActiveSnapPoint={setSnap}
         disablePreventScroll
