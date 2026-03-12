@@ -13,6 +13,7 @@ import { ReactNode, useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import useSupercluster from "use-supercluster";
 import { PriceMarker } from "./PriceMarker";
+import { PulseMarker } from "./PulseMarker";
 
 const DEFAULT_CENTER: [number, number] = [2.3522, 48.8566]; // Paris [lon, lat]
 const DEFAULT_ZOOM = 13;
@@ -28,6 +29,9 @@ export default function InteractiveMap({ children }: { children?: ReactNode }) {
     setUserLocation,
     flyToStation,
     setFlyToStation,
+    flyToLocation,
+    setFlyToLocation,
+    searchLocation,
   } = useAppStore();
 
   const mapRef = useRef<MapLibreMap>(null);
@@ -43,7 +47,18 @@ export default function InteractiveMap({ children }: { children?: ReactNode }) {
     pitch: 0,
   });
 
-  const [isLocating, setIsLocating] = useState(false);
+  // Handle flyToLocation effect
+  useEffect(() => {
+    if (flyToLocation && mapRef.current) {
+      const [lon, lat] = flyToLocation;
+      mapRef.current?.flyTo({
+        center: [lon, lat],
+        zoom: 13,
+        duration: 2000,
+      });
+      setFlyToLocation(null);
+    }
+  }, [flyToLocation, setFlyToLocation]);
 
   // Handle flyToStation effect
   useEffect(() => {
@@ -124,51 +139,36 @@ export default function InteractiveMap({ children }: { children?: ReactNode }) {
   // Initial Geolocation
   useEffect(() => {
     if (!userLocation && "geolocation" in navigator) {
-      // Use a ref or simply trigger the async operation without setting state synchronously if possible
-      // Or wrap in a small timeout to break the sync cycle if absolutely necessary,
-      // but better is to initiate this state outside or handle it differently.
-      // However, for this specific lint error, we can just set it.
-      // Actually, setting state in useEffect IS allowed, but it triggers re-render.
-      // The warning suggests it might be a cascading update if userLocation changes.
-
-      // Let's wrap the initial call in a function that we call
-      const locateUser = () => {
-        setIsLocating(true);
-        navigator.geolocation.getCurrentPosition(
-          (position) => {
-            const { latitude, longitude } = position.coords;
-            setUserLocation([longitude, latitude]);
-            setViewport((prev) => ({
-              ...prev,
-              center: [longitude, latitude],
-              zoom: 14,
-            }));
-            toast.success("Position trouvée !", { id: "geo-success" });
-            setIsLocating(false);
-          },
-          (error) => {
-            console.error("Geolocation error:", error);
-            if (
-              window.location.protocol !== "https:" &&
-              window.location.hostname !== "localhost"
-            ) {
-              toast.warning(
-                "Géolocalisation bloquée (non-HTTPS). Utilisez la recherche manuelle.",
-                { id: "geo-warning" },
-              );
-            } else {
-              toast.info(
-                "Impossible de vous localiser. Recherche manuelle conseillée.",
-                { id: "geo-info" },
-              );
-            }
-            setIsLocating(false);
-          },
-          { enableHighAccuracy: true, timeout: 5000 },
-        );
-      };
-
-      locateUser();
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const { latitude, longitude } = position.coords;
+          setUserLocation([longitude, latitude]);
+          setViewport((prev) => ({
+            ...prev,
+            center: [longitude, latitude],
+            zoom: 14,
+          }));
+          toast.success("Position trouvée !", { id: "geo-success" });
+        },
+        (error) => {
+          console.error("Geolocation error:", error);
+          if (
+            window.location.protocol !== "https:" &&
+            window.location.hostname !== "localhost"
+          ) {
+            toast.warning(
+              "Géolocalisation bloquée (non-HTTPS). Utilisez la recherche manuelle.",
+              { id: "geo-warning" },
+            );
+          } else {
+            toast.info(
+              "Impossible de vous localiser. Recherche manuelle conseillée.",
+              { id: "geo-info" },
+            );
+          }
+        },
+        { enableHighAccuracy: true, timeout: 5000 },
+      );
     }
   }, [setUserLocation, userLocation]);
 
@@ -180,25 +180,18 @@ export default function InteractiveMap({ children }: { children?: ReactNode }) {
         viewport={viewport}
         onViewportChange={handleViewportChange}
         className="h-full w-full"
-        attributionControl={{
-          compact: true,
-        }}
       >
-        <MapControls className="mb-24 md:mb-0" />
-
+        <MapControls />
         {children}
 
         {/* User Location Marker */}
         {userLocation && (
           <MapMarker longitude={userLocation[0]} latitude={userLocation[1]}>
-            <div className="group relative flex size-6 items-center justify-center">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-indigo-500 opacity-75 duration-1000"></span>
-              <div className="relative inline-flex h-4 w-4 rounded-full border-[3px] border-white bg-indigo-600 shadow-lg ring-1 ring-black/10"></div>
-              {/* Tooltip */}
-              <div className="pointer-events-none absolute -top-8 left-1/2 -translate-x-1/2 rounded bg-black/80 px-2 py-1 text-[10px] font-bold whitespace-nowrap text-white opacity-0 transition-opacity group-hover:opacity-100">
-                Vous êtes ici
-              </div>
-            </div>
+            <PulseMarker
+              color="bg-indigo-600"
+              pingColor="bg-indigo-500"
+              tooltip="Vous êtes ici"
+            />
           </MapMarker>
         )}
 
@@ -267,16 +260,20 @@ export default function InteractiveMap({ children }: { children?: ReactNode }) {
             </MapMarker>
           );
         })}
+
+        {searchLocation && (
+          <MapMarker longitude={searchLocation[0]} latitude={searchLocation[1]}>
+            <PulseMarker color="bg-primary" pingColor="bg-primary/50" />
+          </MapMarker>
+        )}
       </Map>
 
-      {(isLoading || isLocating) && (
-        <div className="bg-background/10 fixed inset-0 z-9999 flex items-center justify-center backdrop-blur-sm">
-          <div className="bg-background animate-in fade-in zoom-in border-primary flex items-center gap-4 rounded-2xl border p-6 shadow-xl duration-300">
+      {isLoading && (
+        <div className="bg-background/20 pointer-events-none absolute inset-0 z-50 flex items-center justify-center backdrop-blur-[2px]">
+          <div className="bg-background/90 border-border/50 flex items-center gap-3 rounded-2xl border p-4 shadow-xl">
             <Loader2 className="text-primary size-6 animate-spin" />
-            <span className="text-foreground text-md font-semibold">
-              {isLocating
-                ? "Géolocalisation en cours..."
-                : "Chargement des prix..."}
+            <span className="text-muted-foreground text-sm font-medium">
+              Chargement des prix...
             </span>
           </div>
         </div>

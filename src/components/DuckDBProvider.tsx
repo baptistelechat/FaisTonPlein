@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import * as duckdb from '@duckdb/duckdb-wasm';
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import * as duckdb from "@duckdb/duckdb-wasm";
+import React, { createContext, useContext, useEffect, useState } from "react";
 
 interface DuckDBContextType {
   db: duckdb.AsyncDuckDB | null;
@@ -24,13 +24,13 @@ export const DuckDBProvider = ({ children }: { children: React.ReactNode }) => {
   const [conn, setConn] = useState<duckdb.AsyncDuckDBConnection | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
-  
+
   // Track initialization status to prevent double init in React Strict Mode
   const isInitializing = React.useRef(false);
 
   useEffect(() => {
     // Check if we are in the browser
-    if (typeof window === 'undefined') return;
+    if (typeof window === "undefined") return;
 
     // Prevent double initialization
     if (db || isInitializing.current) return;
@@ -44,12 +44,12 @@ export const DuckDBProvider = ({ children }: { children: React.ReactNode }) => {
       try {
         const MANUAL_BUNDLES: duckdb.DuckDBBundles = {
           mvp: {
-            mainModule: '/duckdb/duckdb-mvp.wasm',
-            mainWorker: '/duckdb/duckdb-browser-mvp.worker.js',
+            mainModule: "/duckdb/duckdb-mvp.wasm",
+            mainWorker: "/duckdb/duckdb-browser-mvp.worker.js",
           },
           eh: {
-            mainModule: '/duckdb/duckdb-eh.wasm',
-            mainWorker: '/duckdb/duckdb-browser-eh.worker.js',
+            mainModule: "/duckdb/duckdb-eh.wasm",
+            mainWorker: "/duckdb/duckdb-browser-eh.worker.js",
           },
         };
 
@@ -73,9 +73,9 @@ export const DuckDBProvider = ({ children }: { children: React.ReactNode }) => {
           await newDb.terminate();
         }
       } catch (err) {
-        console.error('Failed to initialize DuckDB', err);
+        console.error("Failed to initialize DuckDB", err);
         if (isMounted) {
-          setError(err instanceof Error ? err : new Error('Unknown error'));
+          setError(err instanceof Error ? err : new Error("Unknown error"));
           setIsLoading(false);
         }
       } finally {
@@ -89,7 +89,7 @@ export const DuckDBProvider = ({ children }: { children: React.ReactNode }) => {
       isMounted = false;
       // In strict mode, this cleanup might run while the init is still pending.
       // We handle this with isMounted check.
-      // If we already have a connection, we should probably close it, 
+      // If we already have a connection, we should probably close it,
       // but reusing the instance is better in dev.
       // For now, let's just close if it was set.
       const cleanup = async () => {

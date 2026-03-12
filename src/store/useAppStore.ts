@@ -29,6 +29,12 @@ type AppStore = {
   selectedStation: Station | null;
   flyToStation: Station | null;
   listSortBy: "price" | "distance";
+  
+  flyToLocation: [number, number] | null;
+  setFlyToLocation: (loc: [number, number] | null) => void;
+
+  searchLocation: [number, number] | null;
+  setSearchLocation: (loc: [number, number] | null) => void;
 
   setStations: (stations: Station[]) => void;
   setIsLoading: (loading: boolean) => void;
@@ -53,6 +59,12 @@ export const useAppStore = create<AppStore>((set) => ({
   selectedStation: null,
   flyToStation: null,
   listSortBy: "price",
+  
+  flyToLocation: null,
+  setFlyToLocation: (loc) => set({ flyToLocation: loc }),
+
+  searchLocation: null,
+  setSearchLocation: (loc) => set({ searchLocation: loc }),
 
   setStations: (stations) => set({ stations }),
   setIsLoading: (isLoading) => set({ isLoading }),
