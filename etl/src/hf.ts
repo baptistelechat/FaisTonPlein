@@ -1,8 +1,76 @@
-import { createRepo, uploadFiles, listFiles } from "@huggingface/hub";
+import { createRepo, uploadFiles, listFiles, downloadFile } from "@huggingface/hub";
 import chalk from "chalk";
 import fs from "fs";
 import path from "path";
 import { HF_REPO, HF_TOKEN } from "./config";
+
+/**
+ * Downloads multiple files from HF to a local directory with concurrency limit.
+ */
+export async function downloadFilesToLocal(
+  repo: string,
+  token: string,
+  files: string[], // List of file paths relative to repo root (e.g. "data/history/...")
+  outputDir: string,
+  concurrency = 10
+) {
+  const queue = [...files];
+  const active: Promise<void>[] = [];
+  const results: string[] = [];
+
+  // Ensure output directory exists
+  if (!fs.existsSync(outputDir)) {
+    fs.mkdirSync(outputDir, { recursive: true });
+  }
+
+  console.log(chalk.gray(`      Downloading ${files.length} files to ${outputDir}...`));
+
+  async function worker() {
+    while (queue.length > 0) {
+      const filePath = queue.shift();
+      if (!filePath) break;
+
+      const localPath = path.join(outputDir, filePath);
+      const localDir = path.dirname(localPath);
+      
+      if (!fs.existsSync(localDir)) {
+        fs.mkdirSync(localDir, { recursive: true });
+      }
+
+      try {
+        const response = await downloadFile({
+          repo: { type: "dataset", name: repo },
+          credentials: { accessToken: token },
+          path: filePath,
+        });
+
+        if (response) {
+             let buffer: ArrayBuffer;
+             // Check if response has arrayBuffer() method (Response or Blob)
+             // eslint-disable-next-line @typescript-eslint/no-explicit-any
+             if (typeof (response as any).arrayBuffer === "function") {
+               // eslint-disable-next-line @typescript-eslint/no-explicit-any
+               buffer = await (response as any).arrayBuffer();
+             } else {
+                buffer = response as unknown as ArrayBuffer;
+              }
+             fs.writeFileSync(localPath, Buffer.from(buffer));
+             results.push(localPath);
+         }
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } catch (err: any) {
+        console.warn(chalk.yellow(`⚠️ Failed to download ${filePath}: ${err.message}`));
+      }
+    }
+  }
+
+  for (let i = 0; i < concurrency; i++) {
+    active.push(worker());
+  }
+
+  await Promise.all(active);
+  return results;
+}
 
 /**
  * Uploads files to Hugging Face with retry logic.

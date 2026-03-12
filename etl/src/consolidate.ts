@@ -1,10 +1,15 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import chalk from "chalk";
 import { Database } from "duckdb";
 import fs from "fs";
 import path from "path";
 import { HF_REPO, HF_TOKEN, OUTPUT_DIR } from "./config";
 import { initDB, runSQL } from "./db";
-import { listParquetFiles, uploadFilesWithRetry } from "./hf";
+import {
+  downloadFilesToLocal,
+  listParquetFiles,
+  uploadFilesWithRetry,
+} from "./hf";
 
 interface ConsolidationOptions {
   db: Database;
@@ -33,65 +38,98 @@ export async function consolidateData({
   );
 
   // Ensure httpfs is loaded (should be already, but safe to check/load)
+  // We keep the secret creation just in case, though we will try to use local files primarily.
   try {
-    // Attempt 1: SET s3_token (DuckDB uses s3_* configs for httpfs mostly, but hf:// protocol needs specific handling)
-    // Actually, for hf:// filesystem, DuckDB uses the HF_TOKEN secret or config.
-    // Let's try the modern SECRET syntax first as it is preferred.
-
     console.log(chalk.gray("   🔑 Configuring DuckDB for HF access..."));
-
-    // NOTE: We need to escape single quotes in token just in case.
     const safeToken = hfToken.replace(/'/g, "''");
-
-    // Try creating a secret (DuckDB 0.10.0+)
-    // We use a specific name 'hf_auth' to avoid conflicts
     await runSQL(
       db,
       `CREATE OR REPLACE SECRET hf_auth (TYPE HUGGINGFACE, TOKEN '${safeToken}');`,
     );
     console.log(chalk.gray("   ✅ HF Secret created via CREATE SECRET"));
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (err: any) {
     console.warn(chalk.yellow(`⚠️  CREATE SECRET failed: ${err.message}`));
+    // Fallback logic omitted for brevity as we switch to local files
+  }
 
-    // Fallback: Try setting variable directly (Older DuckDB or if Secret fails)
+  // Helper to process files locally
+  async function processFilesLocally(
+    files: string[],
+    destPath: string,
+    label: string,
+  ) {
+    const tempDir = path.join(outputDir, "temp_consolidation");
+    const prefix = `hf://datasets/${hfRepo}/`;
+
+    // Filter and convert to relative paths
+    const relativeFiles = files
+      .filter((f) => f.startsWith(prefix))
+      .map((f) => f.slice(prefix.length));
+
+    if (relativeFiles.length === 0) {
+      console.log(chalk.yellow(`   ⚠️ No valid files to process for ${label}`));
+      return;
+    }
+
+    console.log(
+      chalk.gray(
+        `      Downloading ${relativeFiles.length} files to temp dir...`,
+      ),
+    );
+
     try {
-      // Note: "hf_token" parameter might not be recognized in some versions,
-      // sometimes it is just passed via HTTP headers or s3_session_token if using S3 compatibility.
-      // But 'hf://' usually relies on the secret.
-      // Let's try 's3_access_key_id' and 's3_secret_access_key' if it was S3, but it's not.
-      // Let's try the generic SET hf_token again but catch specifically.
-      const safeToken = hfToken.replace(/'/g, "''");
-      await runSQL(db, `SET hf_token='${safeToken}';`);
-      console.log(chalk.gray("   ✅ HF Token set via SET hf_token"));
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (fallbackErr: any) {
-      console.error(
-        chalk.red(
-          `❌ Failed to set HF token via SET hf_token: ${fallbackErr.message}`,
-        ),
+      // Download files
+      await downloadFilesToLocal(hfRepo, hfToken, relativeFiles, tempDir, 10);
+
+      // Map to absolute local paths
+      const localFiles = relativeFiles.map((f) =>
+        path.join(tempDir, f).replace(/\\/g, "/"),
       );
 
-      // CRITICAL FAILURE
-      // If we cannot authenticate, we cannot read/write private repos or high volume public data.
-      // We must stop here.
-      throw new Error(
-        `CRITICAL: Failed to configure DuckDB HF authentication. \nSecret Error: ${err.message}\nFallback Error: ${fallbackErr.message}`,
+      // Ensure destination parent dir exists
+      fs.mkdirSync(path.dirname(destPath), { recursive: true });
+
+      // Enable progress bar
+      await runSQL(db, "PRAGMA enable_progress_bar;");
+
+      const fileListSQL = localFiles.map((f) => `'${f}'`).join(", ");
+
+      await runSQL(
+        db,
+        `
+        COPY (
+            SELECT * FROM read_parquet([${fileListSQL}], hive_partitioning=true)
+        ) TO '${destPath}' 
+        (FORMAT PARQUET, PARTITION_BY (code_departement), OVERWRITE_OR_IGNORE);
+        `,
       );
+      console.log(chalk.green(`   ✅ ${label} consolidation complete`));
+    } catch (err: any) {
+      console.error(
+        chalk.red(`   ❌ ${label} consolidation failed: ${err.message}`),
+      );
+      throw err; // Re-throw to ensure we know about failures
+    } finally {
+      // Cleanup temp files (best effort, will be cleaned up properly after DB close)
+      if (fs.existsSync(tempDir)) {
+        try {
+          // Try a quick cleanup, but don't block/fail if locked
+          fs.rmSync(tempDir, { recursive: true, force: true, maxRetries: 1 });
+        } catch (e) {
+          console.log(
+            chalk.gray(
+              `      ⏳ Temp files locked, deferring cleanup to end of process...`,e
+            ),
+          );
+        }
+      }
     }
   }
 
   // 1. Daily Consolidation
-  // Consolidate hourly files for TODAY into a single daily partition
   console.log(chalk.blue(`   -> Consolidating Daily: ${year}-${month}-${day}`));
-  console.log(
-    chalk.gray(
-      `      Scanning for source files (using HF API to avoid 429 errors)...`,
-    ),
-  );
+  console.log(chalk.gray(`      Scanning for source files...`));
 
-  // Instead of globbing directly with DuckDB (which triggers many HEAD requests and 429s),
-  // We list files via HF API first.
   const dailyPrefix = `data/history/year=${year}/month=${month}/day=${day}`;
   const dailyFiles = await listParquetFiles(hfRepo, hfToken, dailyPrefix);
 
@@ -114,41 +152,14 @@ export async function consolidateData({
       `day=${day}`,
     );
 
-    // Ensure destination parent dir exists
-    fs.mkdirSync(path.dirname(dailyDestPath), { recursive: true });
-
     try {
-      // Enable progress bar for long queries if possible (might not show in all terminals)
-      await runSQL(db, "PRAGMA enable_progress_bar;");
-
-      // Use read_parquet with list of files instead of glob
-      // We need to format the list as a SQL array string: ['file1', 'file2', ...]
-      const fileListSQL = dailyFiles.map((f) => `'${f}'`).join(", ");
-
-      await runSQL(
-        db,
-        `
-        COPY (
-            SELECT * FROM read_parquet([${fileListSQL}], hive_partitioning=true)
-        ) TO '${dailyDestPath}' 
-        (FORMAT PARQUET, PARTITION_BY (code_departement), OVERWRITE_OR_IGNORE);
-        `,
-      );
-      console.log(
-        chalk.green(
-          `   ✅ Daily consolidation complete for ${year}-${month}-${day}`,
-        ),
-      );
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (err: any) {
-      console.error(
-        chalk.red(`   ❌ Daily consolidation failed: ${err.message}`),
-      );
+      await processFilesLocally(dailyFiles, dailyDestPath, "Daily");
+    } catch (e) {
+      console.error(chalk.red("Failed to consolidate daily data"), e);
     }
   }
 
   // 2. Monthly Consolidation
-  // Check if today is the last day of the month OR if a target date is forced (we assume force implies intent)
   const tomorrow = new Date(now);
   tomorrow.setDate(tomorrow.getDate() + 1);
   const isLastDayOfMonth = tomorrow.getMonth() !== now.getMonth();
@@ -159,14 +170,6 @@ export async function consolidateData({
         `   -> Monthly Consolidation Triggered (Last day: ${isLastDayOfMonth}, Forced: ${!!targetDate}): ${year}-${month}`,
       ),
     );
-
-    // Read from DAILY consolidated files for this month
-    // Source: consolidated/daily/year=YYYY/month=MM/*/*/*.parquet
-    // Note: We need to make sure the daily consolidation for TODAY is finished and uploaded?
-    // Actually, we write to local disk first.
-    // If we read from HF, we miss today's consolidated file (which is local).
-    // So we should read from HF for previous days AND local for today?
-    // OR: We just read from history (hourly) for the whole month. It's safer and simpler.
 
     console.log(chalk.gray(`      Scanning for monthly source files...`));
     const monthlyPrefix = `data/history/year=${year}/month=${month}`;
@@ -190,30 +193,10 @@ export async function consolidateData({
         `month=${month}`,
       );
 
-      // Ensure destination parent dir exists
-      fs.mkdirSync(path.dirname(monthlyDestPath), { recursive: true });
-
       try {
-        const fileListSQL = monthlyFiles.map((f) => `'${f}'`).join(", ");
-        await runSQL(
-          db,
-          `
-                COPY (
-                SELECT * FROM read_parquet([${fileListSQL}], hive_partitioning=true)
-                ) TO '${monthlyDestPath}' 
-                (FORMAT PARQUET, PARTITION_BY (code_departement), OVERWRITE_OR_IGNORE);
-            `,
-        );
-        console.log(
-          chalk.green(
-            `   ✅ Monthly consolidation complete for ${year}-${month}`,
-          ),
-        );
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      } catch (err: any) {
-        console.error(
-          chalk.red(`   ❌ Monthly consolidation failed: ${err.message}`),
-        );
+        await processFilesLocally(monthlyFiles, monthlyDestPath, "Monthly");
+      } catch (e) {
+        console.error(chalk.red("Failed to consolidate monthly data"), e);
       }
     }
   } else {
@@ -295,6 +278,30 @@ export async function runConsolidationService() {
     console.error(chalk.red("❌ Consolidation failed:"), error);
     throw error;
   } finally {
-    db.close();
+    try {
+      db.close();
+    } catch (e: any) {
+      console.warn(chalk.yellow(`⚠️ Failed to close DB cleanly: ${e.message}`));
+    }
+
+    // Final cleanup of data directory (including temp files)
+    if (fs.existsSync(OUTPUT_DIR)) {
+      console.log(
+        chalk.gray(`🧹 Performing final cleanup of ${OUTPUT_DIR}...`),
+      );
+      try {
+        // Give a small grace period for file handles to release
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+        fs.rmSync(OUTPUT_DIR, {
+          recursive: true,
+          force: true,
+          maxRetries: 5,
+          retryDelay: 1000,
+        });
+        console.log(chalk.green(`✅ Local data directory cleaned up.`));
+      } catch (err: any) {
+        console.warn(chalk.yellow(`⚠️ Final cleanup failed: ${err.message}`));
+      }
+    }
   }
 }

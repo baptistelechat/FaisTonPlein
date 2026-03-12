@@ -8,11 +8,11 @@ console.log(chalk.gray(`- ETL Schedule: ${CRON_SCHEDULE}`));
 console.log(chalk.gray(`- CSV Source: ${CSV_URL}`));
 console.log(chalk.gray(`- HF Repo: ${HF_REPO}`));
 
-// 1. Run Pipeline immediately on start
-(async () => {
-  await runPipeline();
-  console.log(chalk.yellow(`⏳ Waiting for next schedule: ${CRON_SCHEDULE}`));
-})();
+// 1. Run Pipeline immediately on start (DISABLED to prevent restart loops)
+// (async () => {
+//   await runPipeline();
+//   console.log(chalk.yellow(`⏳ Waiting for next schedule: ${CRON_SCHEDULE}`));
+// })();
 
 // 2. Schedule Pipeline (Hourly by default "0 * * * *")
 cron.schedule(CRON_SCHEDULE, async () => {
