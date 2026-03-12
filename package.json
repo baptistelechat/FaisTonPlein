@@ -1,5 +1,6 @@
 {
   "name": "fais-ton-plein",
+  "description": "FaisTonPlein is a modern web application that helps you locate gas stations and compare fuel prices in real time. With a smooth interactive map and instant search, find the cheapest option near you in the blink of an eye. (Only available in France)",
   "version": "0.1.0",
   "private": true,
   "scripts": {
