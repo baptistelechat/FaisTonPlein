@@ -1,5 +1,5 @@
+import { FuelType } from "@/lib/constants";
 import { cn } from "@/lib/utils";
-import { FuelType } from "@/store/useAppStore";
 import { Fuel } from "lucide-react";
 
 type PriceMarkerProps = {

@@ -1,6 +1,5 @@
+import { FuelType } from "@/lib/constants";
 import { create } from "zustand";
-
-export type FuelType = "E10" | "SP98" | "Gazole" | "E85" | "GPLc" | "SP95";
 
 export type FuelPrice = {
   fuel_type: FuelType;
@@ -29,7 +28,7 @@ type AppStore = {
   selectedStation: Station | null;
   flyToStation: Station | null;
   listSortBy: "price" | "distance";
-  
+
   flyToLocation: [number, number] | null;
   setFlyToLocation: (loc: [number, number] | null) => void;
 
@@ -53,13 +52,13 @@ export const useAppStore = create<AppStore>((set) => ({
   isLoading: false,
   userLocation: null,
   selectedFuel: "E10",
-  selectedDepartment: "44",
+  selectedDepartment: "",
   lastUpdate: null,
   searchQuery: "",
   selectedStation: null,
   flyToStation: null,
   listSortBy: "price",
-  
+
   flyToLocation: null,
   setFlyToLocation: (loc) => set({ flyToLocation: loc }),
 

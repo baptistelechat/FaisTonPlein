@@ -1,4 +1,5 @@
-import { FuelPrice, FuelType, Station } from "@/store/useAppStore";
+import { FUEL_TYPES, FuelType } from "@/lib/constants";
+import { FuelPrice, Station } from "@/store/useAppStore";
 
 export interface RawStationData {
   id: string;
@@ -20,22 +21,10 @@ interface RawFuelPrice {
 }
 
 function mapFuelType(rawName: string): FuelType | "Unknown" {
-  switch (rawName) {
-    case "E10":
-      return "E10";
-    case "SP98":
-      return "SP98";
-    case "Gazole":
-      return "Gazole";
-    case "E85":
-      return "E85";
-    case "GPLc":
-      return "GPLc";
-    case "SP95":
-      return "SP95";
-    default:
-      return "Unknown"; // Should we type this?
+  if ((FUEL_TYPES as readonly string[]).includes(rawName)) {
+    return rawName as FuelType;
   }
+  return "Unknown";
 }
 
 export function mapRawDataToStation(raw: RawStationData): Station {

@@ -19,8 +19,13 @@ import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
 export function SearchBar() {
-  const { searchQuery, setSearchQuery, setFlyToLocation, setSearchLocation } =
-    useAppStore();
+  const {
+    searchQuery,
+    setSearchQuery,
+    setFlyToLocation,
+    setSearchLocation,
+    setSelectedDepartment,
+  } = useAppStore();
   const [open, setOpen] = useState(false);
   const [results, setResults] = useState<SearchResult[]>([]);
   const [loading, setLoading] = useState(false);
@@ -86,6 +91,14 @@ export function SearchBar() {
     // Safety check for properties
     if (item.properties && item.properties.label) {
       toast.success(`Positionnée sur : ${item.properties.label}`);
+    }
+
+    // Update selected department based on context (e.g., "44, Loire-Atlantique, Pays de la Loire")
+    if (item.properties && item.properties.context) {
+      const deptCode = item.properties.context.split(",")[0].trim();
+      if (deptCode) {
+        setSelectedDepartment(deptCode);
+      }
     }
 
     // Safety check for geometry

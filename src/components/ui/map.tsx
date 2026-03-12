@@ -878,21 +878,6 @@ function MapControls({
         className,
       )}
     >
-      {showZoom && (
-        <ControlGroup>
-          <ControlButton onClick={handleZoomIn} label="Zoom in">
-            <Plus className="size-4" />
-          </ControlButton>
-          <ControlButton onClick={handleZoomOut} label="Zoom out">
-            <Minus className="size-4" />
-          </ControlButton>
-        </ControlGroup>
-      )}
-      {showCompass && (
-        <ControlGroup>
-          <CompassButton onClick={handleResetBearing} />
-        </ControlGroup>
-      )}
       {showLocate && (
         <ControlGroup>
           <ControlButton
@@ -905,6 +890,21 @@ function MapControls({
             ) : (
               <Locate className="size-4" />
             )}
+          </ControlButton>
+        </ControlGroup>
+      )}
+      {showCompass && (
+        <ControlGroup>
+          <CompassButton onClick={handleResetBearing} />
+        </ControlGroup>
+      )}
+      {showZoom && (
+        <ControlGroup>
+          <ControlButton onClick={handleZoomIn} label="Zoom in">
+            <Plus className="size-4" />
+          </ControlButton>
+          <ControlButton onClick={handleZoomOut} label="Zoom out">
+            <Minus className="size-4" />
           </ControlButton>
         </ControlGroup>
       )}
@@ -946,17 +946,19 @@ function CompassButton({ onClick }: { onClick: () => void }) {
 
   return (
     <ControlButton onClick={onClick} label="Reset bearing to north">
-      <svg
-        ref={compassRef}
-        viewBox="0 0 24 24"
+      <div
         className="size-5 transition-transform duration-200"
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        ref={compassRef as any}
         style={{ transformStyle: "preserve-3d" }}
       >
-        <path d="M12 2L16 12H12V2Z" className="fill-red-500" />
-        <path d="M12 2L8 12H12V2Z" className="fill-red-300" />
-        <path d="M12 22L16 12H12V22Z" className="fill-muted-foreground/60" />
-        <path d="M12 22L8 12H12V22Z" className="fill-muted-foreground/30" />
-      </svg>
+        <svg viewBox="0 0 24 24" className="h-full w-full">
+          <path d="M12 2L16 12H12V2Z" className="fill-red-500" />
+          <path d="M12 2L8 12H12V2Z" className="fill-red-300" />
+          <path d="M12 22L16 12H12V22Z" className="fill-muted-foreground/60" />
+          <path d="M12 22L8 12H12V22Z" className="fill-muted-foreground/30" />
+        </svg>
+      </div>
     </ControlButton>
   );
 }

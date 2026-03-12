@@ -6,6 +6,7 @@ import {
   MapMarker,
   type MapViewport,
 } from "@/components/ui/map";
+import { reverseGeocode } from "@/lib/api-adresse";
 import { useAppStore } from "@/store/useAppStore";
 import { Loader2 } from "lucide-react";
 import type { Map as MapLibreMap } from "maplibre-gl";
@@ -32,6 +33,8 @@ export default function InteractiveMap({ children }: { children?: ReactNode }) {
     flyToLocation,
     setFlyToLocation,
     searchLocation,
+    setSelectedDepartment,
+    setSearchLocation
   } = useAppStore();
 
   const mapRef = useRef<MapLibreMap>(null);
@@ -121,7 +124,32 @@ export default function InteractiveMap({ children }: { children?: ReactNode }) {
   const handleViewportChange = useCallback(
     (newViewport: Partial<MapViewport>) => {
       // We need to cast newViewport because react-map-gl types might differ slightly from our local MapViewport definition
-      setViewport(newViewport as Partial<MapViewport>);
+      setViewport((prev) => {
+        const isZoomSame =
+          Math.abs((prev.zoom || 0) - (newViewport.zoom || 0)) < 0.001;
+        const isLatSame =
+          Math.abs((prev.center?.[1] || 0) - (newViewport.center?.[1] || 0)) <
+          0.00001;
+        const isLonSame =
+          Math.abs((prev.center?.[0] || 0) - (newViewport.center?.[0] || 0)) <
+          0.00001;
+        const isBearingSame =
+          Math.abs((prev.bearing || 0) - (newViewport.bearing || 0)) < 0.01;
+        const isPitchSame =
+          Math.abs((prev.pitch || 0) - (newViewport.pitch || 0)) < 0.01;
+
+        // Only update if something changed significantly to avoid loop
+        if (
+          isZoomSame &&
+          isLatSame &&
+          isLonSame &&
+          isBearingSame &&
+          isPitchSame
+        ) {
+          return prev;
+        }
+        return { ...prev, ...newViewport };
+      });
 
       if (mapRef.current) {
         // mapRef.current IS the MapLibreGL.Map instance in our custom implementation
@@ -136,20 +164,47 @@ export default function InteractiveMap({ children }: { children?: ReactNode }) {
     [],
   );
 
+  const handleGeolocation = useCallback(
+    async (coords: { latitude: number; longitude: number }) => {
+      const { latitude, longitude } = coords;
+      setUserLocation([longitude, latitude]);
+
+      // Clear search location when geolocation is used to show user marker
+      setSearchLocation(null);
+
+      // Force viewport update
+      setViewport((prev) => ({
+        ...prev,
+        center: [longitude, latitude],
+        zoom: 14,
+      }));
+
+      toast.success("Position trouvée !", { id: "geo-success" });
+
+      try {
+        const result = await reverseGeocode(longitude, latitude);
+        if (result && result.properties && result.properties.context) {
+          const contextParts = result.properties.context.split(",");
+          const deptCode = contextParts[0].trim();
+
+          // Always set the department to trigger reload if needed
+          setSelectedDepartment(deptCode);
+          toast.success(`Département détecté : ${deptCode}`, {
+            id: "geo-dept",
+          });
+        }
+      } catch (error) {
+        console.error("Failed to detect department", error);
+      }
+    },
+    [setUserLocation, setSearchLocation, setSelectedDepartment],
+  );
+
   // Initial Geolocation
   useEffect(() => {
     if (!userLocation && "geolocation" in navigator) {
       navigator.geolocation.getCurrentPosition(
-        (position) => {
-          const { latitude, longitude } = position.coords;
-          setUserLocation([longitude, latitude]);
-          setViewport((prev) => ({
-            ...prev,
-            center: [longitude, latitude],
-            zoom: 14,
-          }));
-          toast.success("Position trouvée !", { id: "geo-success" });
-        },
+        (position) => handleGeolocation(position.coords),
         (error) => {
           console.error("Geolocation error:", error);
           if (
@@ -170,7 +225,7 @@ export default function InteractiveMap({ children }: { children?: ReactNode }) {
         { enableHighAccuracy: true, timeout: 5000 },
       );
     }
-  }, [setUserLocation, userLocation]);
+  }, [setUserLocation, userLocation, handleGeolocation]);
 
   return (
     <div className="relative h-full w-full bg-slate-100">
@@ -181,15 +236,23 @@ export default function InteractiveMap({ children }: { children?: ReactNode }) {
         onViewportChange={handleViewportChange}
         className="h-full w-full"
       >
-        <MapControls />
+        <MapControls
+          position="bottom-right"
+          showZoom={true}
+          showCompass={true}
+          showLocate={true}
+          onLocate={(coords) => {
+            handleGeolocation(coords);
+          }}
+        />
         {children}
 
         {/* User Location Marker */}
-        {userLocation && (
+        {userLocation && !searchLocation && (
           <MapMarker longitude={userLocation[0]} latitude={userLocation[1]}>
             <PulseMarker
-              color="bg-indigo-600"
-              pingColor="bg-indigo-500"
+              color="bg-primary"
+              pingColor="bg-primary/50"
               tooltip="Vous êtes ici"
             />
           </MapMarker>

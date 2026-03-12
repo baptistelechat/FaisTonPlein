@@ -13,6 +13,7 @@ export function StationList() {
   const {
     stations,
     userLocation,
+    searchLocation,
     selectedFuel,
     setSelectedStation,
     setFlyToStation,
@@ -22,13 +23,16 @@ export function StationList() {
 
   const isDesktop = useMediaQuery("(min-width: 768px)");
 
+  // Use search location if available, otherwise fallback to user location
+  const referenceLocation = searchLocation || userLocation;
+
   const sortedStations = useMemo(() => {
     // Filter stations that have the selected fuel
     const stationsWithFuel = stations.filter((s) =>
       s.prices.some((p) => p.fuel_type === selectedFuel),
     );
 
-    if (!userLocation) return stationsWithFuel;
+    if (!referenceLocation) return stationsWithFuel;
 
     return [...stationsWithFuel].sort((a, b) => {
       const priceA = a.prices.find((p) => p.fuel_type === selectedFuel)?.price;
@@ -40,21 +44,21 @@ export function StationList() {
         return priceA - priceB;
       } else {
         const distA = calculateDistance(
-          userLocation[1], // lat
-          userLocation[0], // lon
+          referenceLocation[1], // lat
+          referenceLocation[0], // lon
           a.lat,
           a.lon,
         );
         const distB = calculateDistance(
-          userLocation[1], // lat
-          userLocation[0], // lon
+          referenceLocation[1], // lat
+          referenceLocation[0], // lon
           b.lat,
           b.lon,
         );
         return distA - distB;
       }
     });
-  }, [stations, userLocation, selectedFuel, listSortBy]);
+  }, [stations, referenceLocation, selectedFuel, listSortBy]);
 
   const handleStationClick = (station: Station) => {
     setSelectedStation(station);
@@ -112,7 +116,7 @@ export function StationList() {
               station={station}
               rank={index + 1}
               selectedFuel={selectedFuel}
-              userLocation={userLocation}
+              referenceLocation={referenceLocation}
               onClick={() => handleStationClick(station)}
             />
           ))}
@@ -126,7 +130,7 @@ interface StationCardProps {
   station: Station;
   rank: number;
   selectedFuel: string;
-  userLocation: [number, number] | null;
+  referenceLocation: [number, number] | null;
   onClick: () => void;
 }
 
@@ -134,14 +138,14 @@ function StationCard({
   station,
   rank,
   selectedFuel,
-  userLocation,
+  referenceLocation,
   onClick,
 }: StationCardProps) {
   const price = station.prices.find((p) => p.fuel_type === selectedFuel);
-  const distance = userLocation
+  const distance = referenceLocation
     ? calculateDistance(
-        userLocation[1], // lat
-        userLocation[0], // lon
+        referenceLocation[1], // lat
+        referenceLocation[0], // lon
         station.lat,
         station.lon,
       )
