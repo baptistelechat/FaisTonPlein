@@ -184,17 +184,16 @@ export default function Home() {
             }}
             modal={false}
             dismissible={false}
-            snapPoints={[0.18, 0.45, 1]}
+            snapPoints={[0.15, 0.45, 1]}
             activeSnapPoint={snap}
             setActiveSnapPoint={setSnap}
           >
             <Drawer.Portal>
-              <Drawer.Content className="bg-background fixed right-0 bottom-0 left-0 z-50 flex h-full max-h-[96dvh] flex-col rounded-t-[20px] shadow-2xl outline-none">
-                <div
-                  className={`flex-1 rounded-t-[20px] ${
-                    snap === 1 ? "overflow-auto" : "overflow-hidden"
-                  }`}
-                >
+              <Drawer.Content
+                className="bg-background fixed right-0 bottom-0 left-0 z-50 flex h-full max-h-[96dvh] flex-col rounded-t-[20px] shadow-2xl outline-none"
+                style={{ overscrollBehavior: "none" }}
+              >
+                <div className="flex-1 overflow-hidden rounded-t-[20px]">
                   <Drawer.Title className="sr-only">
                     {selectedStation ? "Détails" : "Liste des stations"}
                   </Drawer.Title>
@@ -205,7 +204,7 @@ export default function Home() {
                   <div className="h-full pt-2">
                     {selectedStation ? (
                       <div className="flex h-full flex-col">
-                        <div className="px-4 pb-2">
+                        <div className="flex items-center gap-2 px-4 pb-2 justify-between">
                           <Button
                             variant="ghost"
                             size="sm"
@@ -213,18 +212,23 @@ export default function Home() {
                               setSelectedStation(null);
                               setSnap(0.45);
                             }}
-                            className="gap-2"
+                            className="shrink-0 gap-2"
                           >
                             <ArrowLeft className="h-4 w-4" />
                             Retour
                           </Button>
+                          {snap === 0.15 && (
+                            <span className="animate-in fade-in slide-in-from-left-4 text-primary font-heading truncate text-sm font-bold duration-300">
+                              {selectedStation.name}
+                            </span>
+                          )}
                         </div>
                         <div className="flex-1 overflow-auto pb-8">
                           <StationDetail />
                         </div>
                       </div>
                     ) : (
-                      <StationList isPeeking={snap === 0.18} />
+                      <StationList />
                     )}
                   </div>
                 </div>

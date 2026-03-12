@@ -23,7 +23,7 @@ export function StationDetail() {
         {/* Header */}
         <div className="flex flex-col space-y-2">
           <div className="flex items-center justify-between">
-            <h2 className="font-heading text-2xl font-bold tracking-tight">
+            <h2 className="font-heading text-primary text-2xl font-bold tracking-tight">
               {selectedStation.name}
             </h2>
             <Badge

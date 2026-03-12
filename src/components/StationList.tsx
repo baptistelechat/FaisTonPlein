@@ -3,16 +3,13 @@
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { useMediaQuery } from "@/hooks/use-media-query";
 import { calculateDistance, cn } from "@/lib/utils";
 import { Station, useAppStore } from "@/store/useAppStore";
-import { Navigation } from "lucide-react";
+import { Euro, Loader, Navigation, Route } from "lucide-react";
 import { useMemo } from "react";
 
-interface StationListProps {
-  isPeeking?: boolean;
-}
-
-export function StationList({ isPeeking = false }: StationListProps) {
+export function StationList() {
   const {
     stations,
     userLocation,
@@ -22,6 +19,8 @@ export function StationList({ isPeeking = false }: StationListProps) {
     listSortBy,
     setListSortBy,
   } = useAppStore();
+
+  const isDesktop = useMediaQuery("(min-width: 768px)");
 
   const sortedStations = useMemo(() => {
     // Filter stations that have the selected fuel
@@ -64,37 +63,14 @@ export function StationList({ isPeeking = false }: StationListProps) {
 
   if (sortedStations.length === 0) {
     return (
-      <div className="text-muted-foreground flex h-full items-center justify-center p-4 text-center">
+      <div
+        className={cn(
+          "text-muted-foreground flex h-full flex-col items-center gap-4 p-4 text-center",
+          isDesktop ? "justify-center" : "justify-start",
+        )}
+      >
+        <Loader className="size-8 animate-spin" />
         Aucune station trouvée proposant ce carburant dans cette zone.
-      </div>
-    );
-  }
-
-  // Peeking View (Horizontal Carousel)
-  if (isPeeking) {
-    return (
-      <div className="flex h-full flex-col">
-        <div className="px-4 pt-1 pb-2">
-          <div className="bg-muted mx-auto h-1.5 w-12 rounded-full" />
-        </div>
-        <div className="flex items-center justify-between px-4 pb-2">
-          <span className="text-muted-foreground text-sm font-semibold">
-            Top 3 moins chères
-          </span>
-        </div>
-        <div className="no-scrollbar flex gap-3 overflow-x-auto px-4 pb-4">
-          {sortedStations.slice(0, 3).map((station, index) => (
-            <StationCard
-              key={station.id}
-              station={station}
-              rank={index + 1}
-              selectedFuel={selectedFuel}
-              userLocation={userLocation}
-              onClick={() => handleStationClick(station)}
-              compact
-            />
-          ))}
-        </div>
       </div>
     );
   }
@@ -102,15 +78,18 @@ export function StationList({ isPeeking = false }: StationListProps) {
   // Full View (Vertical List)
   return (
     <div className="flex h-full flex-col">
-      <div className="flex flex-col gap-4 p-4 pb-2">
+      <div className="flex flex-col gap-4 p-4">
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-bold">Stations à proximité</h2>
+          <h2 className="text-lg font-bold">
+            Stations {listSortBy === "price" ? "économiques" : "proches"}
+          </h2>
           <div className="flex gap-2">
             <Badge
               variant={listSortBy === "price" ? "default" : "outline"}
               className="cursor-pointer"
               onClick={() => setListSortBy("price")}
             >
+              <Euro className="size-4" />
               Prix
             </Badge>
             <Badge
@@ -118,6 +97,7 @@ export function StationList({ isPeeking = false }: StationListProps) {
               className="cursor-pointer"
               onClick={() => setListSortBy("distance")}
             >
+              <Route className="size-4" />
               Distance
             </Badge>
           </div>
@@ -148,7 +128,6 @@ interface StationCardProps {
   selectedFuel: string;
   userLocation: [number, number] | null;
   onClick: () => void;
-  compact?: boolean;
 }
 
 function StationCard({
@@ -157,7 +136,6 @@ function StationCard({
   selectedFuel,
   userLocation,
   onClick,
-  compact = false,
 }: StationCardProps) {
   const price = station.prices.find((p) => p.fuel_type === selectedFuel);
   const distance = userLocation
@@ -171,10 +149,7 @@ function StationCard({
 
   return (
     <Card
-      className={cn(
-        "hover:bg-muted/50 cursor-pointer transition-all",
-        compact ? "min-w-70 p-3" : "p-4",
-      )}
+      className={cn("hover:bg-muted/50 cursor-pointer p-4 transition-all")}
       onClick={onClick}
     >
       <div className="flex items-start justify-between gap-2">
@@ -192,7 +167,7 @@ function StationCard({
           </div>
           <div className="text-muted-foreground flex min-w-0 items-center gap-2 text-xs">
             {distance !== null && (
-              <span className="flex shrink-0 items-center gap-0.5 whitespace-nowrap text-primary/80">
+              <span className="text-primary/80 flex shrink-0 items-center gap-0.5 whitespace-nowrap">
                 <Navigation className="size-3" />
                 {distance.toFixed(1)} km
               </span>

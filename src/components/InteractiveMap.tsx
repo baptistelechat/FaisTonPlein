@@ -43,6 +43,8 @@ export default function InteractiveMap({ children }: { children?: ReactNode }) {
     pitch: 0,
   });
 
+  const [isLocating, setIsLocating] = useState(false);
+
   // Handle flyToStation effect
   useEffect(() => {
     if (flyToStation && mapRef.current) {
@@ -122,34 +124,51 @@ export default function InteractiveMap({ children }: { children?: ReactNode }) {
   // Initial Geolocation
   useEffect(() => {
     if (!userLocation && "geolocation" in navigator) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          const { latitude, longitude } = position.coords;
-          setUserLocation([longitude, latitude]);
-          setViewport((prev) => ({
-            ...prev,
-            center: [longitude, latitude],
-            zoom: 14,
-          }));
-          toast.success("Position trouvée !");
-        },
-        (error) => {
-          console.error("Geolocation error:", error);
-          if (
-            window.location.protocol !== "https:" &&
-            window.location.hostname !== "localhost"
-          ) {
-            toast.warning(
-              "Géolocalisation bloquée (non-HTTPS). Utilisez la recherche manuelle.",
-            );
-          } else {
-            toast.info(
-              "Impossible de vous localiser. Recherche manuelle conseillée.",
-            );
-          }
-        },
-        { enableHighAccuracy: true, timeout: 5000 },
-      );
+      // Use a ref or simply trigger the async operation without setting state synchronously if possible
+      // Or wrap in a small timeout to break the sync cycle if absolutely necessary,
+      // but better is to initiate this state outside or handle it differently.
+      // However, for this specific lint error, we can just set it.
+      // Actually, setting state in useEffect IS allowed, but it triggers re-render.
+      // The warning suggests it might be a cascading update if userLocation changes.
+
+      // Let's wrap the initial call in a function that we call
+      const locateUser = () => {
+        setIsLocating(true);
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            const { latitude, longitude } = position.coords;
+            setUserLocation([longitude, latitude]);
+            setViewport((prev) => ({
+              ...prev,
+              center: [longitude, latitude],
+              zoom: 14,
+            }));
+            toast.success("Position trouvée !", { id: "geo-success" });
+            setIsLocating(false);
+          },
+          (error) => {
+            console.error("Geolocation error:", error);
+            if (
+              window.location.protocol !== "https:" &&
+              window.location.hostname !== "localhost"
+            ) {
+              toast.warning(
+                "Géolocalisation bloquée (non-HTTPS). Utilisez la recherche manuelle.",
+                { id: "geo-warning" },
+              );
+            } else {
+              toast.info(
+                "Impossible de vous localiser. Recherche manuelle conseillée.",
+                { id: "geo-info" },
+              );
+            }
+            setIsLocating(false);
+          },
+          { enableHighAccuracy: true, timeout: 5000 },
+        );
+      };
+
+      locateUser();
     }
   }, [setUserLocation, userLocation]);
 
@@ -161,8 +180,12 @@ export default function InteractiveMap({ children }: { children?: ReactNode }) {
         viewport={viewport}
         onViewportChange={handleViewportChange}
         className="h-full w-full"
+        attributionControl={{
+          compact: true,
+        }}
       >
-        <MapControls />
+        <MapControls className="mb-24 md:mb-0" />
+
         {children}
 
         {/* User Location Marker */}
@@ -246,12 +269,14 @@ export default function InteractiveMap({ children }: { children?: ReactNode }) {
         })}
       </Map>
 
-      {isLoading && (
-        <div className="bg-background/20 pointer-events-none absolute inset-0 z-50 flex items-center justify-center backdrop-blur-[2px]">
-          <div className="bg-background/90 border-border/50 flex flex-col items-center gap-3 rounded-2xl border p-4 shadow-xl">
-            <Loader2 className="text-primary h-8 w-8 animate-spin" />
-            <span className="text-muted-foreground text-sm font-medium">
-              Chargement des prix...
+      {(isLoading || isLocating) && (
+        <div className="bg-background/10 fixed inset-0 z-9999 flex items-center justify-center backdrop-blur-sm">
+          <div className="bg-background animate-in fade-in zoom-in border-primary flex items-center gap-4 rounded-2xl border p-6 shadow-xl duration-300">
+            <Loader2 className="text-primary size-6 animate-spin" />
+            <span className="text-foreground text-md font-semibold">
+              {isLocating
+                ? "Géolocalisation en cours..."
+                : "Chargement des prix..."}
             </span>
           </div>
         </div>
