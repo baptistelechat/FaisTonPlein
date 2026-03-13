@@ -51,6 +51,12 @@ export function StationDetail({ mobileDrawerSnap }: IStationPrice) {
     (p) => p.fuel_type === selectedFuel,
   );
 
+  const sortedPrices = [...selectedStation.prices].sort(
+    (a, b) =>
+      Number(b.fuel_type === selectedFuel) -
+      Number(a.fuel_type === selectedFuel),
+  );
+
   const handleNavigate = () => {
     const url = `https://www.google.com/maps/dir/?api=1&destination=${selectedStation.lat},${selectedStation.lon}`;
     window.open(url, "_blank");
@@ -88,15 +94,16 @@ export function StationDetail({ mobileDrawerSnap }: IStationPrice) {
           <PriceCard price={selectedPrice} selectedFuel={selectedFuel} />
         )}
 
-        {(mobileDrawerSnap === DRAWER_SNAP_POINTS.EXPANDED || !mobileDrawerSnap) && (
+        {(mobileDrawerSnap === DRAWER_SNAP_POINTS.EXPANDED ||
+          !mobileDrawerSnap) && (
           <>
             {/* Pricing Grid */}
             <div className="grid grid-cols-2 gap-4">
-              {selectedStation.prices.map((price, index) => (
+              {sortedPrices.map((price) => (
                 <PriceCard
                   price={price}
                   selectedFuel={selectedFuel}
-                  key={index}
+                  key={price.fuel_type}
                 />
               ))}
             </div>
