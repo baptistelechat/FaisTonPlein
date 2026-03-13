@@ -7,16 +7,35 @@ type PriceMarkerProps = {
   fuelType: FuelType;
   isSelected?: boolean;
   trend?: "up" | "down" | "stable";
+  averagePrice?: number | null;
 };
 
-export function PriceMarker({ price, isSelected }: PriceMarkerProps) {
+export function PriceMarker({
+  price,
+  isSelected,
+  averagePrice,
+}: PriceMarkerProps) {
   // Determine color status
-  const statusColor =
-    price < 1.8
-      ? "text-emerald-600 border-emerald-500 bg-emerald-50"
-      : price > 1.9
-        ? "text-rose-600 border-rose-500 bg-rose-50"
-        : "text-amber-600 border-amber-500 bg-amber-50";
+  const getStatusColor = () => {
+    if (!averagePrice) {
+      return "text-amber-600 border-amber-500 bg-amber-50";
+    }
+
+    const diff = price - averagePrice;
+    const threshold = 0.02;
+
+    if (diff < -threshold) {
+      return "text-emerald-600 border-emerald-500 bg-emerald-50";
+    }
+
+    if (diff > threshold) {
+      return "text-rose-600 border-rose-500 bg-rose-50";
+    }
+
+    return "text-amber-600 border-amber-500 bg-amber-50";
+  };
+
+  const statusColor = getStatusColor();
 
   return (
     <div

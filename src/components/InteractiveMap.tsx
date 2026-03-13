@@ -10,7 +10,14 @@ import { reverseGeocode } from "@/lib/api-adresse";
 import { useAppStore } from "@/store/useAppStore";
 import { Loader2 } from "lucide-react";
 import type { Map as MapLibreMap } from "maplibre-gl";
-import { ReactNode, useCallback, useEffect, useRef, useState } from "react";
+import {
+  ReactNode,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { toast } from "sonner";
 import useSupercluster from "use-supercluster";
 import { PriceMarker } from "./PriceMarker";
@@ -116,8 +123,22 @@ export default function InteractiveMap({
     })
     .filter((p) => p !== null);
 
-  // Get clusters
+  const averagePrice = useMemo(() => {
+    if (points.length === 0) return null;
 
+    const total = points.reduce((sum, p) => sum + p.properties.price, 0);
+    return total / points.length;
+  }, [points]);
+
+  useEffect(() => {
+    if (averagePrice) {
+      toast.info(`Prix moyen: ${averagePrice.toFixed(3)}€`, {
+        id: "avg-price",
+      });
+    }
+  }, [averagePrice]);
+
+  // Get clusters
   const { clusters, supercluster } = useSupercluster({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     points: points as any[],
@@ -333,6 +354,7 @@ export default function InteractiveMap({
                 price={cluster.properties.price}
                 fuelType={cluster.properties.fuelType}
                 isSelected={cluster.properties.isSelected}
+                averagePrice={averagePrice}
               />
             </MapMarker>
           );
