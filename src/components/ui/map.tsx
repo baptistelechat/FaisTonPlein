@@ -1,6 +1,14 @@
 "use client";
 
-import { Loader2, Locate, Maximize, Minus, Plus, X } from "lucide-react";
+import {
+  Loader2,
+  Locate,
+  LocateOff,
+  Maximize,
+  Minus,
+  Plus,
+  X,
+} from "lucide-react";
 import MapLibreGL, { type MarkerOptions, type PopupOptions } from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import {
@@ -887,10 +895,17 @@ function MapControls({
           <ControlButton
             onClick={handleLocate}
             label="Find my location"
-            disabled={waitingForLocation}
+            disabled={
+              waitingForLocation ||
+              (window.location.protocol !== "https:" &&
+                window.location.hostname !== "localhost")
+            }
           >
             {waitingForLocation ? (
               <Loader2 className="size-4 animate-spin" />
+            ) : window.location.protocol !== "https:" &&
+              window.location.hostname !== "localhost" ? (
+              <LocateOff className="size-4" />
             ) : (
               <Locate className="size-4" />
             )}

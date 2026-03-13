@@ -6,6 +6,7 @@ import { StationList } from "@/components/StationList";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Drawer, DrawerContent, DrawerTitle } from "@/components/ui/drawer";
+import { DRAWER_SNAP_POINTS, DRAWER_SNAP_POINTS_ARRAY } from "@/lib/constants";
 import { useAppStore } from "@/store/useAppStore";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -14,13 +15,15 @@ import { useEffect, useState } from "react";
 
 export function MobileLayout() {
   const { selectedStation, setSelectedStation, lastUpdate } = useAppStore();
-  const [snap, setSnap] = useState<number | string | null>(0.45);
+  const [snap, setSnap] = useState<number | string | null>(
+    DRAWER_SNAP_POINTS.MEDIUM,
+  );
 
   // Reset snap to middle when a station is selected on mobile
   useEffect(() => {
     if (selectedStation) {
       // Use setTimeout to avoid synchronous state update warning
-      const timer = setTimeout(() => setSnap(0.45), 0);
+      const timer = setTimeout(() => setSnap(DRAWER_SNAP_POINTS.MEDIUM), 0);
       return () => clearTimeout(timer);
     }
   }, [selectedStation]);
@@ -68,7 +71,7 @@ export function MobileLayout() {
         }}
         modal={false}
         dismissible={false}
-        snapPoints={[0.15, 0.45, 0.82]}
+        snapPoints={DRAWER_SNAP_POINTS_ARRAY}
         activeSnapPoint={snap}
         setActiveSnapPoint={setSnap}
         disablePreventScroll
@@ -81,32 +84,34 @@ export function MobileLayout() {
             {selectedStation ? "Détails" : "Liste des stations"}
           </DrawerTitle>
 
-          <div className="h-full pt-2">
+          <div className="min-h-0 flex-1 pt-2">
             {selectedStation ? (
-              <div className="flex h-full flex-col">
-                <div className="flex items-center justify-between px-4 pb-2">
+              <div className="flex h-full flex-col gap-2">
+                <div className="flex items-center justify-between px-4 py-0">
                   <Button
                     variant="ghost"
                     size="sm"
                     onClick={() => {
                       setSelectedStation(null);
-                      setSnap(0.45);
+                      setSnap(DRAWER_SNAP_POINTS.MEDIUM);
                     }}
                     className="max-w-full justify-start gap-2"
                   >
                     <ArrowLeft className="h-4 w-4 shrink-0" />
                     <span className="shrink-0">
-                      {snap === 0.15 ? "Retour vers la liste" : "Retour"}
+                      {snap === DRAWER_SNAP_POINTS.MINIMIZED
+                        ? "Retour vers la liste"
+                        : "Retour"}
                     </span>
                   </Button>
-                  {snap === 0.15 && (
+                  {snap === DRAWER_SNAP_POINTS.MINIMIZED && (
                     <span className="font-heading text-primary truncate text-sm font-bold">
                       {selectedStation.name}
                     </span>
                   )}
                 </div>
-                <div className="flex-1 overflow-auto pb-8">
-                  <StationDetail />
+                <div className="min-h-0 flex-1">
+                  <StationDetail mobileDrawerSnap={snap} />
                 </div>
               </div>
             ) : (

@@ -109,7 +109,7 @@ export function StationList() {
       </div>
 
       <ScrollArea className="mr-1 h-px flex-1 pb-4">
-        <div className="flex flex-col gap-3 px-4 pb-4">
+        <div className="flex flex-col gap-3 px-4 pb-40 md:pb-4">
           {sortedStations.map((station, index) => (
             <StationCard
               key={station.id}
