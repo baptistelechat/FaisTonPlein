@@ -212,7 +212,7 @@ export default function InteractiveMap({
       navigator.geolocation.getCurrentPosition(
         (position) => handleGeolocation(position.coords),
         (error) => {
-          console.error("Geolocation error:", error);
+          console.warn("Geolocation error:", error);
           if (
             window.location.protocol !== "https:" &&
             window.location.hostname !== "localhost"
@@ -222,10 +222,10 @@ export default function InteractiveMap({
               { id: "geo-warning" },
             );
           } else {
-            toast.info(
-              "Impossible de vous localiser. Recherche manuelle conseillée.",
-              { id: "geo-info" },
-            );
+            // toast.info(
+            //   "Impossible de vous localiser. Recherche manuelle conseillée.",
+            //   { id: "geo-info" },
+            // );
           }
         },
         { enableHighAccuracy: true, timeout: 5000 },

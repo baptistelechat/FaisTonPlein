@@ -8,12 +8,42 @@ import { useDuckDB } from "./DuckDBProvider";
 
 export const FuelDataLoader = () => {
   const { db, isLoading: isDbLoading, error: dbError } = useDuckDB();
-  const { setStations, setIsLoading, selectedDepartment, setLastUpdate } =
-    useAppStore();
+  const {
+    setStations,
+    setIsLoading,
+    selectedDepartment,
+    setLastUpdate,
+    searchLocation,
+  } = useAppStore();
   const [dataLoaded, setDataLoaded] = useState(false);
   const [currentDepartment, setCurrentDepartment] = useState<string | null>(
     null,
   );
+  const [locationAvailable, setLocationAvailable] = useState<boolean | null>(
+    null,
+  );
+
+  const canLoadData = locationAvailable === true || searchLocation;
+
+  useEffect(() => {
+    if (!("geolocation" in navigator)) {
+      setLocationAvailable(false);
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      () => setLocationAvailable(true),
+      () => setLocationAvailable(false),
+    );
+  }, []);
+
+  useEffect(() => {
+    if (locationAvailable === false && !searchLocation) {
+      toast.info(
+        "La localisation est nécessaire pour charger des stations au démarrage. Recherche manuelle conseillée.",
+      );
+    }
+  }, [locationAvailable, searchLocation]);
 
   useEffect(() => {
     let isMounted = true;
@@ -90,7 +120,9 @@ export const FuelDataLoader = () => {
       }
     };
 
-    if (!isDbLoading && !dbError) {
+    if (locationAvailable === null && !searchLocation) return;
+
+    if (!isDbLoading && !dbError && canLoadData) {
       loadData();
     }
 
@@ -107,6 +139,9 @@ export const FuelDataLoader = () => {
     selectedDepartment,
     currentDepartment,
     setLastUpdate,
+    locationAvailable,
+    searchLocation,
+    canLoadData,
   ]);
 
   if (dbError) {
