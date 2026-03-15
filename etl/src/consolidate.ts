@@ -57,9 +57,15 @@ export async function consolidateData({
     files: string[],
     destPath: string,
     label: string,
+    tempDirName: string = "temp_consolidation",
   ) {
-    const tempDir = path.join(outputDir, "temp_consolidation");
+    const tempDir = path.join(outputDir, tempDirName);
     const prefix = `hf://datasets/${hfRepo}/`;
+
+    // Ensure temp dir is clean before starting to avoid stale files
+    if (fs.existsSync(tempDir)) {
+      fs.rmSync(tempDir, { recursive: true, force: true });
+    }
 
     // Filter and convert to relative paths
     const relativeFiles = files
@@ -79,26 +85,51 @@ export async function consolidateData({
 
     try {
       // Download files
-      await downloadFilesToLocal(hfRepo, hfToken, relativeFiles, tempDir, 10);
+      const downloadedFiles = await downloadFilesToLocal(
+        hfRepo,
+        hfToken,
+        relativeFiles,
+        tempDir,
+        10,
+      );
+
+      if (downloadedFiles.length === 0) {
+        console.warn(
+          chalk.yellow(
+            `   ⚠️ Warning: No files were downloaded successfully for ${label}.`,
+          ),
+        );
+        return;
+      }
+
+      console.log(
+        chalk.gray(`      Downloaded ${downloadedFiles.length} files.`),
+      );
 
       // Map to absolute local paths
-      const localFiles = relativeFiles.map((f) =>
-        path.join(tempDir, f).replace(/\\/g, "/"),
-      );
+      // const localFiles = relativeFiles.map((f) =>
+      //   path.join(tempDir, f).replace(/\\/g, "/"),
+      // );
 
       // Ensure destination parent dir exists
       fs.mkdirSync(path.dirname(destPath), { recursive: true });
 
-      // Enable progress bar
-      await runSQL(db, "PRAGMA enable_progress_bar;");
+      // Enable progress bar (DISABLED for PM2 compatibility)
+      // await runSQL(db, "PRAGMA enable_progress_bar;");
 
-      const fileListSQL = localFiles.map((f) => `'${f}'`).join(", ");
+      // Use glob pattern instead of huge file list to avoid command length limits
+      const globPattern = path
+        .join(tempDir, "**/*.parquet")
+        .replace(/\\/g, "/");
+      console.log(
+        chalk.gray(`      Running DuckDB COPY from '${globPattern}'...`),
+      );
 
       await runSQL(
         db,
         `
         COPY (
-            SELECT * FROM read_parquet([${fileListSQL}], hive_partitioning=true)
+            SELECT * FROM read_parquet('${globPattern}', hive_partitioning=true)
         ) TO '${destPath}' 
         (FORMAT PARQUET, PARTITION_BY (code_departement), OVERWRITE_OR_IGNORE);
         `,
@@ -111,14 +142,22 @@ export async function consolidateData({
       throw err; // Re-throw to ensure we know about failures
     } finally {
       // Cleanup temp files (best effort, will be cleaned up properly after DB close)
+      // Note: On Windows/DuckDB, files might be locked until DB connection is closed or garbage collected.
+      // We log the error but don't throw, allowing the next steps (upload) to proceed.
       if (fs.existsSync(tempDir)) {
         try {
-          // Try a quick cleanup, but don't block/fail if locked
-          fs.rmSync(tempDir, { recursive: true, force: true, maxRetries: 1 });
-        } catch (e) {
+          // Force garbage collection if possible (node --expose-gc) or just wait a bit
+          await new Promise((resolve) => setTimeout(resolve, 500));
+          fs.rmSync(tempDir, {
+            recursive: true,
+            force: true,
+            maxRetries: 3,
+            retryDelay: 500,
+          });
+        } catch (e: any) {
           console.log(
             chalk.gray(
-              `      ⏳ Temp files locked, deferring cleanup to end of process...`,e
+              `      ⏳ Temp files locked (${e.code}), deferring cleanup to end of process...`,
             ),
           );
         }
@@ -194,7 +233,25 @@ export async function consolidateData({
       );
 
       try {
-        await processFilesLocally(monthlyFiles, monthlyDestPath, "Monthly");
+        // Use a different temp dir for monthly to avoid conflict if daily cleanup failed
+        // const monthlyTempDir = path.join(
+        //   outputDir,
+        //   "temp_consolidation_monthly",
+        // );
+
+        // Custom process logic for monthly to use specific temp dir
+        // We inline the logic or adapt processFilesLocally.
+        // For simplicity, let's just make processFilesLocally accept a custom temp dir name?
+        // Actually, easier to just update processFilesLocally to take a unique suffix or clear the dir.
+        // Since we refactored processFilesLocally to clear dir at start, the issue is likely the LOCK on the previous dir.
+        // So we MUST use a different directory for the second operation if the first one is still locked.
+
+        await processFilesLocally(
+          monthlyFiles,
+          monthlyDestPath,
+          "Monthly",
+          "temp_consolidation_monthly",
+        );
       } catch (e) {
         console.error(chalk.red("Failed to consolidate monthly data"), e);
       }
@@ -218,7 +275,7 @@ export async function consolidateData({
       const entries = fs.readdirSync(dir, { withFileTypes: true });
       for (const entry of entries) {
         const fullPath = path.join(dir, entry.name);
-        const relPath = path.relative(outputDir, fullPath).replace(/\\/g, "/"); // data/consolidated/...
+        const relPath = path.relative(baseDir, fullPath).replace(/\\/g, "/"); // data/consolidated/...
 
         if (entry.isDirectory()) {
           scanDir(fullPath, baseDir);
