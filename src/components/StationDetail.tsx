@@ -16,10 +16,42 @@ interface IStationPrice {
 const PriceCard = ({
   price,
   selectedFuel,
+  averagePrice,
 }: {
   price: FuelPrice;
   selectedFuel: string;
+  averagePrice?: number;
 }) => {
+  let priceColor = "text-foreground";
+  let diffBadge = null;
+
+  if (averagePrice) {
+    const diff = price.price - averagePrice;
+    const threshold = 0.02;
+    if (diff < -threshold) {
+      priceColor = "text-emerald-600";
+      diffBadge = (
+        <span className="rounded-sm bg-emerald-500/10 px-1.5 py-0.5 text-[10px] font-bold text-emerald-500">
+          - {Math.abs(diff).toFixed(3)}€
+        </span>
+      );
+    } else if (diff > threshold) {
+      priceColor = "text-rose-600";
+      diffBadge = (
+        <span className="rounded-sm bg-rose-500/10 px-1.5 py-0.5 text-[10px] font-bold text-rose-500">
+          + {diff.toFixed(3)}€
+        </span>
+      );
+    } else {
+      priceColor = "text-amber-600";
+      diffBadge = (
+        <span className="rounded-sm bg-amber-500/10 px-1.5 py-0.5 text-[10px] font-bold text-amber-500">
+          {`${diff>0?"+ ":"- "}${Math.abs(diff).toFixed(3)}€`}
+        </span>
+      );
+    }
+  }
+
   return (
     <div
       key={price.fuel_type}
@@ -29,21 +61,29 @@ const PriceCard = ({
           : "border-border/50 bg-muted/30"
       }`}
     >
-      <span className="text-muted-foreground mb-1 text-[10px] font-bold tracking-widest uppercase">
-        {price.fuel_type}
-      </span>
+      <div className="mb-1 flex items-center justify-between">
+        <span className="text-muted-foreground text-[10px] font-bold tracking-widest uppercase">
+          {price.fuel_type}
+        </span>
+        {diffBadge}
+      </div>
       <div className="flex items-baseline gap-1">
-        <span className="font-mono text-xl font-extrabold tracking-tighter">
+        <span
+          className={cn(
+            "font-mono text-xl font-extrabold tracking-tighter",
+            priceColor,
+          )}
+        >
           {price.price.toFixed(3)}
         </span>
-        <span className="text-xs font-semibold opacity-70">€/L</span>
+        <span className="text-xs font-semibold opacity-70">€</span>
       </div>
     </div>
   );
 };
 
 export function StationDetail({ mobileDrawerSnap }: IStationPrice) {
-  const { selectedStation, selectedFuel } = useAppStore();
+  const { selectedStation, selectedFuel, stats } = useAppStore();
 
   if (!selectedStation) return null;
 
@@ -91,7 +131,11 @@ export function StationDetail({ mobileDrawerSnap }: IStationPrice) {
         </div>
 
         {mobileDrawerSnap === DRAWER_SNAP_POINTS.MEDIUM && selectedPrice && (
-          <PriceCard price={selectedPrice} selectedFuel={selectedFuel} />
+          <PriceCard
+            price={selectedPrice}
+            selectedFuel={selectedFuel}
+            averagePrice={stats[selectedPrice.fuel_type]?.average}
+          />
         )}
 
         {(mobileDrawerSnap === DRAWER_SNAP_POINTS.EXPANDED ||
@@ -104,6 +148,7 @@ export function StationDetail({ mobileDrawerSnap }: IStationPrice) {
                   price={price}
                   selectedFuel={selectedFuel}
                   key={price.fuel_type}
+                  averagePrice={stats[price.fuel_type]?.average}
                 />
               ))}
             </div>

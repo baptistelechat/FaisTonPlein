@@ -122,7 +122,9 @@ export const FuelDataLoader = () => {
 
     if (locationAvailable === null && !searchLocation) return;
 
-    if (!isDbLoading && !dbError && canLoadData) {
+    // Ensure we have a selected department before attempting to load data
+    // This prevents 404 errors when the location is found but the department hasn't been reverse-geocoded yet
+    if (!isDbLoading && !dbError && canLoadData && selectedDepartment) {
       loadData();
     }
 

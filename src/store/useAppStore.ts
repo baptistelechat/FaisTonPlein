@@ -1,4 +1,4 @@
-import { FuelType } from "@/lib/constants";
+import { FuelType, FUEL_TYPES } from "@/lib/constants";
 import { create } from "zustand";
 
 export type FuelPrice = {
@@ -17,8 +17,16 @@ export type Station = {
   prices: FuelPrice[];
 };
 
+export type FuelStats = {
+  min: number;
+  max: number;
+  average: number;
+  count: number;
+};
+
 type AppStore = {
   stations: Station[];
+  stats: Record<FuelType, FuelStats | null>;
   isLoading: boolean;
   userLocation: [number, number] | null;
   selectedFuel: FuelType;
@@ -49,6 +57,10 @@ type AppStore = {
 
 export const useAppStore = create<AppStore>((set) => ({
   stations: [],
+  stats: FUEL_TYPES.reduce(
+    (acc, fuel) => ({ ...acc, [fuel]: null }),
+    {} as Record<FuelType, FuelStats | null>,
+  ),
   isLoading: false,
   userLocation: null,
   selectedFuel: "E10",
@@ -65,7 +77,30 @@ export const useAppStore = create<AppStore>((set) => ({
   searchLocation: null,
   setSearchLocation: (loc) => set({ searchLocation: loc }),
 
-  setStations: (stations) => set({ stations }),
+  setStations: (stations) => {
+    const stats = FUEL_TYPES.reduce(
+      (acc, fuel) => {
+        const prices = stations
+          .flatMap((s) => s.prices)
+          .filter((p) => p.fuel_type === fuel)
+          .map((p) => p.price);
+
+        if (prices.length > 0) {
+          const min = Math.min(...prices);
+          const max = Math.max(...prices);
+          const average =
+            prices.reduce((sum, p) => sum + p, 0) / prices.length;
+          acc[fuel] = { min, max, average, count: prices.length };
+        } else {
+          acc[fuel] = null;
+        }
+        return acc;
+      },
+      {} as Record<FuelType, FuelStats | null>,
+    );
+
+    set({ stations, stats });
+  },
   setIsLoading: (isLoading) => set({ isLoading }),
   setUserLocation: (userLocation) => set({ userLocation }),
   setSelectedFuel: (selectedFuel) => set({ selectedFuel }),

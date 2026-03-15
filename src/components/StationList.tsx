@@ -12,6 +12,7 @@ import { useMemo } from "react";
 export function StationList() {
   const {
     stations,
+    stats,
     userLocation,
     searchLocation,
     selectedFuel,
@@ -80,6 +81,8 @@ export function StationList() {
   }
 
   // Full View (Vertical List)
+  const currentStats = stats[selectedFuel];
+
   return (
     <div className="flex h-full flex-col">
       <div className="flex flex-col gap-4 p-4">
@@ -89,14 +92,6 @@ export function StationList() {
           </h2>
           <div className="flex gap-2">
             <Badge
-              variant={listSortBy === "price" ? "default" : "outline"}
-              className="cursor-pointer"
-              onClick={() => setListSortBy("price")}
-            >
-              <Euro className="size-4" />
-              Prix
-            </Badge>
-            <Badge
               variant={listSortBy === "distance" ? "default" : "outline"}
               className="cursor-pointer"
               onClick={() => setListSortBy("distance")}
@@ -104,8 +99,39 @@ export function StationList() {
               <Route className="size-4" />
               Distance
             </Badge>
+            <Badge
+              variant={listSortBy === "price" ? "default" : "outline"}
+              className="cursor-pointer"
+              onClick={() => setListSortBy("price")}
+            >
+              <Euro className="size-4" />
+              Prix
+            </Badge>
           </div>
         </div>
+
+        {currentStats && (
+          <div className="bg-muted/50 flex justify-between rounded-lg p-3 text-sm">
+            <div className="flex flex-col items-center">
+              <span className="text-xs font-bold">Min</span>
+              <span className="font-mono font-semibold text-emerald-600">
+                {currentStats.min.toFixed(3)}€
+              </span>
+            </div>
+            <div className="flex flex-col items-center">
+              <span className="text-xs font-bold">Moyenne</span>
+              <span className="font-mono font-semibold text-amber-600">
+                {currentStats.average.toFixed(3)}€
+              </span>
+            </div>
+            <div className="flex flex-col items-center">
+              <span className="text-xs font-bold">Max</span>
+              <span className="font-mono font-semibold text-rose-600">
+                {currentStats.max.toFixed(3)}€
+              </span>
+            </div>
+          </div>
+        )}
       </div>
 
       <ScrollArea className="mr-1 h-px flex-1 pb-4">
@@ -117,6 +143,7 @@ export function StationList() {
               rank={index + 1}
               selectedFuel={selectedFuel}
               referenceLocation={referenceLocation}
+              averagePrice={currentStats?.average}
               onClick={() => handleStationClick(station)}
             />
           ))}
@@ -131,6 +158,7 @@ interface StationCardProps {
   rank: number;
   selectedFuel: string;
   referenceLocation: [number, number] | null;
+  averagePrice?: number;
   onClick: () => void;
 }
 
@@ -139,6 +167,7 @@ function StationCard({
   rank,
   selectedFuel,
   referenceLocation,
+  averagePrice,
   onClick,
 }: StationCardProps) {
   const price = station.prices.find((p) => p.fuel_type === selectedFuel);
@@ -150,6 +179,15 @@ function StationCard({
         station.lon,
       )
     : null;
+
+  let priceColor = "text-foreground";
+  if (price && averagePrice) {
+    const diff = price.price - averagePrice;
+    const threshold = 0.02;
+    if (diff < -threshold) priceColor = "text-emerald-600";
+    else if (diff > threshold) priceColor = "text-rose-600";
+    else priceColor = "text-amber-600";
+  }
 
   return (
     <Card
@@ -183,7 +221,7 @@ function StationCard({
         <div className="flex flex-col items-end">
           {price ? (
             <>
-              <span className="font-mono text-lg font-bold">
+              <span className={cn("font-mono text-lg font-bold", priceColor)}>
                 {price.price.toFixed(3)}
                 <span className="text-muted-foreground ml-0.5 text-xs font-normal">
                   €

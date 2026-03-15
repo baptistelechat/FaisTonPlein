@@ -14,7 +14,6 @@ import {
   ReactNode,
   useCallback,
   useEffect,
-  useMemo,
   useRef,
   useState,
 } from "react";
@@ -35,6 +34,7 @@ export default function InteractiveMap({
 }) {
   const {
     stations,
+    stats,
     isLoading,
     selectedFuel,
     selectedStation,
@@ -123,20 +123,8 @@ export default function InteractiveMap({
     })
     .filter((p) => p !== null);
 
-  const averagePrice = useMemo(() => {
-    if (points.length === 0) return null;
-
-    const total = points.reduce((sum, p) => sum + p.properties.price, 0);
-    return total / points.length;
-  }, [points]);
-
-  useEffect(() => {
-    if (averagePrice) {
-      toast.info(`Prix moyen: ${averagePrice.toFixed(3)}€`, {
-        id: "avg-price",
-      });
-    }
-  }, [averagePrice]);
+  const currentFuelStats = stats[selectedFuel];
+  const averagePrice = currentFuelStats?.average ?? null;
 
   // Get clusters
   const { clusters, supercluster } = useSupercluster({
