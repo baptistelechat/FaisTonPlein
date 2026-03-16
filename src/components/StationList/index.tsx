@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useMediaQuery } from "@/hooks/use-media-query";
-import { calculateDistance, cn } from "@/lib/utils";
+import { calculateDistance, cn, getBestStationsForFuel } from "@/lib/utils";
 import { Station, useAppStore } from "@/store/useAppStore";
 import { Euro, Loader, Navigation, Route } from "lucide-react";
 import { useMemo } from "react";
@@ -61,6 +61,16 @@ export function StationList() {
       }
     });
   }, [stations, referenceLocation, selectedFuel, listSortBy]);
+
+  const { bestPriceStationId, bestDistanceStationId } = useMemo(
+    () =>
+      getBestStationsForFuel({
+        stations,
+        selectedFuel,
+        referenceLocation,
+      }),
+    [stations, selectedFuel, referenceLocation],
+  );
 
   const handleStationClick = (station: Station) => {
     setSelectedStation(station);
@@ -140,15 +150,16 @@ export function StationList() {
 
       <ScrollArea className="mr-1 h-px flex-1 pb-4">
         <div className="flex flex-col gap-3 px-4 pb-40 md:pb-4">
-          {sortedStations.map((station, index) => (
+          {sortedStations.map((station) => (
             <StationCard
               key={station.id}
               station={station}
-              rank={index + 1}
               selectedFuel={selectedFuel}
               referenceLocation={referenceLocation}
               q1={q1}
               q3={q3}
+              bestPriceStationId={bestPriceStationId}
+              bestDistanceStationId={bestDistanceStationId}
               onClick={() => handleStationClick(station)}
             />
           ))}
@@ -160,21 +171,23 @@ export function StationList() {
 
 interface StationCardProps {
   station: Station;
-  rank: number;
   selectedFuel: string;
   referenceLocation: [number, number] | null;
   q1?: number;
   q3?: number;
+  bestPriceStationId: string | null;
+  bestDistanceStationId: string | null;
   onClick: () => void;
 }
 
 function StationCard({
   station,
-  rank,
   selectedFuel,
   referenceLocation,
   q1,
   q3,
+  bestPriceStationId,
+  bestDistanceStationId,
   onClick,
 }: StationCardProps) {
   const price = station.prices.find((p) => p.fuel_type === selectedFuel);
@@ -202,15 +215,28 @@ function StationCard({
       <div className="flex items-start justify-between gap-2">
         <div className="flex flex-col gap-1 overflow-hidden">
           <div className="flex items-center gap-2">
-            {rank <= 3 && (
+            {/* {rank <= 3 && (
               <Badge
                 variant="secondary"
-                className="h-5 w-5 shrink-0 justify-center rounded-full p-0 text-[10px]"
+                className={cn(
+                  "text-foreground h-5 w-5 shrink-0 justify-center rounded-full p-0 text-[10px]",
+                  rank === 1 ? "bg-yellow-400" : "",
+                  rank === 2 ? "bg-gray-300" : "",
+                  rank === 3 ? "bg-orange-400" : "",
+                )}
               >
                 {rank}
               </Badge>
-            )}
-            <h3 className="truncate text-sm font-semibold">{station.name}</h3>
+            )} */}
+            <h3 className="flex items-center gap-2 truncate text-sm font-semibold">
+              {station.name}
+              {station.id === bestPriceStationId && (
+                <Euro className="size-4 text-yellow-500" />
+              )}
+              {station.id === bestDistanceStationId && (
+                <Route className="size-4 text-yellow-500" />
+              )}
+            </h3>
           </div>
           <div className="text-muted-foreground flex min-w-0 items-center gap-2 text-xs">
             {distance !== null && (

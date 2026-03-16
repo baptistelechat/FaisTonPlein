@@ -7,6 +7,7 @@ import {
   type MapViewport,
 } from "@/components/ui/map";
 import { reverseGeocode } from "@/lib/api-adresse";
+import { getBestStationsForFuel } from "@/lib/utils";
 import { useAppStore } from "@/store/useAppStore";
 import { Loader2 } from "lucide-react";
 import type { Map as MapLibreMap } from "maplibre-gl";
@@ -14,6 +15,7 @@ import {
   ReactNode,
   useCallback,
   useEffect,
+  useMemo,
   useRef,
   useState,
 } from "react";
@@ -51,6 +53,7 @@ export default function InteractiveMap({
   } = useAppStore();
 
   const mapRef = useRef<MapLibreMap>(null);
+  const [mapInstance, setMapInstance] = useState<MapLibreMap | null>(null);
 
   const [bounds, setBounds] = useState<[number, number, number, number] | null>(
     null,
@@ -64,14 +67,11 @@ export default function InteractiveMap({
   });
 
   useEffect(() => {
-    if (bounds) return;
-
     let cancelled = false;
     const tick = () => {
       if (cancelled) return;
       if (mapRef.current) {
-        const b = mapRef.current.getBounds();
-        setBounds([b.getWest(), b.getSouth(), b.getEast(), b.getNorth()]);
+        setMapInstance(mapRef.current);
         return;
       }
       requestAnimationFrame(tick);
@@ -81,7 +81,30 @@ export default function InteractiveMap({
     return () => {
       cancelled = true;
     };
-  }, [bounds]);
+  }, [mapInstance]);
+
+  useEffect(() => {
+    if (!mapInstance) return;
+
+    const updateBounds = () => {
+      const b = mapInstance.getBounds();
+      setBounds([b.getWest(), b.getSouth(), b.getEast(), b.getNorth()]);
+    };
+
+    updateBounds();
+    const timer = setTimeout(updateBounds, 0);
+
+    mapInstance.on("load", updateBounds);
+    mapInstance.on("moveend", updateBounds);
+    mapInstance.on("zoomend", updateBounds);
+
+    return () => {
+      clearTimeout(timer);
+      mapInstance.off("load", updateBounds);
+      mapInstance.off("moveend", updateBounds);
+      mapInstance.off("zoomend", updateBounds);
+    };
+  }, [mapInstance]);
 
   // Handle flyToLocation effect
   useEffect(() => {
@@ -146,6 +169,28 @@ export default function InteractiveMap({
   const currentFuelStats = stats[selectedFuel];
   const q1 = currentFuelStats?.p25 ?? null;
   const q3 = currentFuelStats?.p75 ?? null;
+
+  const referenceLocation = searchLocation || userLocation;
+
+  const { bestPriceStationId, bestDistanceStationId } = useMemo(
+    () =>
+      getBestStationsForFuel({
+        stations,
+        selectedFuel,
+        referenceLocation,
+      }),
+    [stations, selectedFuel, referenceLocation],
+  );
+
+  const bestPriceStation = useMemo(
+    () => stations.find((s) => s.id === bestPriceStationId) ?? null,
+    [stations, bestPriceStationId],
+  );
+
+  const bestDistanceStation = useMemo(
+    () => stations.find((s) => s.id === bestDistanceStationId) ?? null,
+    [stations, bestDistanceStationId],
+  );
 
   // Get clusters
   const { clusters, supercluster } = useSupercluster({
@@ -369,6 +414,84 @@ export default function InteractiveMap({
             </MapMarker>
           );
         })}
+
+        {bestPriceStation &&
+          bestDistanceStation &&
+          bestPriceStation.id === bestDistanceStation.id && (
+            <MapMarker
+              key="best-both"
+              longitude={bestPriceStation.lon}
+              latitude={bestPriceStation.lat}
+              onClick={(e) => {
+                e.stopPropagation();
+                setSelectedStation(bestPriceStation);
+                setViewport((prev) => ({
+                  ...prev,
+                  center: [bestPriceStation.lon, bestPriceStation.lat],
+                  zoom: 15,
+                  duration: 800,
+                }));
+              }}
+            >
+              <PulseMarker
+                color="bg-yellow-500"
+                pingColor="bg-yellow-500"
+                tooltip="Meilleur prix & plus proche"
+              />
+            </MapMarker>
+          )}
+
+        {bestPriceStation &&
+          (!bestDistanceStation ||
+            bestDistanceStation.id !== bestPriceStation.id) && (
+            <MapMarker
+              key="best-price"
+              longitude={bestPriceStation.lon}
+              latitude={bestPriceStation.lat}
+              onClick={(e) => {
+                e.stopPropagation();
+                setSelectedStation(bestPriceStation);
+                setViewport((prev) => ({
+                  ...prev,
+                  center: [bestPriceStation.lon, bestPriceStation.lat],
+                  zoom: 15,
+                  duration: 800,
+                }));
+              }}
+            >
+              <PulseMarker
+                color="bg-yellow-500"
+                pingColor="bg-yellow-500"
+                tooltip="Meilleur prix"
+              />
+            </MapMarker>
+          )}
+
+        {bestDistanceStation &&
+          (!bestPriceStation ||
+            bestPriceStation.id !== bestDistanceStation.id) && (
+            <MapMarker
+              key="best-distance"
+              longitude={bestDistanceStation.lon}
+              latitude={bestDistanceStation.lat}
+              onClick={(e) => {
+                e.stopPropagation();
+                setSelectedStation(bestDistanceStation);
+                setViewport((prev) => ({
+                  ...prev,
+                  center: [bestDistanceStation.lon, bestDistanceStation.lat],
+                  zoom: 15,
+                  duration: 800,
+                }));
+              }}
+            >
+              <PulseMarker
+                color="bg-yellow-500"
+                pingColor="bg-yellow-500"
+                tooltip="Plus proche"
+              />
+            </MapMarker>
+          )}
 
         {searchLocation && (
           <MapMarker longitude={searchLocation[0]} latitude={searchLocation[1]}>

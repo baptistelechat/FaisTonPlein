@@ -4,9 +4,17 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { DRAWER_SNAP_POINTS } from "@/lib/constants";
-import { cn } from "@/lib/utils";
+import { cn, getBestStationsForFuel } from "@/lib/utils";
 import { FuelPrice, useAppStore } from "@/store/useAppStore";
-import { CreditCard, History, MapPin, Navigation } from "lucide-react";
+import {
+  CreditCard,
+  Euro,
+  History,
+  MapPin,
+  Navigation,
+  Route,
+} from "lucide-react";
+import { useMemo } from "react";
 import { toast } from "sonner";
 
 interface IStationPrice {
@@ -46,7 +54,7 @@ const PriceCard = ({
       priceColor = "text-amber-600";
       diffBadge = (
         <span className="rounded-sm bg-amber-500/10 px-1.5 py-0.5 text-[10px] font-bold text-amber-500">
-          {`${diff>0?"+ ":"- "}${Math.abs(diff).toFixed(3)}€`}
+          {`${diff > 0 ? "+ " : "- "}${Math.abs(diff).toFixed(3)}€`}
         </span>
       );
     }
@@ -83,7 +91,32 @@ const PriceCard = ({
 };
 
 export function StationDetail({ mobileDrawerSnap }: IStationPrice) {
-  const { selectedStation, selectedFuel, stats } = useAppStore();
+  const {
+    selectedStation,
+    selectedFuel,
+    stats,
+    stations,
+    userLocation,
+    searchLocation,
+  } = useAppStore();
+
+  const selectedStationId = selectedStation?.id ?? null;
+  const referenceLocation = searchLocation || userLocation;
+
+  const { bestPriceStationId, bestDistanceStationId } = useMemo(
+    () =>
+      getBestStationsForFuel({
+        stations,
+        selectedFuel,
+        referenceLocation,
+      }),
+    [stations, selectedFuel, referenceLocation],
+  );
+
+  const isBestPrice =
+    selectedStationId !== null && selectedStationId === bestPriceStationId;
+  const isBestDistance =
+    selectedStationId !== null && selectedStationId === bestDistanceStationId;
 
   if (!selectedStation) return null;
 
@@ -114,7 +147,7 @@ export function StationDetail({ mobileDrawerSnap }: IStationPrice) {
         {/* Header */}
         <div className="flex flex-col space-y-2">
           <div className="flex items-center justify-between">
-            <h2 className="font-heading text-primary text-2xl font-bold tracking-tight">
+            <h2 className="font-heading text-primary flex items-center gap-2 text-2xl font-bold tracking-tight">
               {selectedStation.name}
             </h2>
             <Badge
@@ -125,9 +158,31 @@ export function StationDetail({ mobileDrawerSnap }: IStationPrice) {
             </Badge>
           </div>
           <p className="text-muted-foreground flex items-center gap-1.5 text-sm">
-            <MapPin className="h-3.5 w-3.5" />
+            <MapPin className="size-3.5" />
             {selectedStation.address}
           </p>
+          {(isBestPrice || isBestDistance) && (
+            <div className="flex flex-wrap gap-2">
+              {isBestPrice && (
+                <Badge
+                  variant="outline"
+                  className="border-yellow-500/30 bg-yellow-500/10 text-yellow-600"
+                >
+                  <Euro className="size-3.5" />
+                  Meilleur prix
+                </Badge>
+              )}
+              {isBestDistance && (
+                <Badge
+                  variant="outline"
+                  className="border-yellow-500/30 bg-yellow-500/10 text-yellow-600"
+                >
+                  <Route className="size-3.5" />
+                  Plus proche
+                </Badge>
+              )}
+            </div>
+          )}
         </div>
 
         {mobileDrawerSnap === DRAWER_SNAP_POINTS.MEDIUM && selectedPrice && (
@@ -152,7 +207,8 @@ export function StationDetail({ mobileDrawerSnap }: IStationPrice) {
                   selectedFuel={selectedFuel}
                   key={price.fuel_type}
                   averagePrice={
-                    stats[price.fuel_type]?.median ?? stats[price.fuel_type]?.average
+                    stats[price.fuel_type]?.median ??
+                    stats[price.fuel_type]?.average
                   }
                 />
               ))}

@@ -7,16 +7,38 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Drawer, DrawerContent, DrawerTitle } from "@/components/ui/drawer";
 import { DRAWER_SNAP_POINTS, DRAWER_SNAP_POINTS_ARRAY } from "@/lib/constants";
+import { getBestStationsForFuel } from "@/lib/utils";
 import { useAppStore } from "@/store/useAppStore";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
-import { ArrowLeft, Clock } from "lucide-react";
-import { useEffect, useState } from "react";
+import { ArrowLeft, Clock, Euro, Route } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
 
 export function MobileLayout() {
-  const { selectedStation, setSelectedStation, lastUpdate } = useAppStore();
+  const {
+    selectedStation,
+    setSelectedStation,
+    lastUpdate,
+    stations,
+    selectedFuel,
+    userLocation,
+    searchLocation,
+  } = useAppStore();
   const [snap, setSnap] = useState<number | string | null>(
     DRAWER_SNAP_POINTS.MEDIUM,
+  );
+
+  const selectedStationId = selectedStation?.id ?? null;
+  const referenceLocation = searchLocation || userLocation;
+
+  const { bestPriceStationId, bestDistanceStationId } = useMemo(
+    () =>
+      getBestStationsForFuel({
+        stations,
+        selectedFuel,
+        referenceLocation,
+      }),
+    [stations, selectedFuel, referenceLocation],
   );
 
   // Reset snap to middle when a station is selected on mobile
@@ -105,8 +127,16 @@ export function MobileLayout() {
                     </span>
                   </Button>
                   {snap === DRAWER_SNAP_POINTS.MINIMIZED && (
-                    <span className="font-heading text-primary truncate text-sm font-bold">
+                    <span className="font-heading text-primary flex items-center gap-2 truncate text-sm font-bold">
                       {selectedStation.name}
+                      {selectedStationId !== null &&
+                        selectedStationId === bestPriceStationId && (
+                          <Euro className="size-4 text-yellow-500" />
+                        )}
+                      {selectedStationId !== null &&
+                        selectedStationId === bestDistanceStationId && (
+                          <Route className="size-4 text-yellow-500" />
+                        )}
                     </span>
                   )}
                 </div>
