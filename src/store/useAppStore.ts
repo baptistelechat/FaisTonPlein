@@ -86,7 +86,7 @@ type AppStore = {
 export const useAppStore = create<AppStore>((set) => ({
   stations: [],
   stats: FUEL_TYPES.reduce(
-    (acc, fuel) => ({ ...acc, [fuel]: null }),
+    (acc, fuel) => ({ ...acc, [fuel.type]: null }),
     {} as Record<FuelType, FuelStats | null>,
   ),
   isLoading: false,
@@ -116,7 +116,7 @@ export const useAppStore = create<AppStore>((set) => ({
         for (const station of stations) {
           let hasFuel = false;
           for (const p of station.prices) {
-            if (p.fuel_type !== fuel) continue;
+            if (p.fuel_type !== fuel.type) continue;
             prices.push(p.price);
             sum += p.price;
             hasFuel = true;
@@ -141,7 +141,7 @@ export const useAppStore = create<AppStore>((set) => ({
 
           const stdDev = computeStdDev(prices, average);
 
-          acc[fuel] = {
+          acc[fuel.type] = {
             min,
             max,
             average,
@@ -155,7 +155,7 @@ export const useAppStore = create<AppStore>((set) => ({
             count: prices.length,
           };
         } else {
-          acc[fuel] = null;
+          acc[fuel.type] = null;
         }
         return acc;
       },

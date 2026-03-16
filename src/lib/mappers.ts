@@ -21,7 +21,8 @@ interface RawFuelPrice {
 }
 
 function mapFuelType(rawName: string): FuelType | "Unknown" {
-  if ((FUEL_TYPES as readonly string[]).includes(rawName)) {
+  const isKnownFuel = FUEL_TYPES.some((fuel) => fuel.type === rawName);
+  if (isKnownFuel) {
     return rawName as FuelType;
   }
   return "Unknown";
@@ -34,7 +35,7 @@ export function mapRawDataToStation(raw: RawStationData): Station {
   const lon = Number(raw.longitude) / 100000;
 
   // Helper to infer name
-  const inferStationName = (raw: RawStationData): string => {
+  const inferStationName = (): string => {
     // If we have a specific name field in the future, use it.
     // For now, try to guess from services or address, or default to generic.
     return "Station Service";
@@ -88,7 +89,7 @@ export function mapRawDataToStation(raw: RawStationData): Station {
 
   return {
     id: raw.id,
-    name: inferStationName(raw),
+    name: inferStationName(),
     lat,
     lon,
     address: `${raw.Adresse}, ${raw["Code postal"]} ${raw.Ville}`,
