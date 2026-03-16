@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useMediaQuery } from "@/hooks/use-media-query";
-import { calculateDistance, cn, getBestStationsForFuel } from "@/lib/utils";
+import { calculateDistance, cn } from "@/lib/utils";
 import { Station, useAppStore } from "@/store/useAppStore";
 import { Euro, Loader, Navigation, Route } from "lucide-react";
 import { useMemo } from "react";
@@ -21,6 +21,8 @@ export function StationList() {
     setFlyToStation,
     listSortBy,
     setListSortBy,
+    bestPriceStationId,
+    bestDistanceStationId,
   } = useAppStore();
 
   const isDesktop = useMediaQuery("(min-width: 768px)");
@@ -61,16 +63,6 @@ export function StationList() {
       }
     });
   }, [stations, referenceLocation, selectedFuel, listSortBy]);
-
-  const { bestPriceStationId, bestDistanceStationId } = useMemo(
-    () =>
-      getBestStationsForFuel({
-        stations,
-        selectedFuel,
-        referenceLocation,
-      }),
-    [stations, selectedFuel, referenceLocation],
-  );
 
   const handleStationClick = (station: Station) => {
     setSelectedStation(station);

@@ -7,39 +7,25 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Drawer, DrawerContent, DrawerTitle } from "@/components/ui/drawer";
 import { DRAWER_SNAP_POINTS, DRAWER_SNAP_POINTS_ARRAY } from "@/lib/constants";
-import { getBestStationsForFuel } from "@/lib/utils";
 import { useAppStore } from "@/store/useAppStore";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { ArrowLeft, Clock, Euro, Route } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 
 export function MobileLayout() {
   const {
     selectedStation,
     setSelectedStation,
     lastUpdate,
-    stations,
-    selectedFuel,
-    userLocation,
-    searchLocation,
+    bestPriceStationId,
+    bestDistanceStationId,
   } = useAppStore();
   const [snap, setSnap] = useState<number | string | null>(
     DRAWER_SNAP_POINTS.MEDIUM,
   );
 
   const selectedStationId = selectedStation?.id ?? null;
-  const referenceLocation = searchLocation || userLocation;
-
-  const { bestPriceStationId, bestDistanceStationId } = useMemo(
-    () =>
-      getBestStationsForFuel({
-        stations,
-        selectedFuel,
-        referenceLocation,
-      }),
-    [stations, selectedFuel, referenceLocation],
-  );
 
   // Reset snap to middle when a station is selected on mobile
   useEffect(() => {

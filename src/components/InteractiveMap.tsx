@@ -7,7 +7,6 @@ import {
   type MapViewport,
 } from "@/components/ui/map";
 import { reverseGeocode } from "@/lib/api-adresse";
-import { getBestStationsForFuel } from "@/lib/utils";
 import { useAppStore } from "@/store/useAppStore";
 import { Loader2 } from "lucide-react";
 import type { Map as MapLibreMap } from "maplibre-gl";
@@ -50,6 +49,8 @@ export default function InteractiveMap({
     searchLocation,
     setSelectedDepartment,
     setSearchLocation,
+    bestPriceStationId,
+    bestDistanceStationId,
   } = useAppStore();
 
   const mapRef = useRef<MapLibreMap>(null);
@@ -169,18 +170,6 @@ export default function InteractiveMap({
   const currentFuelStats = stats[selectedFuel];
   const q1 = currentFuelStats?.p25 ?? null;
   const q3 = currentFuelStats?.p75 ?? null;
-
-  const referenceLocation = searchLocation || userLocation;
-
-  const { bestPriceStationId, bestDistanceStationId } = useMemo(
-    () =>
-      getBestStationsForFuel({
-        stations,
-        selectedFuel,
-        referenceLocation,
-      }),
-    [stations, selectedFuel, referenceLocation],
-  );
 
   const bestPriceStation = useMemo(
     () => stations.find((s) => s.id === bestPriceStationId) ?? null,
@@ -408,13 +397,18 @@ export default function InteractiveMap({
                 price={cluster.properties.price}
                 fuelType={cluster.properties.fuelType}
                 isSelected={cluster.properties.isSelected}
+                isBestPrice={
+                  cluster.properties.stationId === bestPriceStationId
+                }
+                isBestDistance={
+                  cluster.properties.stationId === bestDistanceStationId
+                }
                 q1={q1}
                 q3={q3}
               />
             </MapMarker>
           );
         })}
-
         {bestPriceStation &&
           bestDistanceStation &&
           bestPriceStation.id === bestDistanceStation.id && (

@@ -1,4 +1,5 @@
 import { FUEL_TYPES, FuelType } from "@/lib/constants";
+import { getBestStationsForFuel } from "@/lib/utils";
 import { create } from "zustand";
 
 const quantileSorted = (sorted: number[], q: number) => {
@@ -64,6 +65,8 @@ type AppStore = {
   selectedStation: Station | null;
   flyToStation: Station | null;
   listSortBy: "price" | "distance";
+  bestPriceStationId: string | null;
+  bestDistanceStationId: string | null;
 
   flyToLocation: [number, number] | null;
   setFlyToLocation: (loc: [number, number] | null) => void;
@@ -83,7 +86,7 @@ type AppStore = {
   setListSortBy: (sortBy: "price" | "distance") => void;
 };
 
-export const useAppStore = create<AppStore>((set) => ({
+export const useAppStore = create<AppStore>((set, get) => ({
   stations: [],
   stats: FUEL_TYPES.reduce(
     (acc, fuel) => ({ ...acc, [fuel.type]: null }),
@@ -91,19 +94,35 @@ export const useAppStore = create<AppStore>((set) => ({
   ),
   isLoading: false,
   userLocation: null,
-  selectedFuel: "E10",
+  selectedFuel: "Gazole",
   selectedDepartment: "",
   lastUpdate: null,
   searchQuery: "",
   selectedStation: null,
   flyToStation: null,
   listSortBy: "distance",
+  bestPriceStationId: null,
+  bestDistanceStationId: null,
 
   flyToLocation: null,
   setFlyToLocation: (loc) => set({ flyToLocation: loc }),
 
   searchLocation: null,
-  setSearchLocation: (loc) => set({ searchLocation: loc }),
+  setSearchLocation: (searchLocation) => {
+    const { stations, selectedFuel, userLocation } = get();
+    const referenceLocation = searchLocation || userLocation;
+    const { bestPriceStationId, bestDistanceStationId } =
+      getBestStationsForFuel({
+        stations,
+        selectedFuel,
+        referenceLocation,
+      });
+    set({
+      searchLocation,
+      bestPriceStationId,
+      bestDistanceStationId,
+    });
+  },
 
   setStations: (stations) => {
     const stats = FUEL_TYPES.reduce(
@@ -162,11 +181,53 @@ export const useAppStore = create<AppStore>((set) => ({
       {} as Record<FuelType, FuelStats | null>,
     );
 
-    set({ stations, stats });
+    const { selectedFuel, userLocation, searchLocation } = get();
+    const referenceLocation = searchLocation || userLocation;
+    const { bestPriceStationId, bestDistanceStationId } =
+      getBestStationsForFuel({
+        stations,
+        selectedFuel,
+        referenceLocation,
+      });
+
+    set({
+      stations,
+      stats,
+      bestPriceStationId,
+      bestDistanceStationId,
+    });
   },
   setIsLoading: (isLoading) => set({ isLoading }),
-  setUserLocation: (userLocation) => set({ userLocation }),
-  setSelectedFuel: (selectedFuel) => set({ selectedFuel }),
+  setUserLocation: (userLocation) => {
+    const { stations, selectedFuel, searchLocation } = get();
+    const referenceLocation = searchLocation || userLocation;
+    const { bestPriceStationId, bestDistanceStationId } =
+      getBestStationsForFuel({
+        stations,
+        selectedFuel,
+        referenceLocation,
+      });
+    set({
+      userLocation,
+      bestPriceStationId,
+      bestDistanceStationId,
+    });
+  },
+  setSelectedFuel: (selectedFuel) => {
+    const { stations, userLocation, searchLocation } = get();
+    const referenceLocation = searchLocation || userLocation;
+    const { bestPriceStationId, bestDistanceStationId } =
+      getBestStationsForFuel({
+        stations,
+        selectedFuel,
+        referenceLocation,
+      });
+    set({
+      selectedFuel,
+      bestPriceStationId,
+      bestDistanceStationId,
+    });
+  },
   setSelectedDepartment: (selectedDepartment) => set({ selectedDepartment }),
   setLastUpdate: (lastUpdate) => set({ lastUpdate }),
   setSearchQuery: (query) => set({ searchQuery: query }),

@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { DRAWER_SNAP_POINTS } from "@/lib/constants";
-import { cn, getBestStationsForFuel } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import { FuelPrice, useAppStore } from "@/store/useAppStore";
 import {
   CreditCard,
@@ -14,7 +14,6 @@ import {
   Navigation,
   Route,
 } from "lucide-react";
-import { useMemo } from "react";
 import { toast } from "sonner";
 
 interface IStationPrice {
@@ -95,23 +94,11 @@ export function StationDetail({ mobileDrawerSnap }: IStationPrice) {
     selectedStation,
     selectedFuel,
     stats,
-    stations,
-    userLocation,
-    searchLocation,
+    bestPriceStationId,
+    bestDistanceStationId,
   } = useAppStore();
 
   const selectedStationId = selectedStation?.id ?? null;
-  const referenceLocation = searchLocation || userLocation;
-
-  const { bestPriceStationId, bestDistanceStationId } = useMemo(
-    () =>
-      getBestStationsForFuel({
-        stations,
-        selectedFuel,
-        referenceLocation,
-      }),
-    [stations, selectedFuel, referenceLocation],
-  );
 
   const isBestPrice =
     selectedStationId !== null && selectedStationId === bestPriceStationId;
