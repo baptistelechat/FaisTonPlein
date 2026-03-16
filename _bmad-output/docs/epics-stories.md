@@ -93,9 +93,9 @@
 
 **Critères d'Acceptation :**
 
-- [ ] Affichage d'une liste sous la carte (ou via un toggle).
-- [ ] Chaque élément affiche : Nom, Distance, Prix du carburant sélectionné.
-- [ ] Possibilité de trier par Distance ou Prix.
+- [x] Affichage d'une liste sous la carte (ou via un toggle).
+- [x] Chaque élément affiche : Nom, Distance, Prix du carburant sélectionné.
+- [x] Possibilité de trier par Distance ou Prix.
 
 ### US-01-03 : Détail d'une Station
 
