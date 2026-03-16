@@ -8,6 +8,7 @@ import { calculateDistance, cn } from "@/lib/utils";
 import { Station, useAppStore } from "@/store/useAppStore";
 import { Euro, Loader, Navigation, Route } from "lucide-react";
 import { useMemo } from "react";
+import StationListStats from "./components/StationListStats";
 
 export function StationList() {
   const {
@@ -82,6 +83,8 @@ export function StationList() {
 
   // Full View (Vertical List)
   const currentStats = stats[selectedFuel];
+  const q1 = currentStats?.p25;
+  const q3 = currentStats?.p75;
 
   return (
     <div className="flex h-full flex-col">
@@ -111,25 +114,26 @@ export function StationList() {
         </div>
 
         {currentStats && (
-          <div className="bg-muted/50 flex justify-between rounded-lg p-3 text-sm">
+          <div className="bg-muted/50 grid w-full grid-cols-[1fr_1fr_1fr_auto] items-center gap-3 rounded-lg p-3 text-sm">
             <div className="flex flex-col items-center">
-              <span className="text-xs font-bold">Min</span>
+              <span className="text-xs font-bold">Min.</span>
               <span className="font-mono font-semibold text-emerald-600">
                 {currentStats.min.toFixed(3)}€
               </span>
             </div>
             <div className="flex flex-col items-center">
-              <span className="text-xs font-bold">Moyenne</span>
+              <span className="text-xs font-bold">Médiane</span>
               <span className="font-mono font-semibold text-amber-600">
-                {currentStats.average.toFixed(3)}€
+                {currentStats.median.toFixed(3)}€
               </span>
             </div>
             <div className="flex flex-col items-center">
-              <span className="text-xs font-bold">Max</span>
+              <span className="text-xs font-bold">Max.</span>
               <span className="font-mono font-semibold text-rose-600">
                 {currentStats.max.toFixed(3)}€
               </span>
             </div>
+            <StationListStats statistics={currentStats} />
           </div>
         )}
       </div>
@@ -143,7 +147,8 @@ export function StationList() {
               rank={index + 1}
               selectedFuel={selectedFuel}
               referenceLocation={referenceLocation}
-              averagePrice={currentStats?.average}
+              q1={q1}
+              q3={q3}
               onClick={() => handleStationClick(station)}
             />
           ))}
@@ -158,7 +163,8 @@ interface StationCardProps {
   rank: number;
   selectedFuel: string;
   referenceLocation: [number, number] | null;
-  averagePrice?: number;
+  q1?: number;
+  q3?: number;
   onClick: () => void;
 }
 
@@ -167,7 +173,8 @@ function StationCard({
   rank,
   selectedFuel,
   referenceLocation,
-  averagePrice,
+  q1,
+  q3,
   onClick,
 }: StationCardProps) {
   const price = station.prices.find((p) => p.fuel_type === selectedFuel);
@@ -181,11 +188,9 @@ function StationCard({
     : null;
 
   let priceColor = "text-foreground";
-  if (price && averagePrice) {
-    const diff = price.price - averagePrice;
-    const threshold = 0.02;
-    if (diff < -threshold) priceColor = "text-emerald-600";
-    else if (diff > threshold) priceColor = "text-rose-600";
+  if (price && typeof q1 === "number" && typeof q3 === "number") {
+    if (price.price < q1) priceColor = "text-emerald-600";
+    else if (price.price > q3) priceColor = "text-rose-600";
     else priceColor = "text-amber-600";
   }
 

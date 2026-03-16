@@ -1,210 +1,159 @@
-import { createRepo, uploadFiles, listFiles, downloadFile } from "@huggingface/hub";
-import chalk from "chalk";
+import * as hub from "@huggingface/hub";
 import fs from "fs";
 import path from "path";
+import { pathToFileURL } from "url";
 import { HF_REPO, HF_TOKEN } from "./config";
 
-/**
- * Downloads multiple files from HF to a local directory with concurrency limit.
- */
-export async function downloadFilesToLocal(
-  repo: string,
-  token: string,
-  files: string[], // List of file paths relative to repo root (e.g. "data/history/...")
-  outputDir: string,
-  concurrency = 10
-) {
-  const queue = [...files];
-  const active: Promise<void>[] = [];
-  const results: string[] = [];
+type RepoDesignation = {
+  type: "dataset";
+  name: string;
+};
 
-  // Ensure output directory exists
-  if (!fs.existsSync(outputDir)) {
-    fs.mkdirSync(outputDir, { recursive: true });
+const toRepo = (repoName: string): RepoDesignation => ({
+  type: "dataset",
+  name: repoName,
+});
+
+export async function ensureRepoExists() {
+  if (!HF_REPO || !HF_TOKEN) {
+    throw new Error("Missing HF_REPO or HF_TOKEN");
   }
 
-  console.log(chalk.gray(`      Downloading ${files.length} files to ${outputDir}...`));
+  try {
+    await (hub as any).createRepo({
+      repo: toRepo(HF_REPO),
+      accessToken: HF_TOKEN,
+      private: false,
+    });
+  } catch (err: any) {
+    const message = String(err?.message ?? err);
+    if (
+      message.includes("409") ||
+      message.toLowerCase().includes("already exists")
+    ) {
+      return;
+    }
+    throw err;
+  }
+}
 
-  async function worker() {
-    while (queue.length > 0) {
-      const filePath = queue.shift();
-      if (!filePath) break;
+export async function uploadDirectory(
+  directoryPath: string,
+  repoName: string,
+  accessToken: string,
+  commitTitle?: string,
+  pathInRepo?: string,
+) {
+  const repo = toRepo(repoName);
+  const folderUrl = pathToFileURL(directoryPath);
 
-      const localPath = path.join(outputDir, filePath);
-      const localDir = path.dirname(localPath);
-      
-      if (!fs.existsSync(localDir)) {
-        fs.mkdirSync(localDir, { recursive: true });
-      }
+  await (hub as any).uploadFiles({
+    repo,
+    accessToken,
+    files: pathInRepo
+      ? [{ path: pathInRepo, content: folderUrl }]
+      : [folderUrl],
+    commitTitle,
+  });
+}
 
-      try {
-        const response = await downloadFile({
-          repo: { type: "dataset", name: repo },
-          credentials: { accessToken: token },
-          path: filePath,
-        });
+export async function uploadFilesWithRetry(args: {
+  repo: RepoDesignation;
+  credentials: { accessToken: string };
+  files: Array<
+    | { path: string; content: Blob }
+    | URL
+    | { path: string; content: URL | Blob }
+  >;
+  commitTitle?: string;
+  maxRetries?: number;
+  retryDelayMs?: number;
+}) {
+  const maxRetries = args.maxRetries ?? 3;
+  const retryDelayMs = args.retryDelayMs ?? 1000;
 
-        if (response) {
-             let buffer: ArrayBuffer;
-             // Check if response has arrayBuffer() method (Response or Blob)
-             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-             if (typeof (response as any).arrayBuffer === "function") {
-               // eslint-disable-next-line @typescript-eslint/no-explicit-any
-               buffer = await (response as any).arrayBuffer();
-             } else {
-                buffer = response as unknown as ArrayBuffer;
-              }
-             fs.writeFileSync(localPath, Buffer.from(buffer));
-             results.push(localPath);
-         }
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      } catch (err: any) {
-        console.warn(chalk.yellow(`⚠️ Failed to download ${filePath}: ${err.message}`));
+  let lastError: unknown = null;
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      await (hub as any).uploadFiles({
+        repo: args.repo,
+        accessToken: args.credentials.accessToken,
+        files: args.files,
+        commitTitle: args.commitTitle,
+      });
+      return;
+    } catch (err) {
+      lastError = err;
+      if (attempt < maxRetries) {
+        await new Promise((resolve) => setTimeout(resolve, retryDelayMs));
       }
     }
   }
 
-  for (let i = 0; i < concurrency; i++) {
-    active.push(worker());
+  throw lastError;
+}
+
+export async function listParquetFiles(
+  repoName: string,
+  accessToken: string,
+  prefix: string,
+): Promise<string[]> {
+  const repo = toRepo(repoName);
+  const normalizedPrefix = prefix.replace(/^\/+/, "").replace(/\/+$/, "");
+  const hfPrefix = `hf://datasets/${repoName}/`;
+
+  const results: string[] = [];
+  for await (const fileInfo of (hub as any).listFiles({ repo, accessToken })) {
+    const filePath = String(fileInfo?.path ?? "");
+    if (!filePath) continue;
+    if (!filePath.startsWith(normalizedPrefix)) continue;
+    if (!filePath.endsWith(".parquet")) continue;
+    results.push(`${hfPrefix}${filePath}`);
   }
 
-  await Promise.all(active);
   return results;
 }
 
-/**
- * Uploads files to Hugging Face with retry logic.
- */
-export async function uploadFilesWithRetry(
-  params: Parameters<typeof uploadFiles>[0],
-  retries = 5,
-  delay = 2000,
-) {
-  for (let i = 0; i < retries; i++) {
-    try {
-      return await uploadFiles(params);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error: any) {
-      const isLastAttempt = i === retries - 1;
-      if (isLastAttempt) {
-        console.error(
-          chalk.red(`❌ Upload failed after ${retries} attempts: ${error.message}`),
-        );
-        throw error;
-      }
-
-      console.warn(
-        chalk.yellow(
-          `⚠️ Upload failed (attempt ${i + 1}/${retries}): ${error.message}`,
-        ),
-      );
-      console.warn(chalk.yellow(`⏳ Retrying in ${delay / 1000}s...`));
-      await new Promise((resolve) => setTimeout(resolve, delay));
-      delay *= 2; // Exponential backoff
-    }
-  }
-}
-
-export async function ensureRepoExists() {
-  if (!HF_TOKEN || !HF_REPO) return;
-  try {
-    console.log(chalk.blue(`🔍 Checking if repo ${HF_REPO} exists...`));
-    await createRepo({
-      repo: { type: "dataset", name: HF_REPO },
-      credentials: { accessToken: HF_TOKEN },
-      private: false, // Public by default
-    });
-    console.log(chalk.green(`✅ Repo ${HF_REPO} created.`));
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  } catch (error: any) {
-    // If error is "repo already exists", we ignore it.
-    const errorMsg = error?.message || String(error);
-    if (errorMsg.includes("409") || errorMsg.includes("exists")) {
-      console.log(
-        chalk.green(`✅ Repo ${HF_REPO} already exists (or access confirmed).`),
-      );
-    } else {
-      console.warn(
-        chalk.yellow(
-          `⚠️ Warning: Could not create repo (might already exist or permission issue): ${errorMsg}`,
-        ),
-      );
-    }
-  }
-}
-
-/**
- * Lists all parquet files in a specific directory of the HF dataset.
- * Helps to avoid DuckDB globbing errors (HTTP 429) by fetching file list via API first.
- */
-export async function listParquetFiles(
-  repo: string,
-  token: string,
-  pathPrefix: string
+export async function downloadFilesToLocal(
+  repoName: string,
+  accessToken: string,
+  relativePaths: string[],
+  destDir: string,
+  maxConcurrency: number = 5,
 ): Promise<string[]> {
-  const files: string[] = [];
-  try {
-    const iterator = listFiles({
-      repo: { type: "dataset", name: repo },
-      credentials: { accessToken: token },
-      path: pathPrefix,
-      recursive: true,
-    });
+  const repo = toRepo(repoName);
+  fs.mkdirSync(destDir, { recursive: true });
 
-    for await (const file of iterator) {
-      if (file.path.endsWith(".parquet")) {
-        files.push(`hf://datasets/${repo}/${file.path}`);
+  const queue = [...relativePaths];
+  const downloaded: string[] = [];
+
+  const worker = async () => {
+    while (queue.length > 0) {
+      const relPath = queue.shift();
+      if (!relPath) continue;
+
+      const response = await (hub as any).downloadFile({
+        repo,
+        accessToken,
+        path: relPath,
+      });
+
+      if (!response || typeof response.arrayBuffer !== "function") {
+        continue;
       }
+
+      const bytes = Buffer.from(await response.arrayBuffer());
+      const outPath = path.join(destDir, relPath);
+      fs.mkdirSync(path.dirname(outPath), { recursive: true });
+      fs.writeFileSync(outPath, bytes);
+      downloaded.push(outPath);
     }
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  } catch (err: any) {
-    console.warn(chalk.yellow(`⚠️  Failed to list files in ${pathPrefix}: ${err.message}`));
-  }
-  return files;
-}
+  };
 
-export async function uploadDirectory(dir: string, repo: string, token: string, commitTitle: string = "Update data", targetPath: string = "data") {
-  console.log(`⬆️ Uploading to Hugging Face (${repo})...`);
-
-  // Prepare files for upload
-  const filesToUpload: { path: string; content: Blob }[] = [];
-
-  function scanDir(currentDir: string, baseDir: string) {
-    if (!fs.existsSync(currentDir)) return;
-    
-    const entries = fs.readdirSync(currentDir, { withFileTypes: true });
-    for (const entry of entries) {
-      const fullPath = path.join(currentDir, entry.name);
-      // Ensure path uses forward slashes for HF
-      const relPath = path.relative(baseDir, fullPath).replace(/\\/g, "/");
-
-      if (entry.isDirectory()) {
-        scanDir(fullPath, baseDir);
-      } else {
-        filesToUpload.push({
-          path: `${targetPath}/${relPath}`.replace(/\/+/g, '/'), // Avoid double slashes
-          content: new Blob([fs.readFileSync(fullPath)]),
-        });
-      }
-    }
-  }
-
-  // Scan the directory
-  scanDir(dir, dir);
-
-  if (filesToUpload.length === 0) {
-    console.log(chalk.yellow("⚠️ No files found to upload."));
-    return;
-  }
-
-  console.log(
-    chalk.green(`✅ Found ${filesToUpload.length} files to upload.`),
+  const workers = Array.from({ length: Math.max(1, maxConcurrency) }, () =>
+    worker(),
   );
+  await Promise.all(workers);
 
-  await uploadFilesWithRetry({
-    repo: { type: "dataset", name: repo },
-    credentials: { accessToken: token },
-    files: filesToUpload,
-    commitTitle: commitTitle,
-  });
+  return downloaded;
 }

@@ -1,5 +1,26 @@
-import { FuelType, FUEL_TYPES } from "@/lib/constants";
+import { FUEL_TYPES, FuelType } from "@/lib/constants";
 import { create } from "zustand";
+
+const quantileSorted = (sorted: number[], q: number) => {
+  if (sorted.length === 0) return 0;
+  const clampedQ = Math.min(1, Math.max(0, q));
+  const pos = (sorted.length - 1) * clampedQ;
+  const base = Math.floor(pos);
+  const rest = pos - base;
+  const next = sorted[base + 1];
+  if (next === undefined) return sorted[base]!;
+  return sorted[base]! + rest * (next - sorted[base]!);
+};
+
+const computeStdDev = (values: number[], mean: number) => {
+  if (values.length === 0) return 0;
+  let sumSq = 0;
+  for (const v of values) {
+    const d = v - mean;
+    sumSq += d * d;
+  }
+  return Math.sqrt(sumSq / values.length);
+};
 
 export type FuelPrice = {
   fuel_type: FuelType;
@@ -21,6 +42,13 @@ export type FuelStats = {
   min: number;
   max: number;
   average: number;
+  median: number;
+  p10: number;
+  p25: number;
+  p75: number;
+  p90: number;
+  iqr: number;
+  stdDev: number;
   count: number;
 };
 
@@ -69,7 +97,7 @@ export const useAppStore = create<AppStore>((set) => ({
   searchQuery: "",
   selectedStation: null,
   flyToStation: null,
-  listSortBy: "price",
+  listSortBy: "distance",
 
   flyToLocation: null,
   setFlyToLocation: (loc) => set({ flyToLocation: loc }),
@@ -80,17 +108,52 @@ export const useAppStore = create<AppStore>((set) => ({
   setStations: (stations) => {
     const stats = FUEL_TYPES.reduce(
       (acc, fuel) => {
-        const prices = stations
-          .flatMap((s) => s.prices)
-          .filter((p) => p.fuel_type === fuel)
-          .map((p) => p.price);
+        const prices: number[] = [];
+        const updatedAtMs: number[] = [];
+        const stationIds = new Set<string>();
+        let sum = 0;
+
+        for (const station of stations) {
+          let hasFuel = false;
+          for (const p of station.prices) {
+            if (p.fuel_type !== fuel) continue;
+            prices.push(p.price);
+            sum += p.price;
+            hasFuel = true;
+            const ms = new Date(p.updated_at).getTime();
+            if (!Number.isNaN(ms)) updatedAtMs.push(ms);
+          }
+          if (hasFuel) stationIds.add(station.id);
+        }
 
         if (prices.length > 0) {
-          const min = Math.min(...prices);
-          const max = Math.max(...prices);
-          const average =
-            prices.reduce((sum, p) => sum + p, 0) / prices.length;
-          acc[fuel] = { min, max, average, count: prices.length };
+          const sortedPrices = [...prices].sort((a, b) => a - b);
+          const min = sortedPrices[0]!;
+          const max = sortedPrices[sortedPrices.length - 1]!;
+          const average = sum / prices.length;
+
+          const median = quantileSorted(sortedPrices, 0.5);
+          const p10 = quantileSorted(sortedPrices, 0.1);
+          const p25 = quantileSorted(sortedPrices, 0.25);
+          const p75 = quantileSorted(sortedPrices, 0.75);
+          const p90 = quantileSorted(sortedPrices, 0.9);
+          const iqr = p75 - p25;
+
+          const stdDev = computeStdDev(prices, average);
+
+          acc[fuel] = {
+            min,
+            max,
+            average,
+            median,
+            p10,
+            p25,
+            p75,
+            p90,
+            iqr,
+            stdDev,
+            count: prices.length,
+          };
         } else {
           acc[fuel] = null;
         }

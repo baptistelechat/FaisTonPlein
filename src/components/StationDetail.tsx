@@ -134,7 +134,10 @@ export function StationDetail({ mobileDrawerSnap }: IStationPrice) {
           <PriceCard
             price={selectedPrice}
             selectedFuel={selectedFuel}
-            averagePrice={stats[selectedPrice.fuel_type]?.average}
+            averagePrice={
+              stats[selectedPrice.fuel_type]?.median ??
+              stats[selectedPrice.fuel_type]?.average
+            }
           />
         )}
 
@@ -148,7 +151,9 @@ export function StationDetail({ mobileDrawerSnap }: IStationPrice) {
                   price={price}
                   selectedFuel={selectedFuel}
                   key={price.fuel_type}
-                  averagePrice={stats[price.fuel_type]?.average}
+                  averagePrice={
+                    stats[price.fuel_type]?.median ?? stats[price.fuel_type]?.average
+                  }
                 />
               ))}
             </div>

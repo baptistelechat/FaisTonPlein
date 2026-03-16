@@ -63,6 +63,26 @@ export default function InteractiveMap({
     pitch: 0,
   });
 
+  useEffect(() => {
+    if (bounds) return;
+
+    let cancelled = false;
+    const tick = () => {
+      if (cancelled) return;
+      if (mapRef.current) {
+        const b = mapRef.current.getBounds();
+        setBounds([b.getWest(), b.getSouth(), b.getEast(), b.getNorth()]);
+        return;
+      }
+      requestAnimationFrame(tick);
+    };
+
+    tick();
+    return () => {
+      cancelled = true;
+    };
+  }, [bounds]);
+
   // Handle flyToLocation effect
   useEffect(() => {
     if (flyToLocation && mapRef.current) {
@@ -124,7 +144,8 @@ export default function InteractiveMap({
     .filter((p) => p !== null);
 
   const currentFuelStats = stats[selectedFuel];
-  const averagePrice = currentFuelStats?.average ?? null;
+  const q1 = currentFuelStats?.p25 ?? null;
+  const q3 = currentFuelStats?.p75 ?? null;
 
   // Get clusters
   const { clusters, supercluster } = useSupercluster({
@@ -342,7 +363,8 @@ export default function InteractiveMap({
                 price={cluster.properties.price}
                 fuelType={cluster.properties.fuelType}
                 isSelected={cluster.properties.isSelected}
-                averagePrice={averagePrice}
+                q1={q1}
+                q3={q3}
               />
             </MapMarker>
           );

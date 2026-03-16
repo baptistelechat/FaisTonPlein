@@ -7,29 +7,21 @@ type PriceMarkerProps = {
   fuelType: FuelType;
   isSelected?: boolean;
   trend?: "up" | "down" | "stable";
-  averagePrice?: number | null;
+  q1?: number | null;
+  q3?: number | null;
 };
 
-export function PriceMarker({
-  price,
-  isSelected,
-  averagePrice,
-}: PriceMarkerProps) {
+export function PriceMarker({ price, isSelected, q1, q3 }: PriceMarkerProps) {
   // Determine color status
   const getStatusColor = () => {
-    if (!averagePrice) {
+    if (typeof q1 === "number" && typeof q3 === "number") {
+      if (price < q1) {
+        return "text-emerald-600 border-emerald-500 bg-emerald-50";
+      }
+      if (price > q3) {
+        return "text-rose-600 border-rose-500 bg-rose-50";
+      }
       return "text-amber-600 border-amber-500 bg-amber-50";
-    }
-
-    const diff = price - averagePrice;
-    const threshold = 0.02;
-
-    if (diff < -threshold) {
-      return "text-emerald-600 border-emerald-500 bg-emerald-50";
-    }
-
-    if (diff > threshold) {
-      return "text-rose-600 border-rose-500 bg-rose-50";
     }
 
     return "text-amber-600 border-amber-500 bg-amber-50";
@@ -58,13 +50,12 @@ export function PriceMarker({
         </span>
       </div>
 
-      {/* Triangle pointer */}
       <div
         className={cn(
           "absolute -bottom-1.5 left-1/2 h-3 w-3 -translate-x-1/2 rotate-45 border-r border-b",
           isSelected
             ? "border-primary bg-primary"
-            : cn(statusColor.split(" ")[2], statusColor.split(" ")[1]), // Use background and border color from statusColor
+            : cn(statusColor.split(" ")[2], statusColor.split(" ")[1]),
         )}
       />
     </div>
