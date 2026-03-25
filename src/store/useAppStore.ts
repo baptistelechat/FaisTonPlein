@@ -37,6 +37,7 @@ export type Station = {
   services: string[];
   address: string;
   prices: FuelPrice[];
+  is24h: boolean;
 };
 
 export type FuelStats = {
@@ -128,21 +129,14 @@ export const useAppStore = create<AppStore>((set, get) => ({
     const stats = FUEL_TYPES.reduce(
       (acc, fuel) => {
         const prices: number[] = [];
-        const updatedAtMs: number[] = [];
-        const stationIds = new Set<string>();
         let sum = 0;
 
         for (const station of stations) {
-          let hasFuel = false;
           for (const p of station.prices) {
             if (p.fuel_type !== fuel.type) continue;
             prices.push(p.price);
             sum += p.price;
-            hasFuel = true;
-            const ms = new Date(p.updated_at).getTime();
-            if (!Number.isNaN(ms)) updatedAtMs.push(ms);
           }
-          if (hasFuel) stationIds.add(station.id);
         }
 
         if (prices.length > 0) {

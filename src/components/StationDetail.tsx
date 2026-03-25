@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 
-interface IStationPrice {
+interface IStationDetailsProps {
   mobileDrawerSnap?: number | string | null;
 }
 
@@ -61,7 +61,6 @@ const PriceCard = ({
 
   return (
     <div
-      key={price.fuel_type}
       className={`flex flex-col rounded-xl border p-3 transition-all ${
         price.fuel_type === selectedFuel
           ? "border-primary bg-primary/5 shadow-sm"
@@ -89,7 +88,7 @@ const PriceCard = ({
   );
 };
 
-export function StationDetail({ mobileDrawerSnap }: IStationPrice) {
+export function StationDetail({ mobileDrawerSnap }: IStationDetailsProps) {
   const {
     selectedStation,
     selectedFuel,
@@ -117,8 +116,14 @@ export function StationDetail({ mobileDrawerSnap }: IStationPrice) {
       Number(a.fuel_type === selectedFuel),
   );
 
-  const handleNavigate = () => {
+  const handleNavigateGoogleMaps = () => {
     const url = `https://www.google.com/maps/dir/?api=1&destination=${selectedStation.lat},${selectedStation.lon}`;
+    window.open(url, "_blank");
+    toast.info("Ouverture de l'itinéraire...");
+  };
+
+  const handleNavigateWaze = () => {
+    const url = `https://waze.com/ul?ll=${selectedStation.lat},${selectedStation.lon}&navigate=yes`;
     window.open(url, "_blank");
     toast.info("Ouverture de l'itinéraire...");
   };
@@ -137,12 +142,14 @@ export function StationDetail({ mobileDrawerSnap }: IStationPrice) {
             <h2 className="font-heading text-primary flex items-center gap-2 text-2xl font-bold tracking-tight">
               {selectedStation.name}
             </h2>
-            <Badge
-              variant="outline"
-              className="border-emerald-500/30 bg-emerald-500/5 text-emerald-500"
-            >
-              Ouvert 24/7
-            </Badge>
+            {selectedStation.is24h && (
+              <Badge
+                variant="outline"
+                className="border-emerald-500/30 bg-emerald-500/5 text-emerald-500"
+              >
+                Ouvert 24/7
+              </Badge>
+            )}
           </div>
           <p className="text-muted-foreground flex items-center gap-1.5 text-sm">
             <MapPin className="size-3.5" />
@@ -203,9 +210,25 @@ export function StationDetail({ mobileDrawerSnap }: IStationPrice) {
 
             {/* Action Buttons */}
             <div className="grid grid-cols-1 gap-3 pt-2">
-              <Button onClick={handleNavigate} size="xl" className="w-full">
-                <Navigation className="h-5 w-5" />Y Aller (Google Maps)
-              </Button>
+              <div className="grid grid-cols-2 gap-2">
+                <Button
+                  onClick={handleNavigateGoogleMaps}
+                  size="lg"
+                  className="flex w-full gap-2"
+                >
+                  <Navigation className="size-4" />
+                  Google Maps
+                </Button>
+                <Button
+                  onClick={handleNavigateWaze}
+                  size="lg"
+                  variant="outline"
+                  className="flex w-full gap-2"
+                >
+                  <Navigation className="size-4" />
+                  Waze
+                </Button>
+              </div>
 
               <Button
                 variant="outline"
@@ -213,7 +236,7 @@ export function StationDetail({ mobileDrawerSnap }: IStationPrice) {
                 disabled={true}
                 className="w-full"
               >
-                <History className="h-4 w-4" />
+                <History className="size-4" />
                 Historique
               </Button>
             </div>
@@ -223,7 +246,7 @@ export function StationDetail({ mobileDrawerSnap }: IStationPrice) {
               selectedStation.services.length > 0 && (
                 <div className="border-border/50 space-y-3 border-t pt-4">
                   <h4 className="text-muted-foreground flex items-center gap-2 text-sm font-bold tracking-wider uppercase">
-                    <CreditCard className="h-4 w-4" />
+                    <CreditCard className="size-4" />
                     Services disponibles
                   </h4>
                   <div className="flex flex-wrap gap-2">

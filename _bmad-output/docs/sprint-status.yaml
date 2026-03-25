@@ -46,7 +46,7 @@ development_status:
   epic-1-exploration-geographique: in-progress
   us-01-01-carte-interactive: done
   us-01-02-liste-des-stations: done
-  us-01-03-detail-d-une-station: backlog
+  us-01-03-detail-d-une-station: done
   us-01-04-filtre-carburant: backlog
   epic-1-retrospective: optional
 

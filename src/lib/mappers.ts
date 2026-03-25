@@ -10,6 +10,7 @@ export interface RawStationData {
   Ville: string;
   prix: string; // JSON string "[{\"@nom\": \"Gazole\", \"@id\": \"1\", \"@maj\": \"2024-01-01 00:00:00\", \"@valeur\": \"1.750\"}]"
   services: string | null; // JSON string or null
+  "Automate 24-24 (oui/non)": string | null;
   [key: string]: unknown;
 }
 
@@ -33,13 +34,6 @@ export function mapRawDataToStation(raw: RawStationData): Station {
   // Data.gouv provides coordinates multiplied by 100,000
   const lat = Number(raw.latitude) / 100000;
   const lon = Number(raw.longitude) / 100000;
-
-  // Helper to infer name
-  const inferStationName = (): string => {
-    // If we have a specific name field in the future, use it.
-    // For now, try to guess from services or address, or default to generic.
-    return "Station Service";
-  };
 
   // Parse prices
   let prices: FuelPrice[] = [];
@@ -87,13 +81,18 @@ export function mapRawDataToStation(raw: RawStationData): Station {
     console.warn(`Error parsing services for station ${raw.id}`, e);
   }
 
+  const is24h =
+    raw['Automate 24-24 (oui/non)']?.toLowerCase() === 'oui' ||
+    services.includes('Automate CB 24/24');
+
   return {
     id: raw.id,
-    name: inferStationName(),
+    name: 'Station Service',
     lat,
     lon,
     address: `${raw.Adresse}, ${raw["Code postal"]} ${raw.Ville}`,
     services,
     prices,
+    is24h,
   };
 }
