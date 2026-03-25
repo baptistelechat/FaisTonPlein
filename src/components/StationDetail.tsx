@@ -7,6 +7,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { DRAWER_SNAP_POINTS } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 import { useStationName } from "@/hooks/useStationName";
+import { StationLogo } from "@/components/StationLogo";
 import { FuelPrice, useAppStore } from "@/store/useAppStore";
 import {
   CreditCard,
@@ -143,9 +144,16 @@ export function StationDetail({ mobileDrawerSnap }: IStationDetailsProps) {
         {/* Header */}
         <div className="flex flex-col space-y-2">
           <div className="flex items-center justify-between">
-            <h2 className="font-heading text-primary flex items-center gap-2 text-2xl font-bold tracking-tight">
-              {nameIsLoading ? <Skeleton className="h-7 w-48" /> : stationName}
-            </h2>
+            <div className="flex items-center gap-3">
+              {nameIsLoading ? (
+                <Skeleton className="size-10 shrink-0 rounded-md" />
+              ) : (
+                <StationLogo name={stationName} size="md" />
+              )}
+              <h2 className="font-heading text-primary flex items-center gap-2 text-2xl font-bold tracking-tight">
+                {nameIsLoading ? <Skeleton className="h-7 w-48" /> : stationName}
+              </h2>
+            </div>
             {selectedStation.is24h && (
               <Badge
                 variant="outline"

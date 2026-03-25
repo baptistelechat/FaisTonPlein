@@ -8,6 +8,7 @@ import { useMediaQuery } from "@/hooks/use-media-query";
 import { getStationNamesDb } from "@/lib/stationName";
 import { calculateDistance, cn } from "@/lib/utils";
 import { Station, useAppStore } from "@/store/useAppStore";
+import { StationLogo } from "@/components/StationLogo";
 import { Euro, Loader, Navigation, Route } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import StationListStats from "./components/StationListStats";
@@ -94,7 +95,10 @@ export function StationList() {
 
     getStationNamesDb().then((db) => {
       for (const station of unresolved) {
-        setResolvedName(String(station.id), db[String(station.id)] ?? station.name);
+        setResolvedName(
+          String(station.id),
+          db[String(station.id)] ?? station.name,
+        );
       }
     });
   }, [visibleStations, resolvedNames, setResolvedName]);
@@ -148,11 +152,6 @@ export function StationList() {
           <h2 className="text-lg font-bold">
             {listSortBy === "price" ? "Les plus économique" : "Autour de moi"}
           </h2>
-          {visibleCount < sortedStations.length && (
-            <span className="text-muted-foreground text-xs">
-              {visibleCount} / {sortedStations.length}
-            </span>
-          )}
           <div className="flex gap-2">
             <Badge
               variant={listSortBy === "distance" ? "default" : "outline"}
@@ -241,11 +240,10 @@ function StationCard({
   bestDistanceStationId,
   onClick,
 }: StationCardProps) {
-  const resolvedName = useAppStore(
-    (s) => s.resolvedNames[String(station.id)],
-  );
+  const resolvedName = useAppStore((s) => s.resolvedNames[String(station.id)]);
   const displayName = resolvedName ?? station.name;
-  const isNameLoading = station.name === "Station service" && resolvedName === undefined;
+  const isNameLoading =
+    station.name === "Station service" && resolvedName === undefined;
   const price = station.prices.find((p) => p.fuel_type === selectedFuel);
   const distance = referenceLocation
     ? calculateDistance(
@@ -269,14 +267,16 @@ function StationCard({
       onClick={onClick}
     >
       <div className="flex items-start justify-between gap-2">
-        <div className="flex flex-col gap-1 overflow-hidden">
+        <div className="flex min-w-0 flex-1 items-start gap-2">
+          {isNameLoading ? (
+            <Skeleton className="size-6 shrink-0 rounded-md" />
+          ) : (
+            <StationLogo name={displayName} size="sm" />
+          )}
+          <div className="flex flex-col gap-1 overflow-hidden">
           <div className="flex items-center gap-2">
             <h3 className="flex items-center gap-2 truncate text-sm font-semibold">
-              {isNameLoading ? (
-                <Skeleton className="h-4 w-28" />
-              ) : (
-                displayName
-              )}
+              {isNameLoading ? <Skeleton className="h-4 w-28" /> : displayName}
               {station.id === bestPriceStationId && (
                 <Euro className="size-4 text-yellow-500" />
               )}
@@ -294,6 +294,7 @@ function StationCard({
             )}
             <span className="truncate">{station.address}</span>
           </div>
+        </div>
         </div>
 
         <div className="flex flex-col items-end">
