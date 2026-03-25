@@ -9,7 +9,7 @@ import { getStationNamesDb } from "@/lib/stationName";
 import { calculateDistance, cn } from "@/lib/utils";
 import { Station, useAppStore } from "@/store/useAppStore";
 import { StationLogo } from "@/components/StationLogo";
-import { Euro, Loader, Navigation, Route } from "lucide-react";
+import { Euro, Loader, Navigation, Route, Road } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import StationListStats from "./components/StationListStats";
 
@@ -282,6 +282,9 @@ function StationCard({
               )}
               {station.id === bestDistanceStationId && (
                 <Route className="size-4 text-yellow-500" />
+              )}
+              {station.isHighway && (
+                <Road className="size-4 text-blue-500" />
               )}
             </h3>
           </div>

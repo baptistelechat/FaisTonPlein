@@ -11,6 +11,7 @@ export interface RawStationData {
   prix: string; // JSON string "[{\"@nom\": \"Gazole\", \"@id\": \"1\", \"@maj\": \"2024-01-01 00:00:00\", \"@valeur\": \"1.750\"}]"
   services: string | null; // JSON string or null
   "Automate 24-24 (oui/non)": string | null;
+  pop?: string | null; // 'A' = autoroute, 'R' = route nationale/départementale
   [key: string]: unknown;
 }
 
@@ -85,6 +86,8 @@ export function mapRawDataToStation(raw: RawStationData): Station {
     raw['Automate 24-24 (oui/non)']?.toLowerCase() === 'oui' ||
     services.includes('Automate CB 24/24');
 
+  const isHighway = raw.pop?.toUpperCase() === 'A';
+
   return {
     id: raw.id,
     name: 'Station service',
@@ -94,5 +97,6 @@ export function mapRawDataToStation(raw: RawStationData): Station {
     services,
     prices,
     is24h,
+    isHighway,
   };
 }

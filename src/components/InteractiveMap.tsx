@@ -190,10 +190,9 @@ export default function InteractiveMap({
     options: { radius: 75, maxZoom: 15 }, // radius: cluster size in pixels
   });
 
-  // Update bounds on viewport change
+  // Update viewport state on map move — bounds are handled separately by the mapInstance effect (moveend/zoomend)
   const handleViewportChange = useCallback(
     (newViewport: Partial<MapViewport>) => {
-      // We need to cast newViewport because react-map-gl types might differ slightly from our local MapViewport definition
       setViewport((prev) => {
         const isZoomSame =
           Math.abs((prev.zoom || 0) - (newViewport.zoom || 0)) < 0.001;
@@ -208,7 +207,6 @@ export default function InteractiveMap({
         const isPitchSame =
           Math.abs((prev.pitch || 0) - (newViewport.pitch || 0)) < 0.01;
 
-        // Only update if something changed significantly to avoid loop
         if (
           isZoomSame &&
           isLatSame &&
@@ -220,16 +218,6 @@ export default function InteractiveMap({
         }
         return { ...prev, ...newViewport };
       });
-
-      if (mapRef.current) {
-        // mapRef.current IS the MapLibreGL.Map instance in our custom implementation
-        const b = mapRef.current.getBounds();
-        // Debounce bounds update to avoid too many re-renders during animation
-        // Actually we can just update it, but maybe we should throttle it?
-        // For now, let's keep it simple. The issue "Maximum update depth" might be caused by something else.
-        // But if we want to be safe, we can wrap this in a transition or check if bounds changed significantly.
-        setBounds([b.getWest(), b.getSouth(), b.getEast(), b.getNorth()]);
-      }
     },
     [],
   );

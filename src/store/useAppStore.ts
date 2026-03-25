@@ -38,6 +38,7 @@ export type Station = {
   address: string;
   prices: FuelPrice[];
   is24h: boolean;
+  isHighway: boolean;
 };
 
 export type FuelStats = {

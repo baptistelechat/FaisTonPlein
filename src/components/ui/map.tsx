@@ -342,7 +342,10 @@ const Map = forwardRef<MapRef, MapProps>(function Map(
 
     internalUpdateRef.current = true;
     mapInstance.jumpTo(next);
-    internalUpdateRef.current = false;
+    // Reset after RAF so the `move` event triggered by jumpTo (async) is still blocked
+    requestAnimationFrame(() => {
+      internalUpdateRef.current = false;
+    });
   }, [mapInstance, isControlled, viewport]);
 
   // Handle style change

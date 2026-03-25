@@ -15,6 +15,7 @@ import {
   History,
   MapPin,
   Navigation,
+  Road,
   Route,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -167,7 +168,7 @@ export function StationDetail({ mobileDrawerSnap }: IStationDetailsProps) {
             <MapPin className="size-3.5" />
             {selectedStation.address}
           </p>
-          {(isBestPrice || isBestDistance) && (
+          {(isBestPrice || isBestDistance || selectedStation.isHighway) && (
             <div className="flex flex-wrap gap-2">
               {isBestPrice && (
                 <Badge
@@ -185,6 +186,15 @@ export function StationDetail({ mobileDrawerSnap }: IStationDetailsProps) {
                 >
                   <Route className="size-3.5" />
                   Plus proche
+                </Badge>
+              )}
+              {selectedStation.isHighway && (
+                <Badge
+                  variant="outline"
+                  className="border-blue-500/30 bg-blue-500/10 text-blue-600"
+                >
+                  <Road className="size-3.5" />
+                  Autoroute
                 </Badge>
               )}
             </div>
