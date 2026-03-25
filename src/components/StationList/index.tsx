@@ -36,6 +36,7 @@ export function StationList() {
 
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
   const sentinelRef = useRef<HTMLDivElement>(null);
+  const scrollAreaRef = useRef<HTMLDivElement>(null);
 
   // Use search location if available, otherwise fallback to user location
   const referenceLocation = searchLocation || userLocation;
@@ -80,6 +81,11 @@ export function StationList() {
     setPrevSortedStations(sortedStations);
     setVisibleCount(PAGE_SIZE);
   }
+
+  useEffect(() => {
+    const viewport = scrollAreaRef.current?.querySelector('[data-slot="scroll-area-viewport"]');
+    if (viewport) viewport.scrollTop = 0;
+  }, [sortedStations]);
 
   const visibleStations = useMemo(
     () => sortedStations.slice(0, visibleCount),
@@ -197,7 +203,8 @@ export function StationList() {
         )}
       </div>
 
-      <ScrollArea className="mr-1 h-px flex-1 pb-4">
+      <div ref={scrollAreaRef} className="mr-1 flex h-px flex-1 flex-col overflow-hidden">
+      <ScrollArea className="h-full pb-4">
         <div className="flex flex-col gap-3 px-4 pb-40 md:pb-4">
           {visibleStations.map((station) => (
             <StationCard
@@ -215,6 +222,7 @@ export function StationList() {
           <div ref={sentinelRef} className="h-1" />
         </div>
       </ScrollArea>
+      </div>
     </div>
   );
 }
