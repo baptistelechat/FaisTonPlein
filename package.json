@@ -11,7 +11,8 @@
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "react-doctor": "npx -y react-doctor@latest . --verbose",
-    "fetch-names": "node scripts/fetch-station-names.mjs"
+    "fetch-names": "node scripts/fetch-station-names.mjs",
+    "fetch-logos": "node scripts/fetch-logos.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.2.0",

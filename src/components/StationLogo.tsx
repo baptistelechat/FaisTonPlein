@@ -30,9 +30,12 @@ const hashColor = (str: string): string => {
   return PALETTE[hash % PALETTE.length]!
 }
 
+const slugify = (s: string): string =>
+  s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-zA-Z0-9]/g, '')
+
 export const StationLogo = ({ name, size = 'sm', className }: StationLogoProps) => {
+  const [srcIndex, setSrcIndex] = useState(0)
   const [imgLoaded, setImgLoaded] = useState(false)
-  const [imgError, setImgError] = useState(false)
 
   const brand = normalizeBrand(name)
   const displayName = brand ?? name
@@ -40,9 +43,11 @@ export const StationLogo = ({ name, size = 'sm', className }: StationLogoProps) 
   const color = hashColor(displayName)
 
   const domain = brand ? BRAND_LOGO_DOMAINS[brand] : null
-  const faviconUrl = domain && !imgError
-    ? `https://www.google.com/s2/favicons?domain=${domain}&sz=128`
-    : null
+  const localSrc = brand ? `/logos/${slugify(brand)}.png` : null
+  const googleSrc = domain ? `https://www.google.com/s2/favicons?domain=${domain}&sz=128` : null
+
+  const sources: string[] = [localSrc, googleSrc].filter(Boolean) as string[]
+  const currentSrc = sources[srcIndex] ?? null
 
   const sizeClass = size === 'md' ? 'size-10' : 'size-6'
   const textClass = size === 'md' ? 'text-sm' : 'text-[10px]'
@@ -63,10 +68,10 @@ export const StationLogo = ({ name, size = 'sm', className }: StationLogoProps) 
         <span className={cn('font-bold text-white', textClass)}>{initial}</span>
       </div>
 
-      {/* Favicon via Google S2 : superposé avec transition opacity */}
-      {faviconUrl && (
+      {/* Logo avec fallback 3 niveaux : local PNG → Google S2 → lettre-avatar */}
+      {currentSrc !== null && (
         <Image
-          src={faviconUrl}
+          src={currentSrc}
           alt={brand ?? name}
           fill
           className={cn(
@@ -74,7 +79,10 @@ export const StationLogo = ({ name, size = 'sm', className }: StationLogoProps) 
             imgLoaded ? 'opacity-100' : 'opacity-0',
           )}
           onLoad={() => setImgLoaded(true)}
-          onError={() => setImgError(true)}
+          onError={() => {
+            setSrcIndex(i => i + 1)
+            setImgLoaded(false)
+          }}
         />
       )}
     </div>
