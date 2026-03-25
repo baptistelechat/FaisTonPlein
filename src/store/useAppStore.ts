@@ -68,6 +68,7 @@ type AppStore = {
   listSortBy: "price" | "distance";
   bestPriceStationId: string | null;
   bestDistanceStationId: string | null;
+  resolvedNames: Record<string, string>;
 
   flyToLocation: [number, number] | null;
   setFlyToLocation: (loc: [number, number] | null) => void;
@@ -85,6 +86,7 @@ type AppStore = {
   setSelectedStation: (station: Station | null) => void;
   setFlyToStation: (station: Station | null) => void;
   setListSortBy: (sortBy: "price" | "distance") => void;
+  setResolvedName: (stationId: string, name: string) => void;
 };
 
 export const useAppStore = create<AppStore>((set, get) => ({
@@ -104,6 +106,7 @@ export const useAppStore = create<AppStore>((set, get) => ({
   listSortBy: "distance",
   bestPriceStationId: null,
   bestDistanceStationId: null,
+  resolvedNames: {},
 
   flyToLocation: null,
   setFlyToLocation: (loc) => set({ flyToLocation: loc }),
@@ -228,4 +231,8 @@ export const useAppStore = create<AppStore>((set, get) => ({
   setSelectedStation: (station) => set({ selectedStation: station }),
   setFlyToStation: (station) => set({ flyToStation: station }),
   setListSortBy: (sortBy) => set({ listSortBy: sortBy }),
+  setResolvedName: (stationId, name) =>
+    set((state) => ({
+      resolvedNames: { ...state.resolvedNames, [stationId]: name },
+    })),
 }));

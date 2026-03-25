@@ -87,7 +87,7 @@ export function mapRawDataToStation(raw: RawStationData): Station {
 
   return {
     id: raw.id,
-    name: 'Station Service',
+    name: 'Station service',
     lat,
     lon,
     address: `${raw.Adresse}, ${raw["Code postal"]} ${raw.Ville}`,

@@ -3,12 +3,16 @@
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useMediaQuery } from "@/hooks/use-media-query";
+import { getStationNamesDb } from "@/lib/stationName";
 import { calculateDistance, cn } from "@/lib/utils";
 import { Station, useAppStore } from "@/store/useAppStore";
 import { Euro, Loader, Navigation, Route } from "lucide-react";
-import { useMemo } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import StationListStats from "./components/StationListStats";
+
+const PAGE_SIZE = 15;
 
 export function StationList() {
   const {
@@ -23,9 +27,14 @@ export function StationList() {
     setListSortBy,
     bestPriceStationId,
     bestDistanceStationId,
+    resolvedNames,
+    setResolvedName,
   } = useAppStore();
 
   const isDesktop = useMediaQuery("(min-width: 768px)");
+
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+  const sentinelRef = useRef<HTMLDivElement>(null);
 
   // Use search location if available, otherwise fallback to user location
   const referenceLocation = searchLocation || userLocation;
@@ -64,6 +73,50 @@ export function StationList() {
     });
   }, [stations, referenceLocation, selectedFuel, listSortBy]);
 
+  // Derived state: reset visibleCount quand sortedStations change (pattern React getDerivedStateFromProps)
+  const [prevSortedStations, setPrevSortedStations] = useState(sortedStations);
+  if (prevSortedStations !== sortedStations) {
+    setPrevSortedStations(sortedStations);
+    setVisibleCount(PAGE_SIZE);
+  }
+
+  const visibleStations = useMemo(
+    () => sortedStations.slice(0, visibleCount),
+    [sortedStations, visibleCount],
+  );
+
+  // Résolution bulk des noms pour les stations visibles uniquement
+  useEffect(() => {
+    const unresolved = visibleStations.filter(
+      (s) => s.name === "Station service" && !resolvedNames[String(s.id)],
+    );
+    if (unresolved.length === 0) return;
+
+    getStationNamesDb().then((db) => {
+      for (const station of unresolved) {
+        setResolvedName(String(station.id), db[String(station.id)] ?? station.name);
+      }
+    });
+  }, [visibleStations, resolvedNames, setResolvedName]);
+
+  // IntersectionObserver pour le chargement des stations suivantes
+  useEffect(() => {
+    const sentinel = sentinelRef.current;
+    if (!sentinel) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting) {
+          setVisibleCount((prev) =>
+            Math.min(prev + PAGE_SIZE, sortedStations.length),
+          );
+        }
+      },
+      { threshold: 0.1 },
+    );
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, [sortedStations.length]);
+
   const handleStationClick = (station: Station) => {
     setSelectedStation(station);
     setFlyToStation(station);
@@ -95,6 +148,11 @@ export function StationList() {
           <h2 className="text-lg font-bold">
             {listSortBy === "price" ? "Les plus économique" : "Autour de moi"}
           </h2>
+          {visibleCount < sortedStations.length && (
+            <span className="text-muted-foreground text-xs">
+              {visibleCount} / {sortedStations.length}
+            </span>
+          )}
           <div className="flex gap-2">
             <Badge
               variant={listSortBy === "distance" ? "default" : "outline"}
@@ -142,7 +200,7 @@ export function StationList() {
 
       <ScrollArea className="mr-1 h-px flex-1 pb-4">
         <div className="flex flex-col gap-3 px-4 pb-40 md:pb-4">
-          {sortedStations.map((station) => (
+          {visibleStations.map((station) => (
             <StationCard
               key={station.id}
               station={station}
@@ -155,6 +213,7 @@ export function StationList() {
               onClick={() => handleStationClick(station)}
             />
           ))}
+          <div ref={sentinelRef} className="h-1" />
         </div>
       </ScrollArea>
     </div>
@@ -182,6 +241,11 @@ function StationCard({
   bestDistanceStationId,
   onClick,
 }: StationCardProps) {
+  const resolvedName = useAppStore(
+    (s) => s.resolvedNames[String(station.id)],
+  );
+  const displayName = resolvedName ?? station.name;
+  const isNameLoading = station.name === "Station service" && resolvedName === undefined;
   const price = station.prices.find((p) => p.fuel_type === selectedFuel);
   const distance = referenceLocation
     ? calculateDistance(
@@ -207,21 +271,12 @@ function StationCard({
       <div className="flex items-start justify-between gap-2">
         <div className="flex flex-col gap-1 overflow-hidden">
           <div className="flex items-center gap-2">
-            {/* {rank <= 3 && (
-              <Badge
-                variant="secondary"
-                className={cn(
-                  "text-foreground h-5 w-5 shrink-0 justify-center rounded-full p-0 text-[10px]",
-                  rank === 1 ? "bg-yellow-400" : "",
-                  rank === 2 ? "bg-gray-300" : "",
-                  rank === 3 ? "bg-orange-400" : "",
-                )}
-              >
-                {rank}
-              </Badge>
-            )} */}
             <h3 className="flex items-center gap-2 truncate text-sm font-semibold">
-              {station.name}
+              {isNameLoading ? (
+                <Skeleton className="h-4 w-28" />
+              ) : (
+                displayName
+              )}
               {station.id === bestPriceStationId && (
                 <Euro className="size-4 text-yellow-500" />
               )}

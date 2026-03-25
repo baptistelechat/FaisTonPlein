@@ -3,8 +3,10 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Skeleton } from "@/components/ui/skeleton";
 import { DRAWER_SNAP_POINTS } from "@/lib/constants";
 import { cn } from "@/lib/utils";
+import { useStationName } from "@/hooks/useStationName";
 import { FuelPrice, useAppStore } from "@/store/useAppStore";
 import {
   CreditCard,
@@ -104,6 +106,8 @@ export function StationDetail({ mobileDrawerSnap }: IStationDetailsProps) {
   const isBestDistance =
     selectedStationId !== null && selectedStationId === bestDistanceStationId;
 
+  const { name: stationName, isLoading: nameIsLoading } = useStationName(selectedStation);
+
   if (!selectedStation) return null;
 
   const selectedPrice = selectedStation.prices.find(
@@ -140,7 +144,7 @@ export function StationDetail({ mobileDrawerSnap }: IStationDetailsProps) {
         <div className="flex flex-col space-y-2">
           <div className="flex items-center justify-between">
             <h2 className="font-heading text-primary flex items-center gap-2 text-2xl font-bold tracking-tight">
-              {selectedStation.name}
+              {nameIsLoading ? <Skeleton className="h-7 w-48" /> : stationName}
             </h2>
             {selectedStation.is24h && (
               <Badge
