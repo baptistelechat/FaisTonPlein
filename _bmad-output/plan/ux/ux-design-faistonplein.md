@@ -6,7 +6,7 @@
 **Version :** 1.1 (Correction Mermaid & Wireframes)
 **Source :** [PRD](../planning/prd-faistonplein.md)
 
----
+***
 
 ## 1. Vue d'ensemble (Overview)
 
@@ -14,12 +14,12 @@
 
 **Principes UX Clés :**
 
-1.  **Immédiateté :** L'information cruciale (prix le moins cher autour de moi) doit être visible en < 3 secondes.
-2.  **Transparence :** Les coûts réels (plein complet) sont mis en avant.
-3.  **Progressive Disclosure :** L'interface par défaut est simple; les outils d'analyse sont activables à la demande.
-4.  **Resilience :** L'état "Hors-ligne" doit être clairement indiqué mais non bloquant.
+1. **Immédiateté :** L'information cruciale (prix le moins cher autour de moi) doit être visible en < 3 secondes.
+2. **Transparence :** Les coûts réels (plein complet) sont mis en avant.
+3. **Progressive Disclosure :** L'interface par défaut est simple; les outils d'analyse sont activables à la demande.
+4. **Resilience :** L'état "Hors-ligne" doit être clairement indiqué mais non bloquant.
 
----
+***
 
 ## 2. Architecture de l'Information (Sitemap)
 
@@ -34,7 +34,7 @@ graph TD
     B --> F["Navigation App (External)"]
 ```
 
----
+***
 
 ## 3. Parcours Utilisateurs (User Flows)
 
@@ -42,54 +42,55 @@ graph TD
 
 _Objectif : Trouver de l'essence immédiatement._
 
-1.  **Ouverture App** : Chargement rapide, demande géolocalisation.
-2.  **Vue Carte** : Centrée sur position, stations proches affichées avec prix.
-3.  **Sélection** : Tap sur le pin le plus proche (ou le moins cher).
-4.  **Action** : Tap sur "Y aller" -> Ouvre Waze/Google Maps.
+1. **Ouverture App** : Chargement rapide, demande géolocalisation.
+2. **Vue Carte** : Centrée sur position, stations proches affichées avec prix.
+3. **Sélection** : Tap sur le pin le plus proche (ou le moins cher).
+4. **Action** : Tap sur "Y aller" -> Ouvre Waze/Google Maps.
 
 ### 3.2 Flow "Économe" (Jean-Pierre)
 
 _Objectif : Minimiser le coût total._
 
-1.  **Ouverture App** : Vue liste (préférence utilisateur).
-2.  **Filtre** : Vérification carburant (ex: Diesel).
-3.  **Configuration** : Saisie capacité réservoir (ex: 50L) dans les filtres.
-4.  **Comparaison** : La liste affiche "85€" (Total) au lieu du prix au litre.
-5.  **Décision** : Choix de la station avec le meilleur compromis Prix/Distance.
+1. **Ouverture App** : Vue liste (préférence utilisateur).
+2. **Filtre** : Vérification carburant (ex: Diesel).
+3. **Configuration** : Saisie capacité réservoir (ex: 50L) dans les filtres.
+4. **Comparaison** : La liste affiche "85€" (Total) au lieu du prix au litre.
+5. **Décision** : Choix de la station avec le meilleur compromis Prix/Distance.
 
 ### 3.3 Flow "Analyste" (Alex)
 
 _Objectif : Comprendre les tendances._
 
-1.  **Toggle Mode** : Activation "Mode Analyste" dans les réglages rapides.
-2.  **Exploration** : Les pins sur la carte changent de couleur (Vert=Baisse, Rouge=Hausse).
-3.  **Détail Station** : Ouverture fiche station -> Affichage graphique historique 30j.
+1. **Toggle Mode** : Activation "Mode Analyste" dans les réglages rapides.
+2. **Exploration** : Les pins sur la carte changent de couleur (Vert=Baisse, Rouge=Hausse).
+3. **Détail Station** : Ouverture fiche station -> Affichage graphique historique 30j.
 
----
+***
 
 ## 4. Wireframes (Low-Fidelity)
 
-### 4.1 Vue Principale (Map + Bottom Sheet)
+### 4.1 Vue Principale (Full-Screen Map)
 
 ```text
 +-------------------------------------+
-|  [Menu]      FaisTonPlein    [Filt] |  <-- Header flottant
+|  [ SEARCH BAR (Nominatim API)    ]  |  <-- Floating Command Menu (Top)
+|  [ (o) SP98  ( ) E10  ( ) Diesel ]  |  <-- Scrollable Badges
 |                                     |
 |          ( CARTE INTERACTIVE )      |
 |                                     |
-|      [Pin 1.85€]                    |
-|                  [Pin 1.79€]        |
+|      [1.85€]  <-- PriceMarker       |
+|                  [1.79€]            |
 |          (You)                      |
 |                                     |
 |                                     |
-|  [  Recentre  ]      [  Analyste  ] |  <-- FABs / Toggles
+|                                [⚙]  |  <-- Floating Action Buttons
+|                                [≣]  |      (Settings / List)
 +-------------------------------------+
-|  ____                               |  <-- Drag Handle
+|  ____                               |  <-- Bottom Drawer (Vaul)
 |  Total Access Relais   (2.5 km)     |
 |  SP98: 1.85€  |  E10: 1.79€         |
 |  [ Y Aller ]         [ Détails ]    |
 +-------------------------------------+
-   (Bottom Sheet rétractable)
 ```
 
 ### 4.2 Vue Liste (Alternative)
@@ -164,7 +165,7 @@ _Objectif : Comprendre les tendances._
 +-------------------------------------+
 ```
 
----
+***
 
 ## 5. Système de Design (Design System)
 
@@ -172,26 +173,26 @@ Basé sur **Shadcn UI** et **Tailwind CSS**.
 
 ### 5.1 Couleurs (Palette : "Electric Asphalt")
 
-*   **Base (Neutrals) :** `Slate` (Gris bleuté). Plus "technique" et profond que le Zinc standard.
-    *   *Light Mode :* Fond `Slate-50` / Surface `White`.
-    *   *Dark Mode :* Fond `Slate-950` / Surface `Slate-900`.
-*   **Primary :** `Violet-600` (Dark: `Violet-500`).
-    *   Une couleur vibrante et moderne qui se démarque des applications utilitaires bleues ou oranges.
-*   **Semantic :**
-    *   `Emerald-500` : Bon prix / Économie (Plus vif que Green).
-    *   `Rose-500` : Prix cher / Hausse (Plus doux que Red).
-    *   `Amber-400` : Attention / Obsolète.
+- **Base (Neutrals) :** `Slate` (Gris bleuté). Plus "technique" et profond que le Zinc standard.
+  - *Light Mode :* Fond `Slate-50` / Surface `White`.
+  - *Dark Mode :* Fond `Slate-950` / Surface `Slate-900`.
+- **Primary :** `Indigo-600` (Dark: `Indigo-500`).
+  - Une couleur vibrante et moderne qui se démarque des applications utilitaires bleues ou oranges.
+- **Semantic :**
+  - `Emerald-500` : Bon prix / Économie (Plus vif que Green).
+  - `Rose-500` : Prix cher / Hausse (Plus doux que Red).
+  - `Amber-400` : Attention / Obsolète.
 
 ### 5.2 Typographie (Theme : "Modern Dashboard")
 
-*   **Headings :** `Space Grotesk` (Google Font).
-    *   Une police "Display" avec des traits techniques et carrés, rappelant les tableaux de bord modernes.
-*   **Body & UI :** `Manrope` (Google Font).
-    *   Choisie spécifiquement pour ses **chiffres tabulaires** (parfaits pour aligner les prix) et sa lisibilité exceptionnelle sur mobile.
-*   **Styles :**
-    *   **H1 :** Space Grotesk Bold 24px.
-    *   **Price (Big) :** Manrope ExtraBold 32px (Tracking tight).
-    *   **Label :** Manrope Medium 12px (Uppercase, tracking wide).
+- **Headings :** `Space Grotesk` (Google Font).
+  - Une police "Display" avec des traits techniques et carrés, rappelant les tableaux de bord modernes.
+- **Body & UI :** `Manrope` (Google Font).
+  - Choisie spécifiquement pour ses **chiffres tabulaires** (parfaits pour aligner les prix) et sa lisibilité exceptionnelle sur mobile.
+- **Styles :**
+  - **H1 :** Space Grotesk Bold 24px.
+  - **Price (Big) :** Manrope ExtraBold 32px (Tracking tight).
+  - **Label :** Manrope Medium 12px (Uppercase, tracking wide).
 
 ### 5.3 Composants Clés (Shadcn)
 
@@ -201,7 +202,7 @@ Basé sur **Shadcn UI** et **Tailwind CSS**.
 - `Slider` : Pour le rayon de recherche.
 - `Switch` : Pour le Mode Analyste.
 
----
+***
 
 ## 6. Accessibilité (A11y)
 
@@ -211,10 +212,11 @@ Basé sur **Shadcn UI** et **Tailwind CSS**.
 - **Map Alternatives :** Toujours proposer une vue Liste complète comme alternative à la Carte pour l'accessibilité visuelle.
 - **Dark Mode :** Support natif pour réduire l'éblouissement en conduite de nuit.
 
----
+***
 
 ## 7. Prochaines Étapes
 
-1.  Validation des wireframes avec l'équipe (PM/Dev).
-2.  Création des maquettes High-Fidelity (Figma/Code).
-3.  Implémentation du squelette UI (Shadcn + Layouts).
+1. Validation des wireframes avec l'équipe (PM/Dev).
+2. Création des maquettes High-Fidelity (Figma/Code).
+3. Implémentation du squelette UI (Shadcn + Layouts).
+

@@ -6,7 +6,67 @@
 **Version :** 1.0
 **Source :** [PRD](../planning/prd-faistonplein.md)
 
-***
+---
+
+## E00 - Fondations Techniques
+
+**Objectif :** Mettre en place l'architecture de base et le pipeline de données.
+
+### US-00-01 : Pipeline ETL (Data.gouv -> HuggingFace)
+
+**En tant que** développeur,
+**Je veux** automatiser la récupération, la transformation et la publication des données,
+**Afin de** fournir des fichiers Parquet optimisés et à jour à l'application.
+
+**Critères d'Acceptation :**
+
+- [x] Script Node.js/TypeScript pour télécharger le CSV depuis data.gouv.fr.
+- [x] Conversion des données en format Parquet (avec compression).
+- [x] Partitionnement des fichiers par département.
+- [x] Upload automatique vers un Dataset Hugging Face.
+- [x] Exécution planifiée (GitHub Actions) ou manuelle.
+
+### US-00-02 : Intégration Client DuckDB-WASM
+
+**En tant que** développeur,
+**Je veux** intégrer DuckDB-WASM dans l'application Next.js,
+**Afin de** pouvoir requêter les fichiers Parquet directement dans le navigateur.
+
+**Critères d'Acceptation :**
+
+- [x] Initialisation de DuckDB-WASM dans un Web Worker.
+- [x] Chargement d'un fichier Parquet (ex: département test) depuis Hugging Face.
+- [x] Exécution d'une requête SQL simple (SELECT \* FROM prices LIMIT 10) avec affichage des résultats.
+
+### US-00-03 : Consolidation des Données Historiques
+
+**En tant que** data engineer,
+**Je veux** consolider les fichiers de données historiques,
+**Afin de** maintenir des performances de lecture optimales pour l'analyse sans perdre la granularité fine (jour/mois/année).
+
+**Critères d'Acceptation :**
+
+- [x] Création d'un script de consolidation journalier/mensuelle (Batch).
+- [x] Le script fusionne les petits fichiers (par heure) en un fichier optimisé.
+- [x] **Important** : Les fichiers sources (par heure) sont CONSERVÉS pour garder l'historique précis.
+- [x] Structure cible : `consolidated/YYYY/MM/DD/code_departement=XX/data_0.parquet` / `consolidated/YYYY/MM/code_departement=XX/data_0.parquet` / `consolidated/YYYY/code_departement=XX/data_0.parquet` ou sinon directemnt dans la structure de `history`
+- [x] Planification via CRON (ex: 1er du mois).
+
+### US-00-04 : Récupération Historique (XML -> Parquet)
+
+**En tant que** data engineer,
+**Je veux** récupérer et intégrer les données historiques (annuelles et quotidiennes) depuis prix-carburants.gouv.fr,
+**Afin de** constituer une base de données complète pour l'analyse des tendances sur le long terme. Ce sera un script a part que je lance une fois et que je ne relance plus jamais. Il faut trier les données dans la structure de dossier actuelle `history`
+
+**Critères d'Acceptation :**
+
+- [x] Script de téléchargement des archives annuelles (2007-2025) (XML dans ZIP).
+- [x] Script de téléchargement des flux quotidiens (30 derniers jours) avec déduplication (ne pas écraser/dupliquer les jours déjà acquis).
+- [x] Parsing des fichiers XML pour extraire les données (stations, prix, ruptures).
+- [x] Conversion et intégration dans le pipeline existant (Parquet + HuggingFace).
+- [x] Gestion des cas limites (fichiers corrompus, jours manquants).
+
+---
 
 ## E01 - Exploration Géographique
 
@@ -20,10 +80,10 @@
 
 **Critères d'Acceptation :**
 
-- [ ] La carte s'affiche et se centre sur la géolocalisation de l'utilisateur (si autorisée).
-- [ ] Les stations sont représentées par des marqueurs.
-- [ ] Le zoom et le déplacement sur la carte sont fluides.
-- [ ] Au clic sur un marqueur, un résumé de la station s'affiche.
+- [x] La carte s'affiche et se centre sur la géolocalisation de l'utilisateur (si autorisée).
+- [x] Les stations sont représentées par des marqueurs.
+- [x] Le zoom et le déplacement sur la carte sont fluides.
+- [x] Au clic sur un marqueur, un résumé de la station s'affiche.
 
 ### US-01-02 : Liste des Stations
 
@@ -33,9 +93,9 @@
 
 **Critères d'Acceptation :**
 
-- [ ] Affichage d'une liste sous la carte (ou via un toggle).
-- [ ] Chaque élément affiche : Nom, Distance, Prix du carburant sélectionné.
-- [ ] Possibilité de trier par Distance  ou Prix.
+- [x] Affichage d'une liste sous la carte (ou via un toggle).
+- [x] Chaque élément affiche : Nom, Distance, Prix du carburant sélectionné.
+- [x] Possibilité de trier par Distance ou Prix.
 
 ### US-01-03 : Détail d'une Station
 
@@ -45,10 +105,10 @@
 
 **Critères d'Acceptation :**
 
-- [ ] Page ou modale dédiée au détail.
-- [ ] Affichage de l'adresse complète avec lien vers GPS externe (Waze/Maps).
-- [ ] Liste des prix pour tous les carburants disponibles.
-- [ ] Liste des services (ex: Gonflage, Boutique).
+- [x] Page ou modale dédiée au détail.
+- [x] Affichage de l'adresse complète avec lien vers GPS externe (Waze/Maps).
+- [x] Liste des prix pour tous les carburants disponibles.
+- [x] Liste des services (ex: Gonflage, Boutique).
 
 ### US-01-04 : Filtre Carburant
 
@@ -58,11 +118,11 @@
 
 **Critères d'Acceptation :**
 
-- [ ] Sélecteur de carburant accessible en haut de l'écran.
-- [ ] La carte et la liste se mettent à jour instantanément.
-- [ ] Le choix est sauvegardé pour les prochaines sessions.
+- [x] Sélecteur de carburant accessible en haut de l'écran.
+- [x] La carte et la liste se mettent à jour instantanément.
+- [x] Le choix est sauvegardé pour les prochaines sessions.
 
-***
+---
 
 ## E02 - Comparaison Économique
 
@@ -102,7 +162,7 @@
 - [ ] Algorithme prenant en compte la consommation moyenne (paramétrable ou défaut).
 - [ ] Affichage du surcoût lié au détour.
 
-***
+---
 
 ## E03 - Intelligence & Analyse
 
@@ -141,7 +201,7 @@
 - [ ] Graphique linéaire interactif (Recharts).
 - [ ] Affichage des points de données au survol.
 
-***
+---
 
 ## E04 - Résilience (Offline)
 
@@ -170,4 +230,3 @@
 - [ ] L'application se lance sans réseau.
 - [ ] Accès complet à la carte et liste (données en cache).
 - [ ] Indicateur "Mode Hors Ligne".
-
