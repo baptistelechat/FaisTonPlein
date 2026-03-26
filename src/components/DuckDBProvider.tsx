@@ -104,6 +104,7 @@ export const DuckDBProvider = ({ children }: { children: React.ReactNode }) => {
       // We don't await here because it's a sync cleanup function, but we can fire and forget or track it.
       // Ideally we should persist the instance in a ref or global to avoid double init in strict mode.
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (

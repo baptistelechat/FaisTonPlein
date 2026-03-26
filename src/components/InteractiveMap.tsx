@@ -16,7 +16,6 @@ import {
   ReactNode,
   useCallback,
   useEffect,
-  useMemo,
   useRef,
   useState,
 } from "react";
@@ -316,15 +315,6 @@ export default function InteractiveMap({
     })
     .filter((p) => p !== null);
 
-  const bestPriceStation = useMemo(
-    () => stations.find((s) => s.id === bestPriceStationId) ?? null,
-    [stations, bestPriceStationId],
-  );
-
-  const bestDistanceStation = useMemo(
-    () => stations.find((s) => s.id === bestDistanceStationId) ?? null,
-    [stations, bestDistanceStationId],
-  );
 
   // Get clusters
   const { clusters, supercluster } = useSupercluster({
@@ -541,83 +531,6 @@ export default function InteractiveMap({
             </MapMarker>
           );
         })}
-        {bestPriceStation &&
-          bestDistanceStation &&
-          bestPriceStation.id === bestDistanceStation.id && (
-            <MapMarker
-              key="best-both"
-              longitude={bestPriceStation.lon}
-              latitude={bestPriceStation.lat}
-              onClick={(e) => {
-                e.stopPropagation();
-                setSelectedStation(bestPriceStation);
-                setViewport((prev) => ({
-                  ...prev,
-                  center: [bestPriceStation.lon, bestPriceStation.lat],
-                  zoom: 15,
-                  duration: 800,
-                }));
-              }}
-            >
-              <PulseMarker
-                color="bg-yellow-500"
-                pingColor="bg-yellow-500"
-                tooltip="Meilleur prix & plus proche"
-              />
-            </MapMarker>
-          )}
-
-        {bestPriceStation &&
-          (!bestDistanceStation ||
-            bestDistanceStation.id !== bestPriceStation.id) && (
-            <MapMarker
-              key="best-price"
-              longitude={bestPriceStation.lon}
-              latitude={bestPriceStation.lat}
-              onClick={(e) => {
-                e.stopPropagation();
-                setSelectedStation(bestPriceStation);
-                setViewport((prev) => ({
-                  ...prev,
-                  center: [bestPriceStation.lon, bestPriceStation.lat],
-                  zoom: 15,
-                  duration: 800,
-                }));
-              }}
-            >
-              <PulseMarker
-                color="bg-yellow-500"
-                pingColor="bg-yellow-500"
-                tooltip="Meilleur prix"
-              />
-            </MapMarker>
-          )}
-
-        {bestDistanceStation &&
-          (!bestPriceStation ||
-            bestPriceStation.id !== bestDistanceStation.id) && (
-            <MapMarker
-              key="best-distance"
-              longitude={bestDistanceStation.lon}
-              latitude={bestDistanceStation.lat}
-              onClick={(e) => {
-                e.stopPropagation();
-                setSelectedStation(bestDistanceStation);
-                setViewport((prev) => ({
-                  ...prev,
-                  center: [bestDistanceStation.lon, bestDistanceStation.lat],
-                  zoom: 15,
-                  duration: 800,
-                }));
-              }}
-            >
-              <PulseMarker
-                color="bg-yellow-500"
-                pingColor="bg-yellow-500"
-                tooltip="Plus proche"
-              />
-            </MapMarker>
-          )}
 
         {searchLocation && (
           <MapMarker longitude={searchLocation[0]} latitude={searchLocation[1]}>
