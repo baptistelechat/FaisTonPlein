@@ -10,7 +10,7 @@ import { useMediaQuery } from "@/hooks/use-media-query";
 import { getStationNamesDb } from "@/lib/stationName";
 import { getPriceTextColor } from "@/lib/priceColor";
 import { calculateDistance, cn } from "@/lib/utils";
-import { Station, useAppStore } from "@/store/useAppStore";
+import { FuelStats, Station, useAppStore } from "@/store/useAppStore";
 import { StationLogo } from "@/components/StationLogo";
 import { Euro, Loader, Navigation, Route, Road } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -35,7 +35,7 @@ export function StationList() {
   } = useAppStore();
 
   const filteredStations = useFilteredStations();
-  const filteredStats = useFilteredStats();
+  const allFilteredStats = useFilteredStats();
 
   const isDesktop = useMediaQuery("(min-width: 768px)");
 
@@ -147,7 +147,7 @@ export function StationList() {
   }
 
   // Full View (Vertical List)
-  const currentStats = filteredStats;
+  const currentStats = allFilteredStats[selectedFuel] ?? null;
 
   return (
     <div className="flex h-full flex-col">
@@ -230,7 +230,7 @@ interface StationCardProps {
   station: Station;
   selectedFuel: string;
   referenceLocation: [number, number] | null;
-  filteredStats: ReturnType<typeof useFilteredStats>;
+  filteredStats: FuelStats | null;
   bestPriceStationId: string | null;
   bestDistanceStationId: string | null;
   onClick: () => void;

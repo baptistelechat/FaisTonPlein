@@ -6,6 +6,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
 import { DRAWER_SNAP_POINTS } from "@/lib/constants";
 import { cn } from "@/lib/utils";
+import { getPriceTextColor } from "@/lib/priceColor";
 import { useFilteredStats } from "@/hooks/useFilteredStats";
 import { useStationName } from "@/hooks/useStationName";
 import { StationLogo } from "@/components/StationLogo";
@@ -34,34 +35,23 @@ const PriceCard = ({
   selectedFuel: string;
   filteredStats: FuelStats | null;
 }) => {
-  let priceColor = "text-foreground";
-  let diffBadge = null;
+  const priceColor = getPriceTextColor(price.price, filteredStats);
 
+  let diffBadge = null;
   if (filteredStats) {
     const diff = price.price - filteredStats.median;
-    const threshold = 0.02;
-    if (diff < -threshold) {
-      priceColor = "text-emerald-600";
-      diffBadge = (
-        <span className="rounded-sm bg-emerald-500/10 px-1.5 py-0.5 text-[10px] font-bold text-emerald-500">
-          - {Math.abs(diff).toFixed(3)}€
-        </span>
-      );
-    } else if (diff > threshold) {
-      priceColor = "text-rose-600";
-      diffBadge = (
-        <span className="rounded-sm bg-rose-500/10 px-1.5 py-0.5 text-[10px] font-bold text-rose-500">
-          + {diff.toFixed(3)}€
-        </span>
-      );
-    } else {
-      priceColor = "text-amber-600";
-      diffBadge = (
-        <span className="rounded-sm bg-amber-500/10 px-1.5 py-0.5 text-[10px] font-bold text-amber-500">
-          {`${diff > 0 ? "+ " : "- "}${Math.abs(diff).toFixed(3)}€`}
-        </span>
-      );
-    }
+    const isGood = priceColor === "text-emerald-600";
+    const isBad = priceColor === "text-rose-600";
+    const colorClass = isGood
+      ? "bg-emerald-500/10 text-emerald-500"
+      : isBad
+        ? "bg-rose-500/10 text-rose-500"
+        : "bg-amber-500/10 text-amber-500";
+    diffBadge = (
+      <span className={`rounded-sm px-1.5 py-0.5 text-[10px] font-bold ${colorClass}`}>
+        {`${diff > 0 ? "+ " : "- "}${Math.abs(diff).toFixed(3)}€`}
+      </span>
+    );
   }
 
   return (
@@ -208,7 +198,7 @@ export function StationDetail({ mobileDrawerSnap }: IStationDetailsProps) {
           <PriceCard
             price={selectedPrice}
             selectedFuel={selectedFuel}
-            filteredStats={filteredStats}
+            filteredStats={filteredStats[selectedPrice.fuel_type] ?? null}
           />
         )}
 
@@ -222,7 +212,7 @@ export function StationDetail({ mobileDrawerSnap }: IStationDetailsProps) {
                   price={price}
                   selectedFuel={selectedFuel}
                   key={price.fuel_type}
-                  filteredStats={price.fuel_type === selectedFuel ? filteredStats : null}
+                  filteredStats={filteredStats[price.fuel_type] ?? null}
                 />
               ))}
             </div>

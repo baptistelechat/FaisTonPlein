@@ -85,7 +85,8 @@ export default function InteractiveMap({
   } = useAppStore();
 
   const filteredStations = useFilteredStations();
-  const filteredStats = useFilteredStats();
+  const allFilteredStats = useFilteredStats();
+  const filteredStats = allFilteredStats[selectedFuel] ?? null;
   const filteredStationsRef = useRef(filteredStations);
   useEffect(() => {
     filteredStationsRef.current = filteredStations;
