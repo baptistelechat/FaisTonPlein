@@ -6,7 +6,7 @@
 **Version :** 1.0
 **Source :** [PRD](../planning/prd-faistonplein.md)
 
-***
+---
 
 ## E00 - Fondations Techniques
 
@@ -66,7 +66,7 @@
 - [x] Conversion et intégration dans le pipeline existant (Parquet + HuggingFace).
 - [x] Gestion des cas limites (fichiers corrompus, jours manquants).
 
-***
+---
 
 ## E01 - Exploration Géographique
 
@@ -105,10 +105,10 @@
 
 **Critères d'Acceptation :**
 
-- [ ] Page ou modale dédiée au détail.
-- [ ] Affichage de l'adresse complète avec lien vers GPS externe (Waze/Maps).
-- [ ] Liste des prix pour tous les carburants disponibles.
-- [ ] Liste des services (ex: Gonflage, Boutique).
+- [x] Page ou modale dédiée au détail.
+- [x] Affichage de l'adresse complète avec lien vers GPS externe (Waze/Maps).
+- [x] Liste des prix pour tous les carburants disponibles.
+- [x] Liste des services (ex: Gonflage, Boutique).
 
 ### US-01-04 : Filtre Carburant
 
@@ -118,11 +118,11 @@
 
 **Critères d'Acceptation :**
 
-- [ ] Sélecteur de carburant accessible en haut de l'écran.
-- [ ] La carte et la liste se mettent à jour instantanément.
-- [ ] Le choix est sauvegardé pour les prochaines sessions.
+- [x] Sélecteur de carburant accessible en haut de l'écran.
+- [x] La carte et la liste se mettent à jour instantanément.
+- [x] Le choix est sauvegardé pour les prochaines sessions.
 
-***
+---
 
 ## E02 - Comparaison Économique
 
@@ -162,7 +162,7 @@
 - [ ] Algorithme prenant en compte la consommation moyenne (paramétrable ou défaut).
 - [ ] Affichage du surcoût lié au détour.
 
-***
+---
 
 ## E03 - Intelligence & Analyse
 
@@ -201,7 +201,7 @@
 - [ ] Graphique linéaire interactif (Recharts).
 - [ ] Affichage des points de données au survol.
 
-***
+---
 
 ## E04 - Résilience (Offline)
 
@@ -230,4 +230,3 @@
 - [ ] L'application se lance sans réseau.
 - [ ] Accès complet à la carte et liste (données en cache).
 - [ ] Indicateur "Mode Hors Ligne".
-

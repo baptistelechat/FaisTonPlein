@@ -4,21 +4,23 @@ import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useFilteredStations } from "@/hooks/useFilteredStations";
+import { useFilteredStats } from "@/hooks/useFilteredStats";
 import { useMediaQuery } from "@/hooks/use-media-query";
 import { getStationNamesDb } from "@/lib/stationName";
+import { getPriceTextColor } from "@/lib/priceColor";
 import { calculateDistance, cn } from "@/lib/utils";
 import { Station, useAppStore } from "@/store/useAppStore";
 import { StationLogo } from "@/components/StationLogo";
 import { Euro, Loader, Navigation, Route, Road } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
+import StationListFilters from "./components/StationListFilters";
 import StationListStats from "./components/StationListStats";
 
 const PAGE_SIZE = 15;
 
 export function StationList() {
   const {
-    stations,
-    stats,
     userLocation,
     searchLocation,
     selectedFuel,
@@ -32,6 +34,9 @@ export function StationList() {
     setResolvedName,
   } = useAppStore();
 
+  const filteredStations = useFilteredStations();
+  const filteredStats = useFilteredStats();
+
   const isDesktop = useMediaQuery("(min-width: 768px)");
 
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
@@ -42,10 +47,7 @@ export function StationList() {
   const referenceLocation = searchLocation || userLocation;
 
   const sortedStations = useMemo(() => {
-    // Filter stations that have the selected fuel
-    const stationsWithFuel = stations.filter((s) =>
-      s.prices.some((p) => p.fuel_type === selectedFuel),
-    );
+    const stationsWithFuel = filteredStations;
 
     if (!referenceLocation) return stationsWithFuel;
 
@@ -73,7 +75,7 @@ export function StationList() {
         return distA - distB;
       }
     });
-  }, [stations, referenceLocation, selectedFuel, listSortBy]);
+  }, [filteredStations, referenceLocation, selectedFuel, listSortBy]);
 
   // Derived state: reset visibleCount quand sortedStations change (pattern React getDerivedStateFromProps)
   const [prevSortedStations, setPrevSortedStations] = useState(sortedStations);
@@ -147,9 +149,7 @@ export function StationList() {
   }
 
   // Full View (Vertical List)
-  const currentStats = stats[selectedFuel];
-  const q1 = currentStats?.p25;
-  const q3 = currentStats?.p75;
+  const currentStats = filteredStats;
 
   return (
     <div className="flex h-full flex-col">
@@ -177,6 +177,8 @@ export function StationList() {
             </Badge>
           </div>
         </div>
+
+        <StationListFilters />
 
         {currentStats && (
           <div className="bg-muted/50 grid w-full grid-cols-[1fr_1fr_1fr_auto] items-center gap-3 rounded-lg p-3 text-sm">
@@ -212,8 +214,7 @@ export function StationList() {
               station={station}
               selectedFuel={selectedFuel}
               referenceLocation={referenceLocation}
-              q1={q1}
-              q3={q3}
+              filteredStats={currentStats}
               bestPriceStationId={bestPriceStationId}
               bestDistanceStationId={bestDistanceStationId}
               onClick={() => handleStationClick(station)}
@@ -231,8 +232,7 @@ interface StationCardProps {
   station: Station;
   selectedFuel: string;
   referenceLocation: [number, number] | null;
-  q1?: number;
-  q3?: number;
+  filteredStats: ReturnType<typeof useFilteredStats>;
   bestPriceStationId: string | null;
   bestDistanceStationId: string | null;
   onClick: () => void;
@@ -242,8 +242,7 @@ function StationCard({
   station,
   selectedFuel,
   referenceLocation,
-  q1,
-  q3,
+  filteredStats,
   bestPriceStationId,
   bestDistanceStationId,
   onClick,
@@ -262,12 +261,7 @@ function StationCard({
       )
     : null;
 
-  let priceColor = "text-foreground";
-  if (price && typeof q1 === "number" && typeof q3 === "number") {
-    if (price.price < q1) priceColor = "text-emerald-600";
-    else if (price.price > q3) priceColor = "text-rose-600";
-    else priceColor = "text-amber-600";
-  }
+  const priceColor = price ? getPriceTextColor(price.price, filteredStats) : "text-foreground";
 
   return (
     <Card

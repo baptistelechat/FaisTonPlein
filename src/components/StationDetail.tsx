@@ -6,9 +6,10 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
 import { DRAWER_SNAP_POINTS } from "@/lib/constants";
 import { cn } from "@/lib/utils";
+import { useFilteredStats } from "@/hooks/useFilteredStats";
 import { useStationName } from "@/hooks/useStationName";
 import { StationLogo } from "@/components/StationLogo";
-import { FuelPrice, useAppStore } from "@/store/useAppStore";
+import { FuelPrice, FuelStats, useAppStore } from "@/store/useAppStore";
 import {
   CreditCard,
   Euro,
@@ -27,17 +28,17 @@ interface IStationDetailsProps {
 const PriceCard = ({
   price,
   selectedFuel,
-  averagePrice,
+  filteredStats,
 }: {
   price: FuelPrice;
   selectedFuel: string;
-  averagePrice?: number;
+  filteredStats: FuelStats | null;
 }) => {
   let priceColor = "text-foreground";
   let diffBadge = null;
 
-  if (averagePrice) {
-    const diff = price.price - averagePrice;
+  if (filteredStats) {
+    const diff = price.price - filteredStats.median;
     const threshold = 0.02;
     if (diff < -threshold) {
       priceColor = "text-emerald-600";
@@ -65,11 +66,12 @@ const PriceCard = ({
 
   return (
     <div
-      className={`flex flex-col rounded-xl border p-3 transition-all ${
+      className={cn(
+        "flex flex-col rounded-xl border p-3 transition-all",
         price.fuel_type === selectedFuel
           ? "border-primary bg-primary/5 shadow-sm"
-          : "border-border/50 bg-muted/30"
-      }`}
+          : "border-border/50 bg-muted/30",
+      )}
     >
       <div className="mb-1 flex items-center justify-between">
         <span className="text-muted-foreground text-[10px] font-bold tracking-widest uppercase">
@@ -96,10 +98,11 @@ export function StationDetail({ mobileDrawerSnap }: IStationDetailsProps) {
   const {
     selectedStation,
     selectedFuel,
-    stats,
     bestPriceStationId,
     bestDistanceStationId,
   } = useAppStore();
+
+  const filteredStats = useFilteredStats();
 
   const selectedStationId = selectedStation?.id ?? null;
 
@@ -205,10 +208,7 @@ export function StationDetail({ mobileDrawerSnap }: IStationDetailsProps) {
           <PriceCard
             price={selectedPrice}
             selectedFuel={selectedFuel}
-            averagePrice={
-              stats[selectedPrice.fuel_type]?.median ??
-              stats[selectedPrice.fuel_type]?.average
-            }
+            filteredStats={filteredStats}
           />
         )}
 
@@ -222,10 +222,7 @@ export function StationDetail({ mobileDrawerSnap }: IStationDetailsProps) {
                   price={price}
                   selectedFuel={selectedFuel}
                   key={price.fuel_type}
-                  averagePrice={
-                    stats[price.fuel_type]?.median ??
-                    stats[price.fuel_type]?.average
-                  }
+                  filteredStats={price.fuel_type === selectedFuel ? filteredStats : null}
                 />
               ))}
             </div>

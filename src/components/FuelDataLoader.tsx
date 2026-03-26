@@ -1,24 +1,24 @@
 "use client";
 
+import { getDepartmentsInRadius } from "@/lib/departments";
 import { mapRawDataToStation, RawStationData } from "@/lib/mappers";
-import { useAppStore } from "@/store/useAppStore";
-import { useEffect, useState } from "react";
+import { Station, useAppStore } from "@/store/useAppStore";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { useDuckDB } from "./DuckDBProvider";
 
 export const FuelDataLoader = () => {
-  const { db, isLoading: isDbLoading, error: dbError } = useDuckDB();
+  const { db, error: dbError } = useDuckDB();
   const {
     setStations,
     setIsLoading,
     selectedDepartment,
     setLastUpdate,
     searchLocation,
+    searchRadius,
+    userLocation,
   } = useAppStore();
-  const [dataLoaded, setDataLoaded] = useState(false);
-  const [currentDepartment, setCurrentDepartment] = useState<string | null>(
-    null,
-  );
+  const [loadedDeptsKey, setLoadedDeptsKey] = useState("");
   const [locationAvailable, setLocationAvailable] = useState<boolean | null>(
     null,
   );
@@ -45,105 +45,113 @@ export const FuelDataLoader = () => {
     }
   }, [locationAvailable, searchLocation]);
 
+  const referenceLocation = searchLocation || userLocation;
+
+  const departmentsToLoad = useMemo<string[]>(() => {
+    if (!selectedDepartment) return [];
+
+    if (!referenceLocation || searchRadius === 0) {
+      return [selectedDepartment];
+    }
+
+    const fromRadius = getDepartmentsInRadius(referenceLocation, searchRadius);
+    // Toujours inclure le département principal, dédupliquer, trier
+    const all = new Set([selectedDepartment, ...fromRadius]);
+    return Array.from(all).sort();
+  }, [selectedDepartment, referenceLocation, searchRadius]);
+
+  const deptKey = departmentsToLoad.join(",");
+
   useEffect(() => {
     let isMounted = true;
 
     const loadData = async () => {
-      // If data is already loaded for this department, ensure loading is false and exit
-      if (dataLoaded && currentDepartment === selectedDepartment) {
-        setIsLoading(false);
-        return;
-      }
-
-      if (!db) return;
+      if (!db || !deptKey || deptKey === loadedDeptsKey) return;
+      if (locationAvailable === null && !searchLocation) return;
+      if (!canLoadData) return;
 
       setIsLoading(true);
+
       try {
-        const conn = await db.connect();
+        const BASE =
+          "https://huggingface.co/datasets/baptistelechat/fais-ton-plein_dataset/resolve/main/data/latest";
 
-        // URL for DEPARTEMENT
-        const baseUrl = `https://huggingface.co/datasets/baptistelechat/fais-ton-plein_dataset/resolve/main/data/latest/code_departement=${selectedDepartment}`;
-        const parquetUrl = `${baseUrl}/data_0.parquet`;
-        const metadataUrl = `${baseUrl}/metadata.json`;
+        // Charger tous les départements en parallèle
+        const results = await Promise.allSettled(
+          departmentsToLoad.map(async (dept) => {
+            const conn = await db.connect();
+            const url = `${BASE}/code_departement=${dept}/data_0.parquet`;
+            // Charger aussi les métadonnées du département principal
+            if (dept === selectedDepartment) {
+              fetch(`${BASE}/code_departement=${dept}/metadata.json`)
+                .then((res) => res.json())
+                .then((meta) => {
+                  if (isMounted && meta.last_updated)
+                    setLastUpdate(meta.last_updated);
+                })
+                .catch(() => {});
+            }
+            const res = await conn.query(
+              `SELECT * FROM read_parquet('${url}')`,
+            );
+            await conn.close();
+            return res
+              .toArray()
+              .map((r) => r.toJSON()) as unknown as RawStationData[];
+          }),
+        );
 
-        // Try loading metadata first (non-blocking for parquet load but useful for UI)
-        try {
-          fetch(metadataUrl)
-            .then((res) => res.json())
-            .then((meta) => {
-              if (isMounted && meta.last_updated) {
-                setLastUpdate(meta.last_updated);
-              }
-            })
-            .catch((err) => console.warn("Failed to load metadata", err));
-        } catch (e) {
-          console.warn("Metadata fetch error", e);
+        // Fusionner tous les résultats, dédupliquer par id
+        const stationMap = new Map<string, Station>();
+        for (const result of results) {
+          if (result.status === "fulfilled") {
+            for (const raw of result.value) {
+              const station = mapRawDataToStation(raw);
+              stationMap.set(station.id, station);
+            }
+          }
         }
-
-        // Load Parquet file
-        await conn.query(`
-          CREATE OR REPLACE TABLE fuel_prices AS 
-          SELECT * FROM read_parquet('${parquetUrl}');
-        `);
-
-        // Query all stations
-        const res = await conn.query("SELECT * FROM fuel_prices");
-        const rawStations = res
-          .toArray()
-          .map((r) => r.toJSON()) as unknown as RawStationData[];
-
-        // Map to application format
-        const stations = rawStations.map(mapRawDataToStation);
 
         if (isMounted) {
-          console.log(`Loaded ${stations.length} stations from DuckDB`);
+          const stations = Array.from(stationMap.values());
+          console.log(
+            `Loaded ${stations.length} stations from ${departmentsToLoad.length} département(s): ${deptKey}`,
+          );
           setStations(stations);
-          setDataLoaded(true);
-          setCurrentDepartment(selectedDepartment);
+          setLoadedDeptsKey(deptKey);
           toast.success(
-            `${stations.length} stations chargées (${selectedDepartment})`,
+            departmentsToLoad.length > 1
+              ? `${stations.length} stations chargées (${departmentsToLoad.length} depts)`
+              : `${stations.length} stations chargées (${selectedDepartment})`,
           );
         }
-
-        await conn.close();
       } catch (err) {
         if (isMounted) {
           console.error("Failed to load fuel data:", err);
-          toast.error(
-            `Erreur lors du chargement des données carburant (${selectedDepartment})`,
-          );
+          toast.error(`Erreur lors du chargement des données carburant`);
         }
       } finally {
-        if (isMounted) {
-          setIsLoading(false);
-        }
+        if (isMounted) setIsLoading(false);
       }
     };
 
-    if (locationAvailable === null && !searchLocation) return;
-
-    // Ensure we have a selected department before attempting to load data
-    // This prevents 404 errors when the location is found but the department hasn't been reverse-geocoded yet
-    if (!isDbLoading && !dbError && canLoadData && selectedDepartment) {
-      loadData();
-    }
+    loadData();
 
     return () => {
       isMounted = false;
     };
   }, [
     db,
-    isDbLoading,
-    dbError,
-    dataLoaded,
-    setStations,
-    setIsLoading,
-    selectedDepartment,
-    currentDepartment,
-    setLastUpdate,
+    deptKey,
+    loadedDeptsKey,
+    canLoadData,
     locationAvailable,
     searchLocation,
-    canLoadData,
+    selectedDepartment,
+    setIsLoading,
+    setLastUpdate,
+    setStations,
+    departmentsToLoad,
   ]);
 
   if (dbError) {

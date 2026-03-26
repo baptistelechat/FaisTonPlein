@@ -20,6 +20,7 @@ export function MobileLayout() {
     lastUpdate,
     bestPriceStationId,
     bestDistanceStationId,
+    triggerFitToList,
   } = useAppStore();
   const [snap, setSnap] = useState<number | string | null>(
     DRAWER_SNAP_POINTS.MEDIUM,
@@ -102,6 +103,7 @@ export function MobileLayout() {
                     onClick={() => {
                       setSelectedStation(null);
                       setSnap(DRAWER_SNAP_POINTS.MEDIUM);
+                      triggerFitToList();
                     }}
                     className="max-w-full justify-start gap-2"
                   >

@@ -1,4 +1,6 @@
 import { FuelType } from "@/lib/constants";
+import { getPriceMarkerClasses } from "@/lib/priceColor";
+import { FuelStats } from "@/store/useAppStore";
 import { cn } from "@/lib/utils";
 import { Euro, Fuel, Route } from "lucide-react";
 
@@ -9,8 +11,7 @@ type PriceMarkerProps = {
   isBestPrice?: boolean;
   isBestDistance?: boolean;
   trend?: "up" | "down" | "stable";
-  q1?: number | null;
-  q3?: number | null;
+  filteredStats?: FuelStats | null;
 };
 
 export function PriceMarker({
@@ -18,25 +19,9 @@ export function PriceMarker({
   isSelected,
   isBestPrice,
   isBestDistance,
-  q1,
-  q3,
+  filteredStats,
 }: PriceMarkerProps) {
-  // Determine color status
-  const getStatusColor = () => {
-    if (typeof q1 === "number" && typeof q3 === "number") {
-      if (price < q1) {
-        return "text-emerald-600 border-emerald-500 bg-emerald-50";
-      }
-      if (price > q3) {
-        return "text-rose-600 border-rose-500 bg-rose-50";
-      }
-      return "text-amber-600 border-amber-500 bg-amber-50";
-    }
-
-    return "text-amber-600 border-amber-500 bg-amber-50";
-  };
-
-  const statusColor = getStatusColor();
+  const statusColor = getPriceMarkerClasses(price, filteredStats ?? null);
   // const showBestBadge = isBestPrice || isBestDistance;
 
   return (

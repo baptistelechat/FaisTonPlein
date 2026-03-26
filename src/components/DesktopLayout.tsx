@@ -11,7 +11,8 @@ import { fr } from "date-fns/locale";
 import { ArrowLeft, Clock } from "lucide-react";
 
 export function DesktopLayout() {
-  const { selectedStation, setSelectedStation, lastUpdate } = useAppStore();
+  const { selectedStation, setSelectedStation, lastUpdate, triggerFitToList } =
+    useAppStore();
 
   return (
     <div className="flex h-full w-full">
@@ -24,7 +25,10 @@ export function DesktopLayout() {
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => setSelectedStation(null)}
+                  onClick={() => {
+                    setSelectedStation(null);
+                    triggerFitToList();
+                  }}
                   className="gap-2"
                 >
                   <ArrowLeft className="h-4 w-4" />

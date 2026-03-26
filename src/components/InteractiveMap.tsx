@@ -6,10 +6,12 @@ import {
   MapMarker,
   type MapViewport,
 } from "@/components/ui/map";
+import { useFilteredStations } from "@/hooks/useFilteredStations";
+import { useFilteredStats } from "@/hooks/useFilteredStats";
 import { reverseGeocode } from "@/lib/api-adresse";
 import { useAppStore } from "@/store/useAppStore";
 import { Loader2 } from "lucide-react";
-import type { Map as MapLibreMap } from "maplibre-gl";
+import type { GeoJSONSource, Map as MapLibreMap } from "maplibre-gl";
 import {
   ReactNode,
   useCallback,
@@ -26,6 +28,35 @@ import { PulseMarker } from "./PulseMarker";
 const DEFAULT_CENTER: [number, number] = [2.3522, 48.8566]; // Paris [lon, lat]
 const DEFAULT_ZOOM = 13;
 
+const createCircleGeoJSON = (
+  center: [number, number],
+  radiusKm: number,
+): GeoJSON.Feature<GeoJSON.Polygon> => {
+  const POINTS = 64;
+  const [lon, lat] = center;
+  const latRad = (lat * Math.PI) / 180;
+  const latOffset = radiusKm / 111.32;
+  const lonOffset = radiusKm / (111.32 * Math.cos(latRad));
+
+  const coordinates: [number, number][] = [];
+  for (let i = 0; i <= POINTS; i++) {
+    const angle = (i * 2 * Math.PI) / POINTS;
+    coordinates.push([
+      lon + lonOffset * Math.cos(angle),
+      lat + latOffset * Math.sin(angle),
+    ]);
+  }
+
+  return {
+    type: "Feature",
+    properties: {},
+    geometry: {
+      type: "Polygon",
+      coordinates: [coordinates],
+    },
+  };
+};
+
 export default function InteractiveMap({
   children,
   mobileDrawerSnap,
@@ -35,7 +66,6 @@ export default function InteractiveMap({
 }) {
   const {
     stations,
-    stats,
     isLoading,
     selectedFuel,
     selectedStation,
@@ -51,7 +81,16 @@ export default function InteractiveMap({
     setSearchLocation,
     bestPriceStationId,
     bestDistanceStationId,
+    searchRadius,
+    fitToListSignal,
   } = useAppStore();
+
+  const filteredStations = useFilteredStations();
+  const filteredStats = useFilteredStats();
+  const filteredStationsRef = useRef(filteredStations);
+  useEffect(() => {
+    filteredStationsRef.current = filteredStations;
+  }, [filteredStations]);
 
   const mapRef = useRef<MapLibreMap>(null);
   const [mapInstance, setMapInstance] = useState<MapLibreMap | null>(null);
@@ -107,18 +146,131 @@ export default function InteractiveMap({
     };
   }, [mapInstance]);
 
-  // Handle flyToLocation effect
+  // Search radius circle layer
+  const referenceLocation = searchLocation || userLocation;
+  // Refs stables pour lecture dans les effects à dep unique (fitToListSignal)
+  const searchRadiusRef = useRef(searchRadius);
+  const referenceLocationRef = useRef(referenceLocation);
+  useEffect(() => {
+    searchRadiusRef.current = searchRadius;
+    referenceLocationRef.current = referenceLocation;
+  }, [searchRadius, referenceLocation]);
+
+  useEffect(() => {
+    if (!mapInstance) return;
+
+    const updateCircle = () => {
+      if (!mapInstance.getSource("radius-circle")) {
+        const primaryColor = "#4f46e5"; // indigo-600
+        mapInstance.addSource("radius-circle", {
+          type: "geojson",
+          data: { type: "FeatureCollection", features: [] },
+        });
+        mapInstance.addLayer({
+          id: "radius-fill",
+          type: "fill",
+          source: "radius-circle",
+          paint: {
+            "fill-color": primaryColor,
+            "fill-opacity": 0.04,
+          },
+        });
+        mapInstance.addLayer({
+          id: "radius-border",
+          type: "line",
+          source: "radius-circle",
+          paint: {
+            "line-color": primaryColor,
+            "line-width": 1.5,
+            "line-opacity": 0.5,
+            "line-dasharray": [3, 3],
+          },
+        });
+      }
+
+      const source = mapInstance.getSource("radius-circle") as GeoJSONSource;
+
+      if (!referenceLocation || searchRadius === 0) {
+        source.setData({ type: "FeatureCollection", features: [] });
+      } else {
+        source.setData(createCircleGeoJSON(referenceLocation, searchRadius));
+      }
+    };
+
+    if (!mapInstance.isStyleLoaded()) {
+      mapInstance.once("load", updateCircle);
+      return () => {
+        mapInstance.off("load", updateCircle);
+      };
+    }
+
+    updateCircle();
+  }, [mapInstance, referenceLocation, searchRadius]);
+
+  // Recentrer la carte quand le rayon de recherche change
+  useEffect(() => {
+    if (searchRadius === 0 || referenceLocation === null) return;
+    if (!mapRef.current) return;
+
+    const [lon, lat] = referenceLocation;
+    const latRad = (lat * Math.PI) / 180;
+    const latOffset = searchRadius / 111.32;
+    const lonOffset = searchRadius / (111.32 * Math.cos(latRad));
+
+    mapRef.current.fitBounds(
+      [
+        [lon - lonOffset, lat - latOffset],
+        [lon + lonOffset, lat + latOffset],
+      ],
+      { padding: 60, duration: 800 },
+    );
+  }, [searchRadius, referenceLocation]);
+
+  // Retour à la liste — recentre sur le cercle de rayon (même comportement que le changement de rayon)
+  useEffect(() => {
+    if (fitToListSignal === 0 || !mapRef.current) return;
+    const sr = searchRadiusRef.current;
+    const rl = referenceLocationRef.current;
+    if (sr > 0 && rl) {
+      const [lon, lat] = rl;
+      const latRad = (lat * Math.PI) / 180;
+      const latOffset = sr / 111.32;
+      const lonOffset = sr / (111.32 * Math.cos(latRad));
+      mapRef.current.fitBounds(
+        [
+          [lon - lonOffset, lat - latOffset],
+          [lon + lonOffset, lat + latOffset],
+        ],
+        { padding: 60, duration: 800 },
+      );
+    }
+  }, [fitToListSignal]);
+
+  // Handle flyToLocation effect — si un rayon est actif, fitBounds sur le cercle plutôt que flyTo fixe
   useEffect(() => {
     if (flyToLocation && mapRef.current) {
       const [lon, lat] = flyToLocation;
-      mapRef.current?.flyTo({
-        center: [lon, lat],
-        zoom: 13,
-        duration: 2000,
-      });
+      if (searchRadius > 0) {
+        const latRad = (lat * Math.PI) / 180;
+        const latOffset = searchRadius / 111.32;
+        const lonOffset = searchRadius / (111.32 * Math.cos(latRad));
+        mapRef.current.fitBounds(
+          [
+            [lon - lonOffset, lat - latOffset],
+            [lon + lonOffset, lat + latOffset],
+          ],
+          { padding: 60, duration: 800 },
+        );
+      } else {
+        mapRef.current.flyTo({
+          center: [lon, lat],
+          zoom: 13,
+          duration: 2000,
+        });
+      }
       setFlyToLocation(null);
     }
-  }, [flyToLocation, setFlyToLocation]);
+  }, [flyToLocation, setFlyToLocation, searchRadius]);
 
   // Handle flyToStation effect
   useEffect(() => {
@@ -143,10 +295,7 @@ export default function InteractiveMap({
   // The handleViewportChange is called during flyTo so it should be fine.
 
   // Prepare points for supercluster
-  const points = stations
-    .filter((station) =>
-      station.prices.some((p) => p.fuel_type === selectedFuel),
-    ) // Filter stations that have the selected fuel
+  const points = filteredStations
     .map((station) => {
       const price = station.prices.find((p) => p.fuel_type === selectedFuel);
       if (!price) return null;
@@ -166,10 +315,6 @@ export default function InteractiveMap({
       };
     })
     .filter((p) => p !== null);
-
-  const currentFuelStats = stats[selectedFuel];
-  const q1 = currentFuelStats?.p25 ?? null;
-  const q3 = currentFuelStats?.p75 ?? null;
 
   const bestPriceStation = useMemo(
     () => stations.find((s) => s.id === bestPriceStationId) ?? null,
@@ -391,8 +536,7 @@ export default function InteractiveMap({
                 isBestDistance={
                   cluster.properties.stationId === bestDistanceStationId
                 }
-                q1={q1}
-                q3={q3}
+                filteredStats={filteredStats}
               />
             </MapMarker>
           );
