@@ -132,20 +132,6 @@ export function StationList() {
     setFlyToStation(station);
   };
 
-  if (sortedStations.length === 0) {
-    return (
-      <div
-        className={cn(
-          "text-muted-foreground flex h-full flex-col items-center gap-4 p-4 text-center",
-          isDesktop ? "justify-center" : "justify-start",
-        )}
-      >
-        <Loader className="size-8 animate-spin" />
-        Aucune station trouvée proposant ce carburant dans cette zone.
-      </div>
-    );
-  }
-
   // Full View (Vertical List)
   const currentStats = allFilteredStats[selectedFuel] ?? null;
 
@@ -203,25 +189,37 @@ export function StationList() {
         )}
       </div>
 
-      <div ref={scrollAreaRef} className="mr-1 flex h-px flex-1 flex-col overflow-hidden">
-      <ScrollArea className="h-full pb-4">
-        <div className="flex flex-col gap-3 px-4 pb-40 md:pb-4">
-          {visibleStations.map((station) => (
-            <StationCard
-              key={station.id}
-              station={station}
-              selectedFuel={selectedFuel}
-              referenceLocation={referenceLocation}
-              filteredStats={currentStats}
-              bestPriceStationId={bestPriceStationId}
-              bestDistanceStationId={bestDistanceStationId}
-              onClick={() => handleStationClick(station)}
-            />
-          ))}
-          <div ref={sentinelRef} className="h-1" />
+      {sortedStations.length === 0 ? (
+        <div
+          className={cn(
+            "text-muted-foreground flex flex-1 flex-col items-center gap-4 p-4 text-center",
+            isDesktop ? "justify-center" : "justify-start",
+          )}
+        >
+          <Loader className="size-8 animate-spin" />
+          Aucune station trouvée proposant ce carburant dans cette zone.
         </div>
-      </ScrollArea>
-      </div>
+      ) : (
+        <div ref={scrollAreaRef} className="mr-1 flex h-px flex-1 flex-col overflow-hidden">
+          <ScrollArea className="h-full pb-4">
+            <div className="flex flex-col gap-3 px-4 pb-40 md:pb-4">
+              {visibleStations.map((station) => (
+                <StationCard
+                  key={station.id}
+                  station={station}
+                  selectedFuel={selectedFuel}
+                  referenceLocation={referenceLocation}
+                  filteredStats={currentStats}
+                  bestPriceStationId={bestPriceStationId}
+                  bestDistanceStationId={bestDistanceStationId}
+                  onClick={() => handleStationClick(station)}
+                />
+              ))}
+              <div ref={sentinelRef} className="h-1" />
+            </div>
+          </ScrollArea>
+        </div>
+      )}
     </div>
   );
 }
