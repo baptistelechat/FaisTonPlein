@@ -47,11 +47,9 @@ export function StationList() {
   const referenceLocation = searchLocation || userLocation;
 
   const sortedStations = useMemo(() => {
-    const stationsWithFuel = filteredStations;
+    if (!referenceLocation) return filteredStations;
 
-    if (!referenceLocation) return stationsWithFuel;
-
-    return [...stationsWithFuel].sort((a, b) => {
+    return [...filteredStations].sort((a, b) => {
       const priceA = a.prices.find((p) => p.fuel_type === selectedFuel)?.price;
       const priceB = b.prices.find((p) => p.fuel_type === selectedFuel)?.price;
 

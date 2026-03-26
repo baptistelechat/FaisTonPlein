@@ -273,7 +273,7 @@ export const useAppStore = create<AppStore>()(
         return {
           ...currentState,
           selectedFuel,
-          searchRadius: ps.searchRadius && ps.searchRadius > 0 ? ps.searchRadius : 20,
+          searchRadius: ps.searchRadius && [5, 10, 20, 50, 100].includes(ps.searchRadius) ? ps.searchRadius : 20,
           showHighwayStations: ps.showHighwayStations ?? true,
         };
       },
