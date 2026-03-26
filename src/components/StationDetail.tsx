@@ -7,6 +7,12 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { DRAWER_SNAP_POINTS } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 import { getPriceTextColor } from "@/lib/priceColor";
+import {
+  formatPriceAge,
+  FRESHNESS_DOT_COLORS,
+  FRESHNESS_TEXT_COLORS,
+  getPriceFreshness,
+} from "@/lib/priceFreshness";
 import { useFilteredStats } from "@/hooks/useFilteredStats";
 import { useStationName } from "@/hooks/useStationName";
 import { StationLogo } from "@/components/StationLogo";
@@ -22,7 +28,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 
-interface IStationDetailsProps {
+interface StationDetailProps {
   mobileDrawerSnap?: number | string | null;
 }
 
@@ -80,11 +86,22 @@ const PriceCard = ({
         </span>
         <span className="text-xs font-semibold opacity-70">€</span>
       </div>
+      {price.updated_at && (() => {
+        const freshness = getPriceFreshness(price.updated_at)
+        const label = formatPriceAge(price.updated_at)
+        if (!label) return null
+        return (
+          <div className="mt-1 flex items-center gap-1">
+            <span className={cn('size-1.5 shrink-0 rounded-full', FRESHNESS_DOT_COLORS[freshness])} />
+            <span className={cn('text-[10px] font-bold', FRESHNESS_TEXT_COLORS[freshness])}>{label}</span>
+          </div>
+        )
+      })()}
     </div>
   );
 };
 
-export function StationDetail({ mobileDrawerSnap }: IStationDetailsProps) {
+export function StationDetail({ mobileDrawerSnap }: StationDetailProps) {
   const {
     selectedStation,
     selectedFuel,

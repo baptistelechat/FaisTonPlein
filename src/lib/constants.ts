@@ -12,8 +12,8 @@ export type FuelType = FuelTypeConfig["type"];
 export type FuelColor = FuelTypeConfig["color"];
 
 export const DRAWER_SNAP_POINTS = {
-  MINIMIZED: 0.14,
-  MEDIUM: 0.4,
+  MINIMIZED: 0.16,
+  MEDIUM: 0.42,
   EXPANDED: 0.82,
 } as const;
 

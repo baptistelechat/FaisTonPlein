@@ -3,21 +3,17 @@ import InteractiveMap from "@/components/InteractiveMap";
 import { SearchBar } from "@/components/SearchBar";
 import { StationDetail } from "@/components/StationDetail";
 import { StationList } from "@/components/StationList";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Drawer, DrawerContent, DrawerTitle } from "@/components/ui/drawer";
 import { DRAWER_SNAP_POINTS, DRAWER_SNAP_POINTS_ARRAY } from "@/lib/constants";
 import { useAppStore } from "@/store/useAppStore";
-import { format } from "date-fns";
-import { fr } from "date-fns/locale";
-import { ArrowLeft, Clock, Euro, Route } from "lucide-react";
+import { ArrowLeft, Euro, Route } from "lucide-react";
 import { useEffect, useState } from "react";
 
 export function MobileLayout() {
   const {
     selectedStation,
     setSelectedStation,
-    lastUpdate,
     bestPriceStationId,
     bestDistanceStationId,
     triggerFitToList,
@@ -51,20 +47,6 @@ export function MobileLayout() {
 
             <div className="flex flex-col items-center gap-2">
               <FuelTypeSelector className="justify-center" />
-              {lastUpdate && (
-                <Badge
-                  variant="outline"
-                  className="bg-background/60 text-muted-foreground pointer-events-auto flex items-center gap-1.5 border-none px-3 py-1 text-xs font-medium shadow-sm backdrop-blur-sm"
-                >
-                  <Clock className="size-3" />
-                  <span>
-                    MAJ :{" "}
-                    {format(new Date(lastUpdate), "d MMM à HH:mm", {
-                      locale: fr,
-                    })}
-                  </span>
-                </Badge>
-              )}
             </div>
           </div>
         </InteractiveMap>

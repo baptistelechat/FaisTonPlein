@@ -51,8 +51,8 @@ development_status:
   epic-1-retrospective: done
 
   # Epic 2: Comparaison Économique
-  epic-2-comparaison-economique: backlog
-  us-02-01-prix-a-jour-et-fraicheur: backlog
+  epic-2-comparaison-economique: in-progress
+  us-02-01-prix-a-jour-et-fraicheur: in-progress
   us-02-02-calcul-du-cout-du-plein: backlog
   us-02-03-tri-intelligent-prix-distance: backlog
   epic-2-retrospective: optional

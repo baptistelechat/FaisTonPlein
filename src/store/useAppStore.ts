@@ -27,7 +27,7 @@ const computeStdDev = (values: number[], mean: number) => {
 export type FuelPrice = {
   fuel_type: FuelType;
   price: number;
-  updated_at: string;
+  updated_at: string | number | Date;
 };
 
 export type Station = {

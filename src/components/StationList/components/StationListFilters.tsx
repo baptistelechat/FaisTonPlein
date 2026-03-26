@@ -3,9 +3,12 @@
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import { capitalize } from "@/lib/priceFreshness";
 import { calculateDistance, cn } from "@/lib/utils";
 import { useAppStore } from "@/store/useAppStore";
-import { Road } from "lucide-react";
+import { formatRelative } from "date-fns";
+import { fr } from "date-fns/locale";
+import { Clock, Road } from "lucide-react";
 import { useMemo } from "react";
 
 const RADIUS_OPTIONS: { label: string; value: number }[] = [
@@ -26,6 +29,7 @@ const StationListFilters = () => {
     userLocation,
     searchLocation,
     selectedFuel,
+    lastUpdate,
   } = useAppStore();
 
   const referenceLocation = searchLocation || userLocation;
@@ -33,7 +37,8 @@ const StationListFilters = () => {
   const hasHighwayInRadius = useMemo(() => {
     return stations.some((station) => {
       if (!station.isHighway) return false;
-      if (!station.prices.some((p) => p.fuel_type === selectedFuel)) return false;
+      if (!station.prices.some((p) => p.fuel_type === selectedFuel))
+        return false;
       if (searchRadius > 0 && referenceLocation) {
         const dist = calculateDistance(
           referenceLocation[1],
@@ -47,8 +52,14 @@ const StationListFilters = () => {
     });
   }, [stations, searchRadius, referenceLocation, selectedFuel]);
 
+  const majLabel = lastUpdate
+    ? capitalize(
+        formatRelative(new Date(lastUpdate), new Date(), { locale: fr }),
+      )
+    : null;
+
   return (
-    <div className="flex flex-wrap items-center gap-x-4 gap-y-4">
+    <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-4">
       <div className="flex flex-wrap gap-1">
         {RADIUS_OPTIONS.map((option) => (
           <Badge
@@ -62,22 +73,32 @@ const StationListFilters = () => {
         ))}
       </div>
 
-      <Label
-        htmlFor="highway-switch"
-        className={cn(
-          "flex items-center gap-1.5",
-          hasHighwayInRadius ? "cursor-pointer" : "cursor-not-allowed opacity-40",
+      <div className="flex items-center gap-2">
+        <Label
+          htmlFor="highway-switch"
+          className={cn(
+            "flex items-center gap-1.5",
+            hasHighwayInRadius
+              ? "cursor-pointer"
+              : "cursor-not-allowed opacity-40",
+          )}
+        >
+          <Road className="size-3.5" />
+          Autoroutes
+        </Label>
+        <Switch
+          id="highway-switch"
+          checked={showHighwayStations}
+          onCheckedChange={setShowHighwayStations}
+          disabled={!hasHighwayInRadius}
+        />
+        {majLabel && (
+          <span className="text-muted-foreground flex items-center gap-1 text-[11px]">
+            <Clock className="size-3 shrink-0" />
+            {majLabel}
+          </span>
         )}
-      >
-        <Road className="size-3.5" />
-        Autoroutes
-      </Label>
-      <Switch
-        id="highway-switch"
-        checked={showHighwayStations}
-        onCheckedChange={setShowHighwayStations}
-        disabled={!hasHighwayInRadius}
-      />
+      </div>
     </div>
   );
 };
