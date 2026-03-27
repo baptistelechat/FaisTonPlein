@@ -37,3 +37,11 @@ export const FRESHNESS_TEXT_COLORS: Record<FreshnessLevel, string> = {
   moderate: 'text-amber-500',
   stale: 'text-rose-500',
 }
+
+export const FRESHNESS_LABELS: Record<FreshnessLevel, string> = {
+  fresh: '< 24h',
+  moderate: '1–3 jours',
+  stale: '> 3 jours',
+}
+
+export const FRESHNESS_LEVELS: FreshnessLevel[] = ['fresh', 'moderate', 'stale']

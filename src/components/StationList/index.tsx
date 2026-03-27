@@ -10,6 +10,12 @@ import { useFilteredStations } from "@/hooks/useFilteredStations";
 import { useFilteredStats } from "@/hooks/useFilteredStats";
 import { DRAWER_SNAP_POINTS, RADIUS_OPTIONS } from "@/lib/constants";
 import { getPriceTextColor } from "@/lib/priceColor";
+import {
+  FRESHNESS_DOT_COLORS,
+  FRESHNESS_LABELS,
+  FRESHNESS_TEXT_COLORS,
+  getPriceFreshness,
+} from "@/lib/priceFreshness";
 import { getStationNamesDb } from "@/lib/stationName";
 import { calculateDistance, capitalize, cn } from "@/lib/utils";
 import { FuelStats, Station, useAppStore } from "@/store/useAppStore";
@@ -28,6 +34,8 @@ interface StationListProps {
 
 export function StationList({ mobileDrawerSnap }: StationListProps = {}) {
   const isMinimized = mobileDrawerSnap === DRAWER_SNAP_POINTS.MINIMIZED;
+  const isListVisible =
+    !mobileDrawerSnap || mobileDrawerSnap === DRAWER_SNAP_POINTS.EXPANDED;
   const {
     userLocation,
     searchLocation,
@@ -249,7 +257,7 @@ export function StationList({ mobileDrawerSnap }: StationListProps = {}) {
             )}
           </div>
 
-          {isLoading ? (
+          {isListVisible && isLoading ? (
             <div className="flex-1 overflow-hidden">
               <div className="flex flex-col gap-3 px-4 pt-1 pb-4">
                 {Array.from({ length: 20 }).map((_, i) => (
@@ -257,7 +265,7 @@ export function StationList({ mobileDrawerSnap }: StationListProps = {}) {
                 ))}
               </div>
             </div>
-          ) : sortedStations.length === 0 ? (
+          ) : isListVisible && sortedStations.length === 0 ? (
             <div
               className={cn(
                 "text-muted-foreground flex flex-1 flex-col items-center gap-4 p-4 text-center",
@@ -266,13 +274,13 @@ export function StationList({ mobileDrawerSnap }: StationListProps = {}) {
             >
               Aucune station trouvée proposant ce carburant dans cette zone.
             </div>
-          ) : (
+          ) : isListVisible ? (
             <div
               ref={scrollAreaRef}
               className="mr-1 flex h-px flex-1 flex-col overflow-hidden"
             >
               <ScrollArea className="h-full pb-4">
-                <div className="flex flex-col gap-3 px-4 pb-40 md:pb-4">
+                <div className="flex flex-col gap-3 px-4 pb-32 md:pb-4">
                   {visibleStations.map((station) => (
                     <StationCard
                       key={station.id}
@@ -289,7 +297,7 @@ export function StationList({ mobileDrawerSnap }: StationListProps = {}) {
                 </div>
               </ScrollArea>
             </div>
-          )}
+          ) : null}
         </>
       )}
     </div>
@@ -357,55 +365,80 @@ function StationCard({
       className="hover:bg-muted/50 mt-0.5 cursor-pointer p-4 transition-all"
       onClick={onClick}
     >
-      <div className="flex items-start justify-between gap-2">
-        <div className="flex min-w-0 flex-1 items-start gap-2">
+      <div className="grid grid-cols-[auto_1fr_auto] items-center gap-x-2 gap-y-1">
+        {/* Logo — aligne les 2 lignes */}
+        <div className="row-span-2 self-center">
           {isNameLoading ? (
             <Skeleton className="size-6 shrink-0 rounded-md" />
           ) : (
             <StationLogo name={displayName} size="sm" />
           )}
-          <div className="flex flex-col gap-1 overflow-hidden">
-            <div className="flex items-center gap-2">
-              <h3 className="flex items-center gap-2 truncate text-sm font-semibold">
-                {isNameLoading ? (
-                  <Skeleton className="h-4 w-28" />
-                ) : (
-                  displayName
-                )}
-                {bestPriceStationIds.includes(station.id) && (
-                  <Euro className="size-4 text-yellow-500" />
-                )}
-                {bestDistanceStationIds.includes(station.id) && (
-                  <Route className="size-4 text-yellow-500" />
-                )}
-                {station.isHighway && <Road className="size-4 text-blue-500" />}
-              </h3>
-            </div>
-            <div className="text-muted-foreground flex min-w-0 items-center gap-2 text-xs">
-              {distance !== null && (
-                <span className="text-primary/80 flex shrink-0 items-center gap-0.5 whitespace-nowrap">
-                  <Navigation className="size-3" />
-                  {distance.toFixed(1)} km
-                </span>
-              )}
-              <span className="truncate">{station.address}</span>
-            </div>
-          </div>
         </div>
 
-        <div className="flex flex-col items-end">
+        {/* Ligne 1 : nom + badges | prix */}
+        <h3 className="flex min-w-0 items-center gap-2 truncate text-sm font-semibold">
+          {isNameLoading ? <Skeleton className="h-4 w-28" /> : displayName}
+          {bestPriceStationIds.includes(station.id) && (
+            <Euro className="size-4 shrink-0 text-yellow-500" />
+          )}
+          {bestDistanceStationIds.includes(station.id) && (
+            <Route className="size-4 shrink-0 text-yellow-500" />
+          )}
+          {station.isHighway && (
+            <Road className="size-4 shrink-0 text-blue-500" />
+          )}
+        </h3>
+        <div className="flex justify-end">
           {price ? (
-            <>
-              <span className={cn("font-mono text-lg font-bold", priceColor)}>
-                {price.price.toFixed(3)}
-                <span className="text-muted-foreground ml-0.5 text-xs font-normal">
-                  €
-                </span>
+            <span
+              className={cn(
+                "font-mono text-lg leading-none font-bold",
+                priceColor,
+              )}
+            >
+              {price.price.toFixed(3)}
+              <span className="text-muted-foreground ml-0.5 text-xs font-normal">
+                €
               </span>
-            </>
+            </span>
           ) : (
             <span className="text-muted-foreground text-xs">-</span>
           )}
+        </div>
+
+        {/* Ligne 2 : distance + adresse | fraîcheur */}
+        <div className="text-muted-foreground flex min-w-0 items-center gap-2 text-xs">
+          {distance !== null && (
+            <span className="text-primary/80 flex shrink-0 items-center gap-0.5 whitespace-nowrap">
+              <Navigation className="size-3" />
+              {distance.toFixed(1)} km
+            </span>
+          )}
+          <span className="truncate">{station.address}</span>
+        </div>
+        <div className="flex justify-end">
+          {price?.updated_at &&
+            (() => {
+              const freshness = getPriceFreshness(price.updated_at);
+              return (
+                <span className="flex items-center gap-1">
+                  <span
+                    className={cn(
+                      "size-1.5 shrink-0 rounded-full",
+                      FRESHNESS_DOT_COLORS[freshness],
+                    )}
+                  />
+                  <span
+                    className={cn(
+                      "text-[10px] font-medium",
+                      FRESHNESS_TEXT_COLORS[freshness],
+                    )}
+                  >
+                    {FRESHNESS_LABELS[freshness]}
+                  </span>
+                </span>
+              );
+            })()}
         </div>
       </div>
     </Card>
