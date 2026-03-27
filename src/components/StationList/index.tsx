@@ -1,25 +1,34 @@
 "use client";
 
+import { StationLogo } from "@/components/StationLogo";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useMediaQuery } from "@/hooks/use-media-query";
 import { useFilteredStations } from "@/hooks/useFilteredStations";
 import { useFilteredStats } from "@/hooks/useFilteredStats";
-import { useMediaQuery } from "@/hooks/use-media-query";
-import { getStationNamesDb } from "@/lib/stationName";
+import { DRAWER_SNAP_POINTS, RADIUS_OPTIONS } from "@/lib/constants";
 import { getPriceTextColor } from "@/lib/priceColor";
+import { capitalize } from "@/lib/priceFreshness";
+import { getStationNamesDb } from "@/lib/stationName";
 import { calculateDistance, cn } from "@/lib/utils";
 import { FuelStats, Station, useAppStore } from "@/store/useAppStore";
-import { StationLogo } from "@/components/StationLogo";
-import { Euro, Loader, Navigation, Route, Road } from "lucide-react";
+import { formatRelative } from "date-fns";
+import { fr } from "date-fns/locale";
+import { Clock, Euro, Loader, Navigation, Road, Route } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
-import StationListFilters from "./components/StationListFilters";
+import StationListSettings from "./components/StationListSettings";
 import StationListStats from "./components/StationListStats";
 
 const PAGE_SIZE = 15;
 
-export function StationList() {
+interface StationListProps {
+  mobileDrawerSnap?: number | string | null;
+}
+
+export function StationList({ mobileDrawerSnap }: StationListProps = {}) {
+  const isMinimized = mobileDrawerSnap === DRAWER_SNAP_POINTS.MINIMIZED;
   const {
     userLocation,
     searchLocation,
@@ -32,7 +41,16 @@ export function StationList() {
     bestDistanceStationIds,
     resolvedNames,
     setResolvedName,
+    searchRadius,
+    setSearchRadius,
+    lastUpdate,
   } = useAppStore();
+
+  const majLabel = lastUpdate
+    ? capitalize(
+        formatRelative(new Date(lastUpdate), new Date(), { locale: fr }),
+      )
+    : null;
 
   const filteredStations = useFilteredStations();
   const allFilteredStats = useFilteredStats();
@@ -53,18 +71,24 @@ export function StationList() {
       const priceA = a.prices.find((p) => p.fuel_type === selectedFuel)?.price;
       const priceB = b.prices.find((p) => p.fuel_type === selectedFuel)?.price;
 
-      const distA = Math.round(calculateDistance(
-        referenceLocation[1],
-        referenceLocation[0],
-        a.lat,
-        a.lon,
-      ) * 10) / 10;
-      const distB = Math.round(calculateDistance(
-        referenceLocation[1],
-        referenceLocation[0],
-        b.lat,
-        b.lon,
-      ) * 10) / 10;
+      const distA =
+        Math.round(
+          calculateDistance(
+            referenceLocation[1],
+            referenceLocation[0],
+            a.lat,
+            a.lon,
+          ) * 10,
+        ) / 10;
+      const distB =
+        Math.round(
+          calculateDistance(
+            referenceLocation[1],
+            referenceLocation[0],
+            b.lat,
+            b.lon,
+          ) * 10,
+        ) / 10;
 
       if (listSortBy === "price") {
         if (!priceA) return 1;
@@ -90,7 +114,9 @@ export function StationList() {
   }
 
   useEffect(() => {
-    const viewport = scrollAreaRef.current?.querySelector('[data-slot="scroll-area-viewport"]');
+    const viewport = scrollAreaRef.current?.querySelector(
+      '[data-slot="scroll-area-viewport"]',
+    );
     if (viewport) viewport.scrollTop = 0;
   }, [sortedStations]);
 
@@ -144,88 +170,120 @@ export function StationList() {
 
   return (
     <div className="flex h-full flex-col">
-      <div className="flex flex-col gap-4 p-4">
-        <div className="flex items-center justify-between">
-          <h2 className="text-lg font-bold">
-            {listSortBy === "price" ? "Les plus économique" : "Autour de moi"}
-          </h2>
-          <div className="flex gap-2">
-            <Badge
-              variant={listSortBy === "distance" ? "default" : "outline"}
-              className="cursor-pointer"
-              onClick={() => setListSortBy("distance")}
-            >
-              <Route className="size-4" />
-              Distance
-            </Badge>
-            <Badge
-              variant={listSortBy === "price" ? "default" : "outline"}
-              className="cursor-pointer"
-              onClick={() => setListSortBy("price")}
-            >
-              <Euro className="size-4" />
-              Prix
-            </Badge>
-          </div>
+      {/* Header : toujours visible */}
+      <div className="flex items-center justify-between p-4 pb-2">
+        <h2 className="text-lg font-bold">
+          {listSortBy === "price" ? "Les plus économique" : "Autour de moi"}
+        </h2>
+        <div className="flex gap-2">
+          <Badge
+            variant={listSortBy === "distance" ? "default" : "outline"}
+            className="cursor-pointer"
+            onClick={() => setListSortBy("distance")}
+          >
+            <Route className="size-4" />
+            Distance
+          </Badge>
+          <Badge
+            variant={listSortBy === "price" ? "default" : "outline"}
+            className="cursor-pointer"
+            onClick={() => setListSortBy("price")}
+          >
+            <Euro className="size-4" />
+            Prix
+          </Badge>
         </div>
-
-        <StationListFilters />
-
-        {currentStats && (
-          <div className="bg-muted/50 grid w-full grid-cols-[1fr_1fr_1fr_auto] items-center gap-3 rounded-lg p-3 text-sm">
-            <div className="flex flex-col items-center">
-              <span className="text-xs font-bold">Min.</span>
-              <span className="font-mono font-semibold text-emerald-600">
-                {currentStats.min.toFixed(3)}€
-              </span>
-            </div>
-            <div className="flex flex-col items-center">
-              <span className="text-xs font-bold">Médiane</span>
-              <span className="font-mono font-semibold text-amber-600">
-                {currentStats.median.toFixed(3)}€
-              </span>
-            </div>
-            <div className="flex flex-col items-center">
-              <span className="text-xs font-bold">Max.</span>
-              <span className="font-mono font-semibold text-rose-600">
-                {currentStats.max.toFixed(3)}€
-              </span>
-            </div>
-            <StationListStats statistics={currentStats} />
-          </div>
-        )}
       </div>
 
-      {sortedStations.length === 0 ? (
-        <div
-          className={cn(
-            "text-muted-foreground flex flex-1 flex-col items-center gap-4 p-4 text-center",
-            isDesktop ? "justify-center" : "justify-start",
-          )}
-        >
-          <Loader className="size-8 animate-spin" />
-          Aucune station trouvée proposant ce carburant dans cette zone.
-        </div>
-      ) : (
-        <div ref={scrollAreaRef} className="mr-1 flex h-px flex-1 flex-col overflow-hidden">
-          <ScrollArea className="h-full pb-4">
-            <div className="flex flex-col gap-3 px-4 pb-40 md:pb-4">
-              {visibleStations.map((station) => (
-                <StationCard
-                  key={station.id}
-                  station={station}
-                  selectedFuel={selectedFuel}
-                  referenceLocation={referenceLocation}
-                  filteredStats={currentStats}
-                  bestPriceStationIds={bestPriceStationIds}
-                  bestDistanceStationIds={bestDistanceStationIds}
-                  onClick={() => handleStationClick(station)}
-                />
+      {/* Tout le reste : masqué en mode minimized */}
+      {!isMinimized && (
+        <>
+          <div className="flex flex-col gap-3 px-4 pb-3">
+            {majLabel && (
+              <span className="text-muted-foreground flex items-center gap-1 text-[11px]">
+                <Clock className="size-3" />
+                {majLabel}
+              </span>
+            )}
+
+            <div className="flex flex-wrap items-center gap-1">
+              {RADIUS_OPTIONS.map((option) => (
+                <Badge
+                  key={option.value}
+                  variant={
+                    searchRadius === option.value ? "default" : "outline"
+                  }
+                  className="cursor-pointer"
+                  onClick={() => setSearchRadius(option.value)}
+                >
+                  {option.label}
+                </Badge>
               ))}
-              <div ref={sentinelRef} className="h-1" />
+              <div className="ml-auto">
+                <StationListSettings />
+              </div>
             </div>
-          </ScrollArea>
-        </div>
+
+            {currentStats && (
+              <div className="bg-muted/50 grid w-full grid-cols-[1fr_1fr_1fr_auto] items-center gap-3 rounded-lg p-3 text-sm">
+                <div className="flex flex-col items-center">
+                  <span className="text-xs font-bold">Min.</span>
+                  <span className="font-mono font-semibold text-emerald-600">
+                    {currentStats.min.toFixed(3)}€
+                  </span>
+                </div>
+                <div className="flex flex-col items-center">
+                  <span className="text-xs font-bold">Médiane</span>
+                  <span className="font-mono font-semibold text-amber-600">
+                    {currentStats.median.toFixed(3)}€
+                  </span>
+                </div>
+                <div className="flex flex-col items-center">
+                  <span className="text-xs font-bold">Max.</span>
+                  <span className="font-mono font-semibold text-rose-600">
+                    {currentStats.max.toFixed(3)}€
+                  </span>
+                </div>
+                <StationListStats statistics={currentStats} />
+              </div>
+            )}
+          </div>
+
+          {sortedStations.length === 0 ? (
+            <div
+              className={cn(
+                "text-muted-foreground flex flex-1 flex-col items-center gap-4 p-4 text-center",
+                isDesktop ? "justify-center" : "justify-start",
+              )}
+            >
+              <Loader className="size-8 animate-spin" />
+              Aucune station trouvée proposant ce carburant dans cette zone.
+            </div>
+          ) : (
+            <div
+              ref={scrollAreaRef}
+              className="mr-1 flex h-px flex-1 flex-col overflow-hidden"
+            >
+              <ScrollArea className="h-full pb-4">
+                <div className="flex flex-col gap-3 px-4 pb-40 md:pb-4">
+                  {visibleStations.map((station) => (
+                    <StationCard
+                      key={station.id}
+                      station={station}
+                      selectedFuel={selectedFuel}
+                      referenceLocation={referenceLocation}
+                      filteredStats={currentStats}
+                      bestPriceStationIds={bestPriceStationIds}
+                      bestDistanceStationIds={bestDistanceStationIds}
+                      onClick={() => handleStationClick(station)}
+                    />
+                  ))}
+                  <div ref={sentinelRef} className="h-1" />
+                </div>
+              </ScrollArea>
+            </div>
+          )}
+        </>
       )}
     </div>
   );
@@ -264,7 +322,9 @@ function StationCard({
       )
     : null;
 
-  const priceColor = price ? getPriceTextColor(price.price, filteredStats) : "text-foreground";
+  const priceColor = price
+    ? getPriceTextColor(price.price, filteredStats)
+    : "text-foreground";
 
   return (
     <Card
@@ -279,30 +339,35 @@ function StationCard({
             <StationLogo name={displayName} size="sm" />
           )}
           <div className="flex flex-col gap-1 overflow-hidden">
-          <div className="flex items-center gap-2">
-            <h3 className="flex items-center gap-2 truncate text-sm font-semibold">
-              {isNameLoading ? <Skeleton className="h-4 w-28" /> : displayName}
-              {bestPriceStationIds.includes(station.id) && (
-                <Euro className="size-4 text-yellow-500" />
+            <div className="flex items-center gap-2">
+              <h3 className="flex items-center gap-2 truncate text-sm font-semibold">
+                {isNameLoading ? (
+                  <Skeleton className="h-4 w-28" />
+                ) : (
+                  displayName
+                )}
+                {bestPriceStationIds.includes(station.id) && (
+                  <Euro className="size-4 text-yellow-500" />
+                )}
+                {bestDistanceStationIds.includes(station.id) && (
+                  <Route className="size-4 text-yellow-500" />
+                )}
+                {station.isHighway && <Road className="size-4 text-blue-500" />}
+              </h3>
+            </div>
+            <div className="text-muted-foreground flex min-w-0 items-center gap-2 text-xs">
+              {distance !== null && (
+                <span className="text-primary/80 flex shrink-0 items-center gap-0.5 whitespace-nowrap">
+                  <Navigation className="size-3" />
+                  {distance.toFixed(1)} km
+                </span>
               )}
-              {bestDistanceStationIds.includes(station.id) && (
-                <Route className="size-4 text-yellow-500" />
-              )}
-              {station.isHighway && (
-                <Road className="size-4 text-blue-500" />
-              )}
-            </h3>
-          </div>
-          <div className="text-muted-foreground flex min-w-0 items-center gap-2 text-xs">
-            {distance !== null && (
-              <span className="text-primary/80 flex shrink-0 items-center gap-0.5 whitespace-nowrap">
-                <Navigation className="size-3" />
-                {distance.toFixed(1)} km
+              <span className="truncate">
+                {station.address.charAt(0).toUpperCase() +
+                  station.address.slice(1)}
               </span>
-            )}
-            <span className="truncate">{station.address}</span>
+            </div>
           </div>
-        </div>
         </div>
 
         <div className="flex flex-col items-end">

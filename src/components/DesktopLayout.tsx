@@ -50,7 +50,6 @@ export function DesktopLayout() {
             <div className="pointer-events-auto w-full max-w-md rounded-full shadow-2xl">
               <SearchBar />
             </div>
-
             <div className="flex flex-col items-center gap-2">
               <FuelTypeSelector />
             </div>

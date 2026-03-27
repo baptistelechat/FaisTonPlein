@@ -1,4 +1,4 @@
-import { FUEL_TYPES, FuelType } from "@/lib/constants";
+import { DEFAULT_SEARCH_RADIUS, FUEL_TYPES, FuelType, RADIUS_OPTIONS } from "@/lib/constants";
 import { calculateDistance, getBestStationsForFuel } from "@/lib/utils";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
@@ -117,7 +117,7 @@ export const useAppStore = create<AppStore>()(
       bestPriceStationIds: [],
       bestDistanceStationIds: [],
       resolvedNames: {},
-      searchRadius: 20,
+      searchRadius: DEFAULT_SEARCH_RADIUS,
       showHighwayStations: true,
       fitToListSignal: 0,
 
@@ -244,7 +244,7 @@ export const useAppStore = create<AppStore>()(
         return {
           ...currentState,
           selectedFuel,
-          searchRadius: ps.searchRadius && [5, 10, 20, 50, 100].includes(ps.searchRadius) ? ps.searchRadius : 20,
+          searchRadius: ps.searchRadius && RADIUS_OPTIONS.some((o) => o.value === ps.searchRadius) ? ps.searchRadius : DEFAULT_SEARCH_RADIUS,
           showHighwayStations: ps.showHighwayStations ?? true,
         };
       },

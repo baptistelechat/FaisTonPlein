@@ -14,8 +14,8 @@ export function MobileLayout() {
   const {
     selectedStation,
     setSelectedStation,
-    bestPriceStationId,
-    bestDistanceStationId,
+    bestPriceStationIds,
+    bestDistanceStationIds,
     triggerFitToList,
   } = useAppStore();
   const [snap, setSnap] = useState<number | string | null>(
@@ -44,7 +44,6 @@ export function MobileLayout() {
             <div className="pointer-events-auto w-full max-w-md px-4">
               <SearchBar />
             </div>
-
             <div className="flex flex-col items-center gap-2">
               <FuelTypeSelector className="justify-center" />
             </div>
@@ -100,11 +99,11 @@ export function MobileLayout() {
                     <span className="font-heading text-primary flex items-center gap-2 truncate text-sm font-bold">
                       {selectedStation.name}
                       {selectedStationId !== null &&
-                        selectedStationId === bestPriceStationId && (
+                        bestPriceStationIds.includes(selectedStationId) && (
                           <Euro className="size-4 text-yellow-500" />
                         )}
                       {selectedStationId !== null &&
-                        selectedStationId === bestDistanceStationId && (
+                        bestDistanceStationIds.includes(selectedStationId) && (
                           <Route className="size-4 text-yellow-500" />
                         )}
                     </span>
@@ -115,7 +114,7 @@ export function MobileLayout() {
                 </div>
               </div>
             ) : (
-              <StationList />
+              <StationList mobileDrawerSnap={snap} />
             )}
           </div>
         </DrawerContent>
