@@ -11,6 +11,7 @@ import { useFilteredStats } from "@/hooks/useFilteredStats";
 import { DRAWER_SNAP_POINTS, RADIUS_OPTIONS } from "@/lib/constants";
 import { getPriceTextColor } from "@/lib/priceColor";
 import {
+  formatPriceAge,
   FRESHNESS_DOT_COLORS,
   FRESHNESS_LABELS,
   FRESHNESS_TEXT_COLORS,
@@ -210,7 +211,7 @@ export function StationList({ mobileDrawerSnap }: StationListProps = {}) {
             {majLabel && (
               <span className="text-muted-foreground flex items-center gap-1 text-[11px]">
                 <Clock className="size-3" />
-                {majLabel}
+                {`Mise à jour : ${majLabel}`}
               </span>
             )}
 
@@ -420,6 +421,7 @@ function StationCard({
           {price?.updated_at &&
             (() => {
               const freshness = getPriceFreshness(price.updated_at);
+              if (!formatPriceAge(price.updated_at)) return null;
               return (
                 <span className="flex items-center gap-1">
                   <span

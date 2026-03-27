@@ -1,22 +1,23 @@
-# Code Review — Epic 2
+# Code Review — 27/03/2026
 
 **Date :** 2026-03-27
 **Branche :** epic-2
 **Reviewer :** Claude Code
 
----
+***
 
 ## Résumé
 
 Review complète du code produit sur la branche `epic-2`. 9 issues identifiées, toutes corrigées dans la foulée.
 
----
+***
 
 ## Issues identifiées et corrections
 
 ### #1 — Logique de filtrage dupliquée (Sévérité : haute)
 
 **Problème :** La même logique de filtrage par localisation (highway + rayon) était copiée-collée dans trois endroits indépendants :
+
 - `src/hooks/useFilteredStations.ts`
 - `src/hooks/useFilteredStats.ts`
 - `src/store/useAppStore.ts` (fonction interne `getFilteredStations`)
@@ -25,7 +26,7 @@ Review complète du code produit sur la branche `epic-2`. 9 issues identifiées,
 
 **Fichiers modifiés :** `src/lib/utils.ts`, `src/hooks/useFilteredStations.ts`, `src/hooks/useFilteredStats.ts`, `src/store/useAppStore.ts`
 
----
+***
 
 ### #2 — `conn` dead code dans DuckDBContext (Sévérité : haute)
 
@@ -35,19 +36,20 @@ Review complète du code produit sur la branche `epic-2`. 9 issues identifiées,
 
 **Fichiers modifiés :** `src/components/DuckDBProvider.tsx`
 
----
+***
 
 ### #3 — Spinner affiché sur l'état vide (Sévérité : haute)
 
 **Problème :** Quand `sortedStations.length === 0`, un spinner `animate-spin` était affiché avec le message "Aucune station trouvée", même quand les données étaient chargées et qu'il n'y avait simplement aucune station dans la zone. L'utilisateur pensait que l'application chargeait encore.
 
 **Correction :** Distinction des deux états via `isLoading` du store :
+
 - `isLoading === true` → spinner seul, sans message
 - `isLoading === false && sortedStations.length === 0` → message sans spinner
 
 **Fichiers modifiés :** `src/components/StationList/index.tsx`
 
----
+***
 
 ### #4 — Magic string `'Station service'` utilisé comme sentinel (Sévérité : haute)
 
@@ -59,7 +61,7 @@ Review complète du code produit sur la branche `epic-2`. 9 issues identifiées,
 
 **Fichiers modifiés :** `src/components/StationList/index.tsx`
 
----
+***
 
 ### #5 — Pattern derived state causant un double render (Sévérité : moyenne)
 
@@ -69,7 +71,7 @@ Review complète du code produit sur la branche `epic-2`. 9 issues identifiées,
 
 **Fichiers modifiés :** `src/components/StationList/index.tsx`
 
----
+***
 
 ### #6 — `capitalize` dans le mauvais module (Sévérité : moyenne)
 
@@ -79,7 +81,7 @@ Review complète du code produit sur la branche `epic-2`. 9 issues identifiées,
 
 **Fichiers modifiés :** `src/lib/utils.ts`, `src/lib/priceFreshness.ts`, `src/components/StationList/index.tsx`
 
----
+***
 
 ### #7 — Transformation d'adresse inline dans le composant (Sévérité : moyenne)
 
@@ -89,7 +91,7 @@ Review complète du code produit sur la branche `epic-2`. 9 issues identifiées,
 
 **Fichiers modifiés :** `src/lib/mappers.ts`, `src/components/StationList/index.tsx`
 
----
+***
 
 ### #8 — `selectedStation` orpheline après rechargement des données (Sévérité : faible)
 
@@ -99,7 +101,7 @@ Review complète du code produit sur la branche `epic-2`. 9 issues identifiées,
 
 **Fichiers modifiés :** `src/store/useAppStore.ts`
 
----
+***
 
 ### #9 — `console.log` en production (Sévérité : faible)
 
@@ -109,18 +111,19 @@ Review complète du code produit sur la branche `epic-2`. 9 issues identifiées,
 
 **Fichiers modifiés :** `src/components/FuelDataLoader.tsx`
 
----
+***
 
 ## Tableau récapitulatif
 
-| # | Sévérité | Statut | Fichiers |
-|---|----------|--------|---------|
-| 1 | Haute | Corrigé | `utils.ts`, `useFilteredStations.ts`, `useFilteredStats.ts`, `useAppStore.ts` |
-| 2 | Haute | Corrigé | `DuckDBProvider.tsx` |
-| 3 | Haute | Corrigé | `StationList/index.tsx` |
-| 4 | Haute | Corrigé | `StationList/index.tsx` |
-| 5 | Moyenne | Corrigé | `StationList/index.tsx` |
-| 6 | Moyenne | Corrigé | `utils.ts`, `priceFreshness.ts`, `StationList/index.tsx` |
-| 7 | Moyenne | Corrigé | `mappers.ts`, `StationList/index.tsx` |
-| 8 | Faible | Corrigé | `useAppStore.ts` |
-| 9 | Faible | Corrigé | `FuelDataLoader.tsx` |
+| # | Sévérité | Statut  | Fichiers                                                                      |
+| - | -------- | ------- | ----------------------------------------------------------------------------- |
+| 1 | Haute    | Corrigé | `utils.ts`, `useFilteredStations.ts`, `useFilteredStats.ts`, `useAppStore.ts` |
+| 2 | Haute    | Corrigé | `DuckDBProvider.tsx`                                                          |
+| 3 | Haute    | Corrigé | `StationList/index.tsx`                                                       |
+| 4 | Haute    | Corrigé | `StationList/index.tsx`                                                       |
+| 5 | Moyenne  | Corrigé | `StationList/index.tsx`                                                       |
+| 6 | Moyenne  | Corrigé | `utils.ts`, `priceFreshness.ts`, `StationList/index.tsx`                      |
+| 7 | Moyenne  | Corrigé | `mappers.ts`, `StationList/index.tsx`                                         |
+| 8 | Faible   | Corrigé | `useAppStore.ts`                                                              |
+| 9 | Faible   | Corrigé | `FuelDataLoader.tsx`                                                          |
+

@@ -136,8 +136,8 @@
 
 **Critères d'Acceptation :**
 
-- [ ] Affichage de la date de dernière mise à jour des données.
-- [ ] Code couleur (Vert = < 24h, Orange = < 3j, Rouge = > 3j).
+- [x] Affichage de la date de dernière mise à jour des données.
+- [x] Code couleur (Vert = < 24h, Orange = < 3j, Rouge = > 3j).
 
 ### US-02-02 : Calcul du Coût du Plein
 

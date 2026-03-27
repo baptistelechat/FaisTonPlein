@@ -44,4 +44,3 @@ export const FRESHNESS_LABELS: Record<FreshnessLevel, string> = {
   stale: '> 3 jours',
 }
 
-export const FRESHNESS_LEVELS: FreshnessLevel[] = ['fresh', 'moderate', 'stale']
