@@ -74,6 +74,7 @@ export const StationLogo = ({ name, size = 'sm', className }: StationLogoProps) 
           src={currentSrc}
           alt={brand ?? name}
           fill
+          sizes={size === 'md' ? '40px' : '24px'}
           className={cn(
             'bg-white object-contain p-0.5 transition-opacity duration-200',
             imgLoaded ? 'opacity-100' : 'opacity-0',

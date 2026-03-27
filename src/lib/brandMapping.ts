@@ -50,7 +50,7 @@ export const normalizeBrand = (name: string): string | null => {
 
   // Elan
   if (n.includes('elan') || n.includes('élan')) return 'Elan'
-
+  
   // AS24
   if (n === 'as24' || n === 'as 24') return 'AS24'
 
@@ -132,9 +132,6 @@ export const normalizeBrand = (name: string): string | null => {
   // Leader Price (Casino group)
   if (n.includes('leader price')) return 'Leader Price'
 
-  // Cora
-  if (n.includes('cora')) return 'Cora'
-
   // Lidl
   if (n.includes('lidl')) return 'Lidl'
 
@@ -150,6 +147,9 @@ export const normalizeBrand = (name: string): string | null => {
   // Monoprix
   if (n.includes('monoprix')) return 'Monoprix'
 
+  // Proxi
+  if (n.includes('proxi')) return 'Proxi'
+
   // Spar
   if (n.includes('spar')) return 'Spar'
 
@@ -158,6 +158,9 @@ export const normalizeBrand = (name: string): string | null => {
 
   // G20 (épiceries parisiennes indépendantes fédérées)
   if (n === 'g20' || n === 'g 20') return 'G20'
+
+  // Cora
+  if (n.includes('cora')) return 'Cora'
 
   // Costco
   if (n.includes('costco')) return 'Costco'
