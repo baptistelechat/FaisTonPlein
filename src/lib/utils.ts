@@ -1,8 +1,41 @@
-import { clsx, type ClassValue } from "clsx";
-import { twMerge } from "tailwind-merge";
+import { clsx, type ClassValue } from 'clsx';
+import { twMerge } from 'tailwind-merge';
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
+}
+
+export function capitalize(str: string): string {
+  return str.charAt(0).toUpperCase() + str.slice(1)
+}
+
+type FilterableStation = {
+  lat: number
+  lon: number
+  isHighway: boolean
+}
+
+export function filterStationsByLocation<T extends FilterableStation>(
+  stations: T[],
+  opts: {
+    showHighwayStations: boolean
+    searchRadius: number
+    referenceLocation: [number, number] | null
+  }
+): T[] {
+  return stations.filter((station) => {
+    if (!opts.showHighwayStations && station.isHighway) return false
+    if (opts.searchRadius > 0 && opts.referenceLocation !== null) {
+      const dist = calculateDistance(
+        opts.referenceLocation[1],
+        opts.referenceLocation[0],
+        station.lat,
+        station.lon,
+      )
+      if (dist > opts.searchRadius) return false
+    }
+    return true
+  })
 }
 
 export function calculateDistance(

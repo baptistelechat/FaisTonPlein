@@ -5,14 +5,12 @@ import React, { createContext, useContext, useEffect, useState } from "react";
 
 interface DuckDBContextType {
   db: duckdb.AsyncDuckDB | null;
-  conn: duckdb.AsyncDuckDBConnection | null;
   isLoading: boolean;
   error: Error | null;
 }
 
 const DuckDBContext = createContext<DuckDBContextType>({
   db: null,
-  conn: null,
   isLoading: true,
   error: null,
 });
@@ -21,7 +19,6 @@ export const useDuckDB = () => useContext(DuckDBContext);
 
 export const DuckDBProvider = ({ children }: { children: React.ReactNode }) => {
   const [db, setDb] = useState<duckdb.AsyncDuckDB | null>(null);
-  const [conn, setConn] = useState<duckdb.AsyncDuckDBConnection | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 
@@ -37,7 +34,6 @@ export const DuckDBProvider = ({ children }: { children: React.ReactNode }) => {
 
     let isMounted = true;
     let newDb: duckdb.AsyncDuckDB | null = null;
-    let newConn: duckdb.AsyncDuckDBConnection | null = null;
 
     const initDuckDB = async () => {
       isInitializing.current = true;
@@ -61,15 +57,10 @@ export const DuckDBProvider = ({ children }: { children: React.ReactNode }) => {
         newDb = new duckdb.AsyncDuckDB(logger, worker);
         await newDb.instantiate(bundle.mainModule, bundle.pthreadWorker);
 
-        newConn = await newDb.connect();
-
         if (isMounted) {
           setDb(newDb);
-          setConn(newConn);
           setIsLoading(false);
         } else {
-          // If unmounted, close connection
-          await newConn.close();
           await newDb.terminate();
         }
       } catch (err) {
@@ -93,9 +84,6 @@ export const DuckDBProvider = ({ children }: { children: React.ReactNode }) => {
       // but reusing the instance is better in dev.
       // For now, let's just close if it was set.
       const cleanup = async () => {
-        if (newConn) {
-          await newConn.close();
-        }
         if (newDb) {
           await newDb.terminate();
         }
@@ -108,7 +96,7 @@ export const DuckDBProvider = ({ children }: { children: React.ReactNode }) => {
   }, []);
 
   return (
-    <DuckDBContext.Provider value={{ db, conn, isLoading, error }}>
+    <DuckDBContext.Provider value={{ db, isLoading, error }}>
       {children}
     </DuckDBContext.Provider>
   );

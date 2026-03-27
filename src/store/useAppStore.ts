@@ -1,5 +1,5 @@
-import { DEFAULT_SEARCH_RADIUS, FUEL_TYPES, FuelType, RADIUS_OPTIONS } from "@/lib/constants";
-import { calculateDistance, getBestStationsForFuel } from "@/lib/utils";
+import { DEFAULT_SEARCH_RADIUS, FUEL_TYPES, FuelType, RADIUS_OPTIONS } from '@/lib/constants';
+import { filterStationsByLocation, getBestStationsForFuel } from '@/lib/utils';
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
@@ -75,7 +75,6 @@ type AppStore = {
   triggerFitToList: () => void;
 };
 
-// Mirrors the filtering logic of useFilteredStations
 function getFilteredStations(
   stations: Station[],
   selectedFuel: string,
@@ -83,20 +82,12 @@ function getFilteredStations(
   searchRadius: number,
   referenceLocation: [number, number] | null,
 ): Station[] {
-  return stations.filter((station) => {
-    if (!station.prices.some((p) => p.fuel_type === selectedFuel)) return false;
-    if (!showHighwayStations && station.isHighway) return false;
-    if (searchRadius > 0 && referenceLocation !== null) {
-      const dist = calculateDistance(
-        referenceLocation[1],
-        referenceLocation[0],
-        station.lat,
-        station.lon,
-      );
-      if (dist > searchRadius) return false;
-    }
-    return true;
+  const byLocation = filterStationsByLocation(stations, {
+    showHighwayStations,
+    searchRadius,
+    referenceLocation,
   });
+  return byLocation.filter((s) => s.prices.some((p) => p.fuel_type === selectedFuel));
 }
 
 const VALID_FUEL_TYPES = FUEL_TYPES.map((f) => f.type) as string[];
@@ -143,7 +134,7 @@ export const useAppStore = create<AppStore>()(
       },
 
       setStations: (stations) => {
-        const { selectedFuel, userLocation, searchLocation, showHighwayStations, searchRadius } = get();
+        const { selectedFuel, userLocation, searchLocation, showHighwayStations, searchRadius, selectedStation } = get();
         const referenceLocation = searchLocation || userLocation;
         const filtered = getFilteredStations(stations, selectedFuel, showHighwayStations, searchRadius, referenceLocation);
         const { bestPriceStationIds, bestDistanceStationIds } =
@@ -152,11 +143,14 @@ export const useAppStore = create<AppStore>()(
             selectedFuel,
             referenceLocation,
           });
-
+        const updatedSelectedStation = selectedStation
+          ? stations.find((s) => s.id === selectedStation.id) ?? null
+          : null;
         set({
           stations,
           bestPriceStationIds,
           bestDistanceStationIds,
+          selectedStation: updatedSelectedStation,
         });
       },
       setIsLoading: (isLoading) => set({ isLoading }),

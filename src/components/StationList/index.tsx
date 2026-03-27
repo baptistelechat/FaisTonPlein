@@ -10,13 +10,12 @@ import { useFilteredStations } from "@/hooks/useFilteredStations";
 import { useFilteredStats } from "@/hooks/useFilteredStats";
 import { DRAWER_SNAP_POINTS, RADIUS_OPTIONS } from "@/lib/constants";
 import { getPriceTextColor } from "@/lib/priceColor";
-import { capitalize } from "@/lib/priceFreshness";
 import { getStationNamesDb } from "@/lib/stationName";
-import { calculateDistance, cn } from "@/lib/utils";
+import { calculateDistance, capitalize, cn } from "@/lib/utils";
 import { FuelStats, Station, useAppStore } from "@/store/useAppStore";
 import { formatRelative } from "date-fns";
 import { fr } from "date-fns/locale";
-import { Clock, Euro, Loader, Navigation, Road, Route } from "lucide-react";
+import { Clock, Euro, Navigation, Road, Route } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import StationListSettings from "./components/StationListSettings";
 import StationListStats from "./components/StationListStats";
@@ -44,6 +43,7 @@ export function StationList({ mobileDrawerSnap }: StationListProps = {}) {
     searchRadius,
     setSearchRadius,
     lastUpdate,
+    isLoading,
   } = useAppStore();
 
   const majLabel = lastUpdate
@@ -106,7 +106,7 @@ export function StationList({ mobileDrawerSnap }: StationListProps = {}) {
     });
   }, [filteredStations, referenceLocation, selectedFuel, listSortBy]);
 
-  // Derived state: reset visibleCount quand sortedStations change (pattern React getDerivedStateFromProps)
+  // Derived state pattern (React-recommended): reset pagination on filter change without extra effect
   const [prevSortedStations, setPrevSortedStations] = useState(sortedStations);
   if (prevSortedStations !== sortedStations) {
     setPrevSortedStations(sortedStations);
@@ -128,7 +128,7 @@ export function StationList({ mobileDrawerSnap }: StationListProps = {}) {
   // Résolution bulk des noms pour les stations visibles uniquement
   useEffect(() => {
     const unresolved = visibleStations.filter(
-      (s) => s.name === "Station service" && !resolvedNames[String(s.id)],
+      (s) => !resolvedNames[String(s.id)],
     );
     if (unresolved.length === 0) return;
 
@@ -249,14 +249,21 @@ export function StationList({ mobileDrawerSnap }: StationListProps = {}) {
             )}
           </div>
 
-          {sortedStations.length === 0 ? (
+          {isLoading ? (
+            <div className="flex-1 overflow-hidden">
+              <div className="flex flex-col gap-3 px-4 pt-1 pb-4">
+                {Array.from({ length: 20 }).map((_, i) => (
+                  <StationCardSkeleton key={i} />
+                ))}
+              </div>
+            </div>
+          ) : sortedStations.length === 0 ? (
             <div
               className={cn(
                 "text-muted-foreground flex flex-1 flex-col items-center gap-4 p-4 text-center",
                 isDesktop ? "justify-center" : "justify-start",
               )}
             >
-              <Loader className="size-8 animate-spin" />
               Aucune station trouvée proposant ce carburant dans cette zone.
             </div>
           ) : (
@@ -289,6 +296,26 @@ export function StationList({ mobileDrawerSnap }: StationListProps = {}) {
   );
 }
 
+function StationCardSkeleton() {
+  return (
+    <Card className="p-4">
+      <div className="flex items-start justify-between gap-2">
+        <div className="flex min-w-0 flex-1 items-start gap-2">
+          <Skeleton className="size-6 shrink-0 rounded-md" />
+          <div className="flex flex-col gap-1 overflow-hidden">
+            <Skeleton className="h-4 w-28" />
+            <div className="flex items-center gap-2">
+              <Skeleton className="h-3 w-10 shrink-0" />
+              <Skeleton className="h-3 w-40" />
+            </div>
+          </div>
+        </div>
+        <Skeleton className="h-6 w-16 shrink-0" />
+      </div>
+    </Card>
+  );
+}
+
 interface StationCardProps {
   station: Station;
   selectedFuel: string;
@@ -310,8 +337,7 @@ function StationCard({
 }: StationCardProps) {
   const resolvedName = useAppStore((s) => s.resolvedNames[String(station.id)]);
   const displayName = resolvedName ?? station.name;
-  const isNameLoading =
-    station.name === "Station service" && resolvedName === undefined;
+  const isNameLoading = resolvedName === undefined;
   const price = station.prices.find((p) => p.fuel_type === selectedFuel);
   const distance = referenceLocation
     ? calculateDistance(
@@ -328,7 +354,7 @@ function StationCard({
 
   return (
     <Card
-      className={cn("hover:bg-muted/50 cursor-pointer p-4 transition-all")}
+      className="hover:bg-muted/50 mt-0.5 cursor-pointer p-4 transition-all"
       onClick={onClick}
     >
       <div className="flex items-start justify-between gap-2">
@@ -362,10 +388,7 @@ function StationCard({
                   {distance.toFixed(1)} km
                 </span>
               )}
-              <span className="truncate">
-                {station.address.charAt(0).toUpperCase() +
-                  station.address.slice(1)}
-              </span>
+              <span className="truncate">{station.address}</span>
             </div>
           </div>
         </div>

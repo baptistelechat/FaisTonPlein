@@ -1,4 +1,5 @@
 import { FUEL_TYPES } from "@/lib/constants";
+import { capitalize } from "@/lib/utils";
 import { FuelPrice, Station } from "@/store/useAppStore";
 
 export interface RawStationData {
@@ -74,7 +75,7 @@ export function mapRawDataToStation(raw: RawStationData): Station {
     name: 'Station service',
     lat,
     lon,
-    address: `${raw.Adresse}, ${raw["Code postal"]} ${raw.Ville}`,
+    address: `${capitalize(raw.Adresse)}, ${raw["Code postal"]} ${raw.Ville}`,
     services,
     prices,
     is24h,

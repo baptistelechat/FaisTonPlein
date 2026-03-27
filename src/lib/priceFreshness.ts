@@ -1,5 +1,6 @@
 import { formatRelative } from 'date-fns'
 import { fr } from 'date-fns/locale'
+import { capitalize } from '@/lib/utils'
 
 export type FreshnessLevel = 'fresh' | 'moderate' | 'stale'
 
@@ -8,10 +9,6 @@ function toTimestamp(updatedAt: unknown): number {
   if (typeof updatedAt === 'number') return updatedAt
   if (typeof updatedAt === 'string') return Date.parse(updatedAt.replace(' ', 'T'))
   return NaN
-}
-
-export function capitalize(str: string): string {
-  return str.charAt(0).toUpperCase() + str.slice(1)
 }
 
 export function getPriceFreshness(updatedAt: unknown): FreshnessLevel {

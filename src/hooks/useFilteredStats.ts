@@ -1,5 +1,5 @@
 import { FUEL_TYPES, FuelType } from '@/lib/constants'
-import { calculateDistance } from '@/lib/utils'
+import { filterStationsByLocation } from '@/lib/utils'
 import { FuelStats, useAppStore } from '@/store/useAppStore'
 import { useMemo } from 'react'
 
@@ -9,18 +9,10 @@ export function useFilteredStats(): Record<FuelType, FuelStats | null> {
   return useMemo(() => {
     const referenceLocation = searchLocation || userLocation
 
-    const filteredStations = stations.filter((station) => {
-      if (!showHighwayStations && station.isHighway) return false
-      if (searchRadius > 0 && referenceLocation !== null) {
-        const dist = calculateDistance(
-          referenceLocation[1],
-          referenceLocation[0],
-          station.lat,
-          station.lon,
-        )
-        if (dist > searchRadius) return false
-      }
-      return true
+    const filteredStations = filterStationsByLocation(stations, {
+      showHighwayStations,
+      searchRadius,
+      referenceLocation,
     })
 
     return FUEL_TYPES.reduce(
