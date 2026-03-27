@@ -50,19 +50,21 @@ export function getBestStationsForFuel({
   selectedFuel: string;
   referenceLocation: [number, number] | null;
 }) {
-  let bestPriceStationId: string | null = null;
-  let bestPrice = Number.POSITIVE_INFINITY;
-
-  let bestDistanceStationId: string | null = null;
-  let bestDistance = Number.POSITIVE_INFINITY;
+  let minPrice = Number.POSITIVE_INFINITY;
+  let minDistanceRounded = Number.POSITIVE_INFINITY;
+  let bestPriceStationIds: string[] = [];
+  let bestDistanceStationIds: string[] = [];
 
   for (const station of stations) {
     const fuelPrice = station.prices.find((p) => p.fuel_type === selectedFuel);
     if (!fuelPrice) continue;
 
-    if (fuelPrice.price < bestPrice) {
-      bestPrice = fuelPrice.price;
-      bestPriceStationId = station.id;
+    const price = fuelPrice.price;
+    if (price < minPrice) {
+      minPrice = price;
+      bestPriceStationIds = [station.id];
+    } else if (price === minPrice) {
+      bestPriceStationIds.push(station.id);
     }
 
     if (referenceLocation) {
@@ -72,12 +74,15 @@ export function getBestStationsForFuel({
         station.lat,
         station.lon,
       );
-      if (dist < bestDistance) {
-        bestDistance = dist;
-        bestDistanceStationId = station.id;
+      const distRounded = Math.round(dist * 10) / 10;
+      if (distRounded < minDistanceRounded) {
+        minDistanceRounded = distRounded;
+        bestDistanceStationIds = [station.id];
+      } else if (distRounded === minDistanceRounded) {
+        bestDistanceStationIds.push(station.id);
       }
     }
   }
 
-  return { bestPriceStationId, bestDistanceStationId };
+  return { bestPriceStationIds, bestDistanceStationIds };
 }

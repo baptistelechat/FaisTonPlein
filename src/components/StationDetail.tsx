@@ -105,8 +105,8 @@ export function StationDetail({ mobileDrawerSnap }: StationDetailProps) {
   const {
     selectedStation,
     selectedFuel,
-    bestPriceStationId,
-    bestDistanceStationId,
+    bestPriceStationIds,
+    bestDistanceStationIds,
   } = useAppStore();
 
   const filteredStats = useFilteredStats();
@@ -114,9 +114,9 @@ export function StationDetail({ mobileDrawerSnap }: StationDetailProps) {
   const selectedStationId = selectedStation?.id ?? null;
 
   const isBestPrice =
-    selectedStationId !== null && selectedStationId === bestPriceStationId;
+    selectedStationId !== null && bestPriceStationIds.includes(selectedStationId);
   const isBestDistance =
-    selectedStationId !== null && selectedStationId === bestDistanceStationId;
+    selectedStationId !== null && bestDistanceStationIds.includes(selectedStationId);
 
   const { name: stationName, isLoading: nameIsLoading } = useStationName(selectedStation);
 

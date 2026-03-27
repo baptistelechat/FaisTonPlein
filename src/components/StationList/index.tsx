@@ -28,8 +28,8 @@ export function StationList() {
     setFlyToStation,
     listSortBy,
     setListSortBy,
-    bestPriceStationId,
-    bestDistanceStationId,
+    bestPriceStationIds,
+    bestDistanceStationIds,
     resolvedNames,
     setResolvedName,
   } = useAppStore();
@@ -53,24 +53,31 @@ export function StationList() {
       const priceA = a.prices.find((p) => p.fuel_type === selectedFuel)?.price;
       const priceB = b.prices.find((p) => p.fuel_type === selectedFuel)?.price;
 
+      const distA = Math.round(calculateDistance(
+        referenceLocation[1],
+        referenceLocation[0],
+        a.lat,
+        a.lon,
+      ) * 10) / 10;
+      const distB = Math.round(calculateDistance(
+        referenceLocation[1],
+        referenceLocation[0],
+        b.lat,
+        b.lon,
+      ) * 10) / 10;
+
       if (listSortBy === "price") {
         if (!priceA) return 1;
         if (!priceB) return -1;
-        return priceA - priceB;
-      } else {
-        const distA = calculateDistance(
-          referenceLocation[1], // lat
-          referenceLocation[0], // lon
-          a.lat,
-          a.lon,
-        );
-        const distB = calculateDistance(
-          referenceLocation[1], // lat
-          referenceLocation[0], // lon
-          b.lat,
-          b.lon,
-        );
+        const priceDiff = priceA - priceB;
+        if (priceDiff !== 0) return priceDiff;
         return distA - distB;
+      } else {
+        const distDiff = distA - distB;
+        if (distDiff !== 0) return distDiff;
+        if (!priceA) return 1;
+        if (!priceB) return -1;
+        return priceA - priceB;
       }
     });
   }, [filteredStations, referenceLocation, selectedFuel, listSortBy]);
@@ -210,8 +217,8 @@ export function StationList() {
                   selectedFuel={selectedFuel}
                   referenceLocation={referenceLocation}
                   filteredStats={currentStats}
-                  bestPriceStationId={bestPriceStationId}
-                  bestDistanceStationId={bestDistanceStationId}
+                  bestPriceStationIds={bestPriceStationIds}
+                  bestDistanceStationIds={bestDistanceStationIds}
                   onClick={() => handleStationClick(station)}
                 />
               ))}
@@ -229,8 +236,8 @@ interface StationCardProps {
   selectedFuel: string;
   referenceLocation: [number, number] | null;
   filteredStats: FuelStats | null;
-  bestPriceStationId: string | null;
-  bestDistanceStationId: string | null;
+  bestPriceStationIds: string[];
+  bestDistanceStationIds: string[];
   onClick: () => void;
 }
 
@@ -239,8 +246,8 @@ function StationCard({
   selectedFuel,
   referenceLocation,
   filteredStats,
-  bestPriceStationId,
-  bestDistanceStationId,
+  bestPriceStationIds,
+  bestDistanceStationIds,
   onClick,
 }: StationCardProps) {
   const resolvedName = useAppStore((s) => s.resolvedNames[String(station.id)]);
@@ -275,10 +282,10 @@ function StationCard({
           <div className="flex items-center gap-2">
             <h3 className="flex items-center gap-2 truncate text-sm font-semibold">
               {isNameLoading ? <Skeleton className="h-4 w-28" /> : displayName}
-              {station.id === bestPriceStationId && (
+              {bestPriceStationIds.includes(station.id) && (
                 <Euro className="size-4 text-yellow-500" />
               )}
-              {station.id === bestDistanceStationId && (
+              {bestDistanceStationIds.includes(station.id) && (
                 <Route className="size-4 text-yellow-500" />
               )}
               {station.isHighway && (
