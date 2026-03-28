@@ -1,5 +1,6 @@
 'use client'
 
+import { FillEstimate } from '@/components/FillEstimate'
 import { StationLogo } from '@/components/StationLogo'
 import { Card } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -34,7 +35,6 @@ export function StationCard({
   onClick,
 }: StationCardProps) {
   const resolvedName = useAppStore((s) => s.resolvedNames[String(station.id)])
-  const tankCapacity = useAppStore((s) => s.tankCapacity)
   const displayName = resolvedName ?? station.name
   const isNameLoading = resolvedName === undefined
   const price = station.prices.find((p) => p.fuel_type === selectedFuel)
@@ -95,11 +95,7 @@ export function StationCard({
           ) : (
             <span className='text-muted-foreground text-xs'>-</span>
           )}
-          {tankCapacity > 0 && price && (
-            <span className='text-muted-foreground text-[10px] font-medium'>
-              ~{(tankCapacity * price.price).toFixed(0)}€ le plein
-            </span>
-          )}
+          {price && <FillEstimate pricePerLiter={price.price} />}
         </div>
 
         {/* Ligne 2 : distance + adresse | fraîcheur */}

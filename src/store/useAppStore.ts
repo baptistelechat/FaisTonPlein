@@ -1,4 +1,4 @@
-import { DEFAULT_SEARCH_RADIUS, FUEL_TYPES, FuelType, RADIUS_OPTIONS, VEHICLE_PRESETS, VehicleType } from '@/lib/constants';
+import { DEFAULT_SEARCH_RADIUS, FILL_HABIT_OPTIONS, FillHabit, FUEL_TYPES, FuelType, RADIUS_OPTIONS, VEHICLE_PRESETS, VehicleType } from '@/lib/constants';
 import { filterStationsByLocation, getBestStationsForFuel } from '@/lib/utils';
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
@@ -77,9 +77,11 @@ type AppStore = {
   vehicleType: VehicleType | null;
   tankCapacity: number;
   consumption: number;
+  fillHabit: FillHabit;
   setVehicleType: (type: VehicleType | null) => void;
   setTankCapacity: (capacity: number) => void;
   setConsumption: (consumption: number) => void;
+  setFillHabit: (habit: FillHabit) => void;
 };
 
 function getFilteredStations(
@@ -232,6 +234,7 @@ export const useAppStore = create<AppStore>()(
       vehicleType: null,
       tankCapacity: 0,
       consumption: 0,
+      fillHabit: 1.0,
       setVehicleType: (type) => {
         if (type === null) {
           set({ vehicleType: null, tankCapacity: 0, consumption: 0 });
@@ -243,6 +246,7 @@ export const useAppStore = create<AppStore>()(
       },
       setTankCapacity: (tankCapacity) => set({ tankCapacity }),
       setConsumption: (consumption) => set({ consumption }),
+      setFillHabit: (fillHabit) => set({ fillHabit }),
     }),
     {
       name: "faistonplein-preferences",
@@ -253,6 +257,7 @@ export const useAppStore = create<AppStore>()(
         vehicleType: state.vehicleType,
         tankCapacity: state.tankCapacity,
         consumption: state.consumption,
+        fillHabit: state.fillHabit,
       }),
       merge: (persistedState, currentState) => {
         const ps = persistedState as Partial<AppStore>;
@@ -268,6 +273,7 @@ export const useAppStore = create<AppStore>()(
           vehicleType: ps.vehicleType ?? null,
           tankCapacity: typeof ps.tankCapacity === 'number' && ps.tankCapacity >= 0 ? ps.tankCapacity : 0,
           consumption: typeof ps.consumption === 'number' && ps.consumption >= 0 ? ps.consumption : 0,
+          fillHabit: FILL_HABIT_OPTIONS.some((o) => o.value === ps.fillHabit) ? (ps.fillHabit as FillHabit) : 1.0,
         };
       },
     },

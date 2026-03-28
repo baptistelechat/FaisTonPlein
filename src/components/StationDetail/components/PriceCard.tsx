@@ -1,5 +1,6 @@
 'use client'
 
+import { FillEstimate } from '@/components/FillEstimate'
 import { cn } from '@/lib/utils'
 import { getPriceTextColor } from '@/lib/priceColor'
 import {
@@ -8,7 +9,7 @@ import {
   FRESHNESS_TEXT_COLORS,
   getPriceFreshness,
 } from '@/lib/priceFreshness'
-import { FuelPrice, FuelStats, useAppStore } from '@/store/useAppStore'
+import { FuelPrice, FuelStats } from '@/store/useAppStore'
 
 export const PriceCard = ({
   price,
@@ -22,7 +23,6 @@ export const PriceCard = ({
   inlineEstimate?: boolean
 }) => {
   const priceColor = getPriceTextColor(price.price, filteredStats)
-  const tankCapacity = useAppStore((s) => s.tankCapacity)
 
   let diffBadge = null
   if (filteredStats) {
@@ -61,17 +61,9 @@ export const PriceCard = ({
           {price.price.toFixed(3)}
         </span>
         <span className='text-xs font-semibold opacity-70'>€</span>
-        {inlineEstimate && tankCapacity > 0 && (
-          <span className='text-muted-foreground text-[10px] font-medium'>
-            (~{(tankCapacity * price.price).toFixed(0)}€ le plein)
-          </span>
-        )}
+        {inlineEstimate && <FillEstimate pricePerLiter={price.price} inline />}
       </div>
-      {!inlineEstimate && tankCapacity > 0 && (
-        <span className='text-muted-foreground text-[10px] font-medium'>
-          ~{(tankCapacity * price.price).toFixed(0)}€ le plein
-        </span>
-      )}
+      {!inlineEstimate && <FillEstimate pricePerLiter={price.price} />}
       {price.updated_at && (() => {
         const freshness = getPriceFreshness(price.updated_at)
         const label = formatPriceAge(price.updated_at)

@@ -416,7 +416,7 @@ export default function InteractiveMap({
             // );
           }
         },
-        { enableHighAccuracy: true, timeout: 5000 },
+        { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 },
       );
     }
   }, [setUserLocation, userLocation, handleGeolocation]);
