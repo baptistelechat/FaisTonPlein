@@ -25,8 +25,8 @@ interface StationListProps {
 }
 
 export function StationList({ mobileDrawerSnap }: StationListProps = {}) {
-  const isMinimized = mobileDrawerSnap === DRAWER_SNAP_POINTS.MINIMIZED;
-  const isListVisible =
+  // Vrai en mode desktop (pas de snap) ou quand le drawer est fully expanded
+  const isExpanded =
     !mobileDrawerSnap || mobileDrawerSnap === DRAWER_SNAP_POINTS.EXPANDED;
   const {
     userLocation,
@@ -195,103 +195,98 @@ export function StationList({ mobileDrawerSnap }: StationListProps = {}) {
         </div>
       </div>
 
-      {/* Tout le reste : masqué en mode minimized */}
-      {!isMinimized && (
-        <>
-          <div className="flex flex-col gap-3 px-4 pb-3">
-            {majLabel && (
-              <span className="text-muted-foreground flex items-center gap-1 text-[11px]">
-                <Clock className="size-3" />
-                {`Mise à jour : ${majLabel}`}
-              </span>
-            )}
+      <div className="flex flex-col gap-3 px-4 pb-3">
+        {majLabel && (
+          <span className="text-muted-foreground flex items-center gap-1 text-[11px]">
+            <Clock className="size-3" />
+            {`Mise à jour : ${majLabel}`}
+          </span>
+        )}
 
-            <div className="flex flex-wrap items-center gap-1">
-              {RADIUS_OPTIONS.map((option) => (
-                <Badge
-                  key={option.value}
-                  variant={
-                    searchRadius === option.value ? "default" : "outline"
-                  }
-                  className="cursor-pointer"
-                  onClick={() => setSearchRadius(option.value)}
-                >
-                  {option.label}
-                </Badge>
-              ))}
-              <div className="ml-auto">
-                <StationListSettings />
-              </div>
-            </div>
-
-            {currentStats && (
-              <div className="bg-muted/50 grid w-full grid-cols-[1fr_1fr_1fr_auto] items-center gap-3 rounded-lg p-3 text-sm">
-                <div className="flex flex-col items-center">
-                  <span className="text-xs font-bold">Min.</span>
-                  <span className="font-mono font-semibold text-emerald-600">
-                    {currentStats.min.toFixed(3)}€
-                  </span>
-                </div>
-                <div className="flex flex-col items-center">
-                  <span className="text-xs font-bold">Médiane</span>
-                  <span className="font-mono font-semibold text-amber-600">
-                    {currentStats.median.toFixed(3)}€
-                  </span>
-                </div>
-                <div className="flex flex-col items-center">
-                  <span className="text-xs font-bold">Max.</span>
-                  <span className="font-mono font-semibold text-rose-600">
-                    {currentStats.max.toFixed(3)}€
-                  </span>
-                </div>
-                <StationListStats statistics={currentStats} />
-              </div>
-            )}
+        <div className="flex flex-wrap items-center gap-1">
+          {RADIUS_OPTIONS.map((option) => (
+            <Badge
+              key={option.value}
+              variant={
+                searchRadius === option.value ? "default" : "outline"
+              }
+              className="cursor-pointer"
+              onClick={() => setSearchRadius(option.value)}
+            >
+              {option.label}
+            </Badge>
+          ))}
+          <div className="ml-auto">
+            <StationListSettings />
           </div>
+        </div>
 
-          {isListVisible && isLoading ? (
-            <div className="flex-1 overflow-hidden">
-              <div className="flex flex-col gap-3 px-4 pt-1 pb-4">
-                {Array.from({ length: 20 }).map((_, i) => (
-                  <StationCardSkeleton key={i} />
-                ))}
-              </div>
+        {currentStats && (
+          <div className="bg-muted/50 grid w-full grid-cols-[1fr_1fr_1fr_auto] items-center gap-3 rounded-lg p-3 text-sm">
+            <div className="flex flex-col items-center">
+              <span className="text-xs font-bold">Min.</span>
+              <span className="font-mono font-semibold text-emerald-600">
+                {currentStats.min.toFixed(3)}€
+              </span>
             </div>
-          ) : isListVisible && sortedStations.length === 0 ? (
-            <div
-              className={cn(
-                "text-muted-foreground flex flex-1 flex-col items-center gap-4 p-4 text-center",
-                isDesktop ? "justify-center" : "justify-start",
-              )}
-            >
-              Aucune station trouvée proposant ce carburant dans cette zone.
+            <div className="flex flex-col items-center">
+              <span className="text-xs font-bold">Médiane</span>
+              <span className="font-mono font-semibold text-amber-600">
+                {currentStats.median.toFixed(3)}€
+              </span>
             </div>
-          ) : isListVisible ? (
-            <div
-              ref={scrollAreaRef}
-              className="mr-1 flex h-px flex-1 flex-col overflow-hidden"
-            >
-              <ScrollArea className="h-full pb-4">
-                <div className="flex flex-col gap-3 px-4 pb-32 md:pb-4">
-                  {visibleStations.map((station) => (
-                    <StationCard
-                      key={station.id}
-                      station={station}
-                      selectedFuel={selectedFuel}
-                      referenceLocation={referenceLocation}
-                      filteredStats={currentStats}
-                      bestPriceStationIds={bestPriceStationIds}
-                      bestDistanceStationIds={bestDistanceStationIds}
-                      onClick={() => handleStationClick(station)}
-                    />
-                  ))}
-                  <div ref={sentinelRef} className="h-1" />
-                </div>
-              </ScrollArea>
+            <div className="flex flex-col items-center">
+              <span className="text-xs font-bold">Max.</span>
+              <span className="font-mono font-semibold text-rose-600">
+                {currentStats.max.toFixed(3)}€
+              </span>
             </div>
-          ) : null}
-        </>
-      )}
+            <StationListStats statistics={currentStats} />
+          </div>
+        )}
+      </div>
+
+      {isExpanded && isLoading ? (
+        <div className="flex-1 overflow-hidden">
+          <div className="flex flex-col gap-3 px-4 pt-1 pb-4">
+            {Array.from({ length: 20 }).map((_, i) => (
+              <StationCardSkeleton key={i} />
+            ))}
+          </div>
+        </div>
+      ) : !isLoading && sortedStations.length === 0 ? (
+        <div
+          className={cn(
+            "text-muted-foreground flex flex-1 flex-col items-center gap-4 p-4 text-center",
+            isDesktop ? "justify-center" : "justify-start",
+          )}
+        >
+          Aucune station trouvée proposant ce carburant dans cette zone.
+        </div>
+      ) : isExpanded ? (
+        <div
+          ref={scrollAreaRef}
+          className="mr-1 flex h-px flex-1 flex-col overflow-hidden"
+        >
+          <ScrollArea className="h-full pb-4">
+            <div className="flex flex-col gap-3 px-4 pb-32 md:pb-4">
+              {visibleStations.map((station) => (
+                <StationCard
+                  key={station.id}
+                  station={station}
+                  selectedFuel={selectedFuel}
+                  referenceLocation={referenceLocation}
+                  filteredStats={currentStats}
+                  bestPriceStationIds={bestPriceStationIds}
+                  bestDistanceStationIds={bestDistanceStationIds}
+                  onClick={() => handleStationClick(station)}
+                />
+              ))}
+              <div ref={sentinelRef} className="h-1" />
+            </div>
+          </ScrollArea>
+        </div>
+      ) : null}
     </div>
   );
 }

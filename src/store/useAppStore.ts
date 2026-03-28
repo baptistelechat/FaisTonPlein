@@ -1,4 +1,4 @@
-import { DEFAULT_SEARCH_RADIUS, FUEL_TYPES, FuelType, RADIUS_OPTIONS } from '@/lib/constants';
+import { DEFAULT_SEARCH_RADIUS, FUEL_TYPES, FuelType, RADIUS_OPTIONS, VEHICLE_PRESETS, VehicleType } from '@/lib/constants';
 import { filterStationsByLocation, getBestStationsForFuel } from '@/lib/utils';
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
@@ -73,6 +73,13 @@ type AppStore = {
   setShowHighwayStations: (show: boolean) => void;
   fitToListSignal: number;
   triggerFitToList: () => void;
+
+  vehicleType: VehicleType | null;
+  tankCapacity: number;
+  consumption: number;
+  setVehicleType: (type: VehicleType | null) => void;
+  setTankCapacity: (capacity: number) => void;
+  setConsumption: (consumption: number) => void;
 };
 
 function getFilteredStations(
@@ -221,6 +228,21 @@ export const useAppStore = create<AppStore>()(
       },
       triggerFitToList: () =>
         set((state) => ({ fitToListSignal: state.fitToListSignal + 1 })),
+
+      vehicleType: null,
+      tankCapacity: 0,
+      consumption: 0,
+      setVehicleType: (type) => {
+        if (type === null) {
+          set({ vehicleType: null, tankCapacity: 0, consumption: 0 });
+          return;
+        }
+        const preset = VEHICLE_PRESETS.find((p) => p.type === type);
+        if (!preset) return;
+        set({ vehicleType: type, tankCapacity: preset.tankCapacity, consumption: preset.consumption });
+      },
+      setTankCapacity: (tankCapacity) => set({ tankCapacity }),
+      setConsumption: (consumption) => set({ consumption }),
     }),
     {
       name: "faistonplein-preferences",
@@ -228,6 +250,9 @@ export const useAppStore = create<AppStore>()(
         selectedFuel: state.selectedFuel,
         searchRadius: state.searchRadius,
         showHighwayStations: state.showHighwayStations,
+        vehicleType: state.vehicleType,
+        tankCapacity: state.tankCapacity,
+        consumption: state.consumption,
       }),
       merge: (persistedState, currentState) => {
         const ps = persistedState as Partial<AppStore>;
@@ -240,6 +265,9 @@ export const useAppStore = create<AppStore>()(
           selectedFuel,
           searchRadius: ps.searchRadius && RADIUS_OPTIONS.some((o) => o.value === ps.searchRadius) ? ps.searchRadius : DEFAULT_SEARCH_RADIUS,
           showHighwayStations: ps.showHighwayStations ?? true,
+          vehicleType: ps.vehicleType ?? null,
+          tankCapacity: typeof ps.tankCapacity === 'number' && ps.tankCapacity >= 0 ? ps.tankCapacity : 0,
+          consumption: typeof ps.consumption === 'number' && ps.consumption >= 0 ? ps.consumption : 0,
         };
       },
     },

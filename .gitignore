@@ -30,6 +30,9 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
+# msys2/git bash crash dumps (windows)
+*.stackdump
+
 # env files (can opt-in for committing if needed)
 .env*
 

@@ -34,6 +34,7 @@ export function StationCard({
   onClick,
 }: StationCardProps) {
   const resolvedName = useAppStore((s) => s.resolvedNames[String(station.id)])
+  const tankCapacity = useAppStore((s) => s.tankCapacity)
   const displayName = resolvedName ?? station.name
   const isNameLoading = resolvedName === undefined
   const price = station.prices.find((p) => p.fuel_type === selectedFuel)
@@ -78,7 +79,7 @@ export function StationCard({
             <Road className='size-4 shrink-0 text-blue-500' />
           )}
         </h3>
-        <div className='flex justify-end'>
+        <div className='flex flex-col items-end'>
           {price ? (
             <span
               className={cn(
@@ -93,6 +94,11 @@ export function StationCard({
             </span>
           ) : (
             <span className='text-muted-foreground text-xs'>-</span>
+          )}
+          {tankCapacity > 0 && price && (
+            <span className='text-muted-foreground text-[10px] font-medium'>
+              ~{(tankCapacity * price.price).toFixed(0)}€ le plein
+            </span>
           )}
         </div>
 
