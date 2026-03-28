@@ -44,3 +44,25 @@ export const FRESHNESS_LABELS: Record<FreshnessLevel, string> = {
   stale: '> 3 jours',
 }
 
+// Locale fr sans les horaires — tokens identiques au fr officiel mais sans `p`
+const frDayOnly = {
+  ...fr,
+  formatRelative: (token: string): string => {
+    const formats: Record<string, string> = {
+      lastDay: "'hier'",
+      lastWeek: "eeee",
+      today: "'aujourd''hui'",
+      tomorrow: "'demain'",
+      nextWeek: "eeee",
+      other: 'd MMM',
+    }
+    return formats[token] ?? 'd MMM'
+  },
+}
+
+export function formatPriceAgeCompact(updatedAt: unknown): string | null {
+  const updatedMs = toTimestamp(updatedAt)
+  if (isNaN(updatedMs)) return null
+  return capitalize(formatRelative(new Date(updatedMs), new Date(), { locale: frDayOnly }))
+}
+

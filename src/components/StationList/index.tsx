@@ -1,29 +1,20 @@
 "use client";
 
-import { StationLogo } from "@/components/StationLogo";
 import { Badge } from "@/components/ui/badge";
-import { Card } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Skeleton } from "@/components/ui/skeleton";
 import { useMediaQuery } from "@/hooks/use-media-query";
 import { useFilteredStations } from "@/hooks/useFilteredStations";
 import { useFilteredStats } from "@/hooks/useFilteredStats";
 import { DRAWER_SNAP_POINTS, RADIUS_OPTIONS } from "@/lib/constants";
-import { getPriceTextColor } from "@/lib/priceColor";
-import {
-  formatPriceAge,
-  FRESHNESS_DOT_COLORS,
-  FRESHNESS_LABELS,
-  FRESHNESS_TEXT_COLORS,
-  getPriceFreshness,
-} from "@/lib/priceFreshness";
 import { getStationNamesDb } from "@/lib/stationName";
 import { calculateDistance, capitalize, cn } from "@/lib/utils";
-import { FuelStats, Station, useAppStore } from "@/store/useAppStore";
+import { Station, useAppStore } from "@/store/useAppStore";
 import { formatRelative } from "date-fns";
 import { fr } from "date-fns/locale";
-import { Clock, Euro, Navigation, Road, Route } from "lucide-react";
+import { Clock, Euro, Route } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { StationCard } from "./components/StationCard";
+import { StationCardSkeleton } from "./components/StationCardSkeleton";
 import StationListSettings from "./components/StationListSettings";
 import StationListStats from "./components/StationListStats";
 
@@ -305,144 +296,3 @@ export function StationList({ mobileDrawerSnap }: StationListProps = {}) {
   );
 }
 
-function StationCardSkeleton() {
-  return (
-    <Card className="p-4">
-      <div className="flex items-start justify-between gap-2">
-        <div className="flex min-w-0 flex-1 items-start gap-2">
-          <Skeleton className="size-6 shrink-0 rounded-md" />
-          <div className="flex flex-col gap-1 overflow-hidden">
-            <Skeleton className="h-4 w-28" />
-            <div className="flex items-center gap-2">
-              <Skeleton className="h-3 w-10 shrink-0" />
-              <Skeleton className="h-3 w-40" />
-            </div>
-          </div>
-        </div>
-        <Skeleton className="h-6 w-16 shrink-0" />
-      </div>
-    </Card>
-  );
-}
-
-interface StationCardProps {
-  station: Station;
-  selectedFuel: string;
-  referenceLocation: [number, number] | null;
-  filteredStats: FuelStats | null;
-  bestPriceStationIds: string[];
-  bestDistanceStationIds: string[];
-  onClick: () => void;
-}
-
-function StationCard({
-  station,
-  selectedFuel,
-  referenceLocation,
-  filteredStats,
-  bestPriceStationIds,
-  bestDistanceStationIds,
-  onClick,
-}: StationCardProps) {
-  const resolvedName = useAppStore((s) => s.resolvedNames[String(station.id)]);
-  const displayName = resolvedName ?? station.name;
-  const isNameLoading = resolvedName === undefined;
-  const price = station.prices.find((p) => p.fuel_type === selectedFuel);
-  const distance = referenceLocation
-    ? calculateDistance(
-        referenceLocation[1], // lat
-        referenceLocation[0], // lon
-        station.lat,
-        station.lon,
-      )
-    : null;
-
-  const priceColor = price
-    ? getPriceTextColor(price.price, filteredStats)
-    : "text-foreground";
-
-  return (
-    <Card
-      className="hover:bg-muted/50 mt-0.5 cursor-pointer p-4 transition-all"
-      onClick={onClick}
-    >
-      <div className="grid grid-cols-[auto_1fr_auto] items-center gap-x-2 gap-y-1">
-        {/* Logo — aligne les 2 lignes */}
-        <div className="row-span-2 self-center">
-          {isNameLoading ? (
-            <Skeleton className="size-6 shrink-0 rounded-md" />
-          ) : (
-            <StationLogo name={displayName} size="sm" />
-          )}
-        </div>
-
-        {/* Ligne 1 : nom + badges | prix */}
-        <h3 className="flex min-w-0 items-center gap-2 truncate text-sm font-semibold">
-          {isNameLoading ? <Skeleton className="h-4 w-28" /> : displayName}
-          {bestPriceStationIds.includes(station.id) && (
-            <Euro className="size-4 shrink-0 text-yellow-500" />
-          )}
-          {bestDistanceStationIds.includes(station.id) && (
-            <Route className="size-4 shrink-0 text-yellow-500" />
-          )}
-          {station.isHighway && (
-            <Road className="size-4 shrink-0 text-blue-500" />
-          )}
-        </h3>
-        <div className="flex justify-end">
-          {price ? (
-            <span
-              className={cn(
-                "font-mono text-lg leading-none font-bold",
-                priceColor,
-              )}
-            >
-              {price.price.toFixed(3)}
-              <span className="text-muted-foreground ml-0.5 text-xs font-normal">
-                €
-              </span>
-            </span>
-          ) : (
-            <span className="text-muted-foreground text-xs">-</span>
-          )}
-        </div>
-
-        {/* Ligne 2 : distance + adresse | fraîcheur */}
-        <div className="text-muted-foreground flex min-w-0 items-center gap-2 text-xs">
-          {distance !== null && (
-            <span className="text-primary/80 flex shrink-0 items-center gap-0.5 whitespace-nowrap">
-              <Navigation className="size-3" />
-              {distance.toFixed(1)} km
-            </span>
-          )}
-          <span className="truncate">{station.address}</span>
-        </div>
-        <div className="flex justify-end">
-          {price?.updated_at &&
-            (() => {
-              const freshness = getPriceFreshness(price.updated_at);
-              if (!formatPriceAge(price.updated_at)) return null;
-              return (
-                <span className="flex items-center gap-1">
-                  <span
-                    className={cn(
-                      "size-1.5 shrink-0 rounded-full",
-                      FRESHNESS_DOT_COLORS[freshness],
-                    )}
-                  />
-                  <span
-                    className={cn(
-                      "text-[10px] font-medium",
-                      FRESHNESS_TEXT_COLORS[freshness],
-                    )}
-                  >
-                    {FRESHNESS_LABELS[freshness]}
-                  </span>
-                </span>
-              );
-            })()}
-        </div>
-      </div>
-    </Card>
-  );
-}
