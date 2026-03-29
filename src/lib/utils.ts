@@ -62,6 +62,18 @@ function deg2rad(deg: number): number {
   return deg * (Math.PI / 180);
 }
 
+export function calculateEffectiveCost(params: {
+  pricePerLiter: number
+  distanceKm: number
+  fillAmount: number
+  consumption: number
+}): { fillCost: number; travelCost: number; total: number } {
+  const { pricePerLiter, distanceKm, fillAmount, consumption } = params
+  const fillCost = pricePerLiter * fillAmount
+  const travelCost = pricePerLiter * distanceKm * (consumption / 100)
+  return { fillCost, travelCost, total: fillCost + travelCost }
+}
+
 type FuelPriceLike = {
   fuel_type: string;
   price: number;
@@ -118,4 +130,60 @@ export function getBestStationsForFuel({
   }
 
   return { bestPriceStationIds, bestDistanceStationIds };
+}
+
+export function getBestRealCostStation({
+  stations,
+  selectedFuel,
+  referenceLocation,
+  consumption,
+  tankCapacity,
+  fillHabit,
+}: {
+  stations: StationLike[]
+  selectedFuel: string
+  referenceLocation: [number, number] | null
+  consumption: number
+  tankCapacity: number
+  fillHabit: number
+}): { bestRealCostStationIds: string[] } {
+  if (!referenceLocation || consumption <= 0 || tankCapacity <= 0) {
+    return { bestRealCostStationIds: [] }
+  }
+
+  const fillAmount = tankCapacity * fillHabit
+  let minCost = Number.POSITIVE_INFINITY
+  let bestRealCostStationIds: string[] = []
+
+  for (const station of stations) {
+    const fuelPrice = station.prices.find((p) => p.fuel_type === selectedFuel)
+    if (!fuelPrice) continue
+
+    const distKm = calculateDistance(
+      referenceLocation[1],
+      referenceLocation[0],
+      station.lat,
+      station.lon,
+    )
+
+    const cost = calculateEffectiveCost({
+      pricePerLiter: fuelPrice.price,
+      distanceKm: distKm,
+      fillAmount,
+      consumption,
+    }).total
+
+    if (cost < minCost) {
+      minCost = cost
+      bestRealCostStationIds = [station.id]
+    } else if (cost === minCost) {
+      bestRealCostStationIds.push(station.id)
+    }
+  }
+
+  return { bestRealCostStationIds }
+}
+
+export function formatPrice(value: number): string {
+  return `${value.toFixed(3)}€/L`
 }

@@ -8,7 +8,7 @@ import { Drawer, DrawerContent, DrawerTitle } from "@/components/ui/drawer";
 import { DRAWER_SNAP_POINTS, DRAWER_SNAP_POINTS_ARRAY } from "@/lib/constants";
 import { useAppStore } from "@/store/useAppStore";
 import { ArrowLeft, Search } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 
 export function MobileLayout() {
   const {
@@ -26,9 +26,11 @@ export function MobileLayout() {
   const snapRef = useRef(snap);
   const selectedStationRef = useRef(selectedStation);
   const searchPanelRef = useRef(searchPanelOpen);
-  snapRef.current = snap;
-  selectedStationRef.current = selectedStation;
-  searchPanelRef.current = searchPanelOpen;
+  useLayoutEffect(() => {
+    snapRef.current = snap;
+    selectedStationRef.current = selectedStation;
+    searchPanelRef.current = searchPanelOpen;
+  }, [snap, selectedStation, searchPanelOpen]);
 
   // Snap à DEFAULT quand une station est sélectionnée
   useEffect(() => {
@@ -49,10 +51,15 @@ export function MobileLayout() {
         // Panneau de recherche ouvert → le fermer
         setSearchPanelOpen(false);
       } else if (selectedStationRef.current) {
-        // Station ouverte → retour à la liste
-        setSelectedStation(null);
-        setSnap(DRAWER_SNAP_POINTS.DEFAULT);
-        triggerFitToList();
+        if (snapRef.current === DRAWER_SNAP_POINTS.EXPANDED) {
+          // Station ouverte en EXPANDED → réduire à DEFAULT d'abord
+          setSnap(DRAWER_SNAP_POINTS.DEFAULT);
+        } else {
+          // Station ouverte en DEFAULT → retour à la liste
+          setSelectedStation(null);
+          setSnap(DRAWER_SNAP_POINTS.DEFAULT);
+          triggerFitToList();
+        }
       } else if (snapRef.current === DRAWER_SNAP_POINTS.EXPANDED) {
         // Drawer en grand → réduire
         setSnap(DRAWER_SNAP_POINTS.DEFAULT);
@@ -127,9 +134,13 @@ export function MobileLayout() {
                       variant="ghost"
                       size="sm"
                       onClick={() => {
-                        setSelectedStation(null);
-                        setSnap(DRAWER_SNAP_POINTS.DEFAULT);
-                        triggerFitToList();
+                        if (snap === DRAWER_SNAP_POINTS.EXPANDED) {
+                          setSnap(DRAWER_SNAP_POINTS.DEFAULT);
+                        } else {
+                          setSelectedStation(null);
+                          setSnap(DRAWER_SNAP_POINTS.DEFAULT);
+                          triggerFitToList();
+                        }
                       }}
                       className="max-w-full justify-start gap-2"
                     >

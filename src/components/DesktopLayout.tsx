@@ -14,7 +14,7 @@ export function DesktopLayout() {
   return (
     <div className="flex h-full w-full">
       {/* Sidebar */}
-      <aside className="bg-background border-primary/20 z-30 flex h-full w-80 flex-col border-r shadow-xl xl:w-96">
+      <aside className="bg-background border-primary/20 z-30 flex h-full w-96 shrink-0 flex-col border-r shadow-xl">
         <div className="h-full overflow-hidden">
           {selectedStation ? (
             <div className="flex h-full flex-col">

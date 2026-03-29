@@ -80,6 +80,7 @@ export default function InteractiveMap({
     setSearchLocation,
     bestPriceStationIds,
     bestDistanceStationIds,
+    bestRealCostStationIds,
     searchRadius,
     fitToListSignal,
   } = useAppStore();
@@ -307,6 +308,7 @@ export default function InteractiveMap({
           price: price.price,
           fuelType: selectedFuel,
           isSelected: selectedStation?.id === station.id,
+          updatedAt: price.updated_at ?? null,
         },
         geometry: {
           type: "Point",
@@ -523,7 +525,9 @@ export default function InteractiveMap({
                 isSelected={cluster.properties.isSelected}
                 isBestPrice={bestPriceStationIds.includes(cluster.properties.stationId)}
                 isBestDistance={bestDistanceStationIds.includes(cluster.properties.stationId)}
+                isBestRealCost={bestRealCostStationIds.includes(cluster.properties.stationId)}
                 filteredStats={filteredStats}
+                updatedAt={cluster.properties.updatedAt}
               />
             </MapMarker>
           );

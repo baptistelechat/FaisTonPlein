@@ -154,13 +154,28 @@
 ### US-02-03 : Tri Intelligent (Prix + Distance)
 
 **En tant que** conducteur pragmatique,
-**Je veux** trier les stations par "coût réel" incluant le détour,
+**Je veux** trier les stations par "coût réel" incluant la distance pour y aller,
 **Afin de** savoir si l'économie vaut le déplacement.
 
 **Critères d'Acceptation :**
 
-- [ ] Algorithme prenant en compte la consommation moyenne (paramétrable ou défaut).
-- [ ] Affichage du surcoût lié au détour.
+- [ ] Badge "Coût réel" visible uniquement si un véhicule est configuré et une position de référence est disponible.
+- [ ] Formule : `effectiveCost = price × fillAmount + price × distance × (consumption / 100)`.
+- [ ] Affichage du coût de trajet sous l'estimation de plein dans `StationCard` quand le tri est actif.
+
+### US-02-04 : Distances Routières Réelles (OSRM + Isodistance)
+
+**En tant que** conducteur,
+**Je veux** choisir entre des distances à vol d'oiseau ou des distances routières réelles,
+**Afin d'** avoir un affichage et des comparaisons adaptés à mes préférences.
+
+**Critères d'Acceptation :**
+
+- [ ] Toggle `Route réelle` / `Vol d'oiseau` dans les settings (préférence persistée, défaut : route réelle).
+- [ ] Mode route : distances OSRM `/table` dans la liste + polygone isodistance IGN sur la carte.
+- [ ] Mode vol d'oiseau : Haversine dans la liste + cercle sur la carte (comportement actuel).
+- [ ] Fallback silencieux vers Haversine/cercle si les APIs sont indisponibles.
+- [ ] Indicateur discret `~` sur les distances Haversine temporaires en mode route.
 
 ***
 

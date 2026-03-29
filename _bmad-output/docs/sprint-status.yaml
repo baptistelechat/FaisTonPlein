@@ -54,7 +54,8 @@ development_status:
   epic-2-comparaison-economique: in-progress
   us-02-01-prix-a-jour-et-fraicheur: done
   us-02-02-calcul-du-cout-du-plein: done
-  us-02-03-tri-intelligent-prix-distance: backlog
+  us-02-03-tri-intelligent-prix-distance: done
+  us-02-04-distances-routieres-osrm: ready-for-dev
   epic-2-retrospective: optional
 
   # Epic 3: Intelligence & Analyse

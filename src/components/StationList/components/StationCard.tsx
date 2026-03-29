@@ -13,7 +13,7 @@ import {
 } from '@/lib/priceFreshness'
 import { calculateDistance, cn } from '@/lib/utils'
 import { FuelStats, Station, useAppStore } from '@/store/useAppStore'
-import { Euro, Navigation, Road, Route } from 'lucide-react'
+import { Euro, Navigation, Road, Route, Scale } from 'lucide-react'
 
 export interface StationCardProps {
   station: Station
@@ -22,6 +22,8 @@ export interface StationCardProps {
   filteredStats: FuelStats | null
   bestPriceStationIds: string[]
   bestDistanceStationIds: string[]
+  bestRealCostStationIds: string[]
+  listSortBy: 'price' | 'distance' | 'real-cost'
   onClick: () => void
 }
 
@@ -32,6 +34,8 @@ export function StationCard({
   filteredStats,
   bestPriceStationIds,
   bestDistanceStationIds,
+  bestRealCostStationIds,
+  listSortBy,
   onClick,
 }: StationCardProps) {
   const resolvedName = useAppStore((s) => s.resolvedNames[String(station.id)])
@@ -47,6 +51,9 @@ export function StationCard({
       )
     : null
 
+  // Distance arrondie à 1 décimale — identique au tri dans StationList
+  const roundedDistance = distance !== null ? Math.round(distance * 10) / 10 : null
+
   const priceColor = price
     ? getPriceTextColor(price.price, filteredStats)
     : 'text-foreground'
@@ -56,30 +63,44 @@ export function StationCard({
       className='hover:bg-muted/50 mt-0.5 cursor-pointer p-4 transition-all'
       onClick={onClick}
     >
-      <div className='grid grid-cols-[auto_1fr_auto] items-center gap-x-2 gap-y-1'>
-        {/* Logo — aligne les 2 lignes */}
-        <div className='row-span-2 self-center'>
-          {isNameLoading ? (
-            <Skeleton className='size-6 shrink-0 rounded-md' />
-          ) : (
-            <StationLogo name={displayName} size='sm' />
-          )}
+      <div className='flex items-stretch gap-x-3'>
+        {/* Colonne 1 : nom + adresse */}
+        <div className='flex min-w-0 flex-1 flex-col justify-evenly'>
+          <h3 className='flex min-w-0 items-center gap-2 text-sm font-semibold'>
+            {isNameLoading ? (
+              <Skeleton className='size-6 shrink-0 rounded-md' />
+            ) : (
+              <StationLogo name={displayName} size='sm' />
+            )}
+            <span className='truncate'>
+              {isNameLoading ? <Skeleton className='h-4 w-28' /> : displayName}
+            </span>
+            {bestPriceStationIds.includes(station.id) && (
+              <Euro className='size-4 shrink-0 text-yellow-500' />
+            )}
+            {bestDistanceStationIds.includes(station.id) && (
+              <Route className='size-4 shrink-0 text-yellow-500' />
+            )}
+            {bestRealCostStationIds.includes(station.id) && (
+              <Scale className='size-4 shrink-0 text-yellow-500' />
+            )}
+            {station.isHighway && (
+              <Road className='size-4 shrink-0 text-blue-500' />
+            )}
+          </h3>
+          <div className='text-muted-foreground flex min-w-0 items-center gap-2 text-xs'>
+            {distance !== null && (
+              <span className='text-primary/80 flex shrink-0 items-center gap-0.5 whitespace-nowrap'>
+                <Navigation className='size-3' />
+                {distance.toFixed(1)} km
+              </span>
+            )}
+            <span className='truncate'>{station.address}</span>
+          </div>
         </div>
 
-        {/* Ligne 1 : nom + badges | prix */}
-        <h3 className='flex min-w-0 items-center gap-2 truncate text-sm font-semibold'>
-          {isNameLoading ? <Skeleton className='h-4 w-28' /> : displayName}
-          {bestPriceStationIds.includes(station.id) && (
-            <Euro className='size-4 shrink-0 text-yellow-500' />
-          )}
-          {bestDistanceStationIds.includes(station.id) && (
-            <Route className='size-4 shrink-0 text-yellow-500' />
-          )}
-          {station.isHighway && (
-            <Road className='size-4 shrink-0 text-blue-500' />
-          )}
-        </h3>
-        <div className='flex flex-col items-end'>
+        {/* Colonne 2 : prix + estimation + fraîcheur */}
+        <div className='flex flex-col items-end gap-0.5'>
           {price ? (
             <span
               className={cn(
@@ -89,26 +110,13 @@ export function StationCard({
             >
               {price.price.toFixed(3)}
               <span className='text-muted-foreground ml-0.5 text-xs font-normal'>
-                €
+                €/L
               </span>
             </span>
           ) : (
             <span className='text-muted-foreground text-xs'>-</span>
           )}
-          {price && <FillEstimate pricePerLiter={price.price} />}
-        </div>
-
-        {/* Ligne 2 : distance + adresse | fraîcheur */}
-        <div className='text-muted-foreground flex min-w-0 items-center gap-2 text-xs'>
-          {distance !== null && (
-            <span className='text-primary/80 flex shrink-0 items-center gap-0.5 whitespace-nowrap'>
-              <Navigation className='size-3' />
-              {distance.toFixed(1)} km
-            </span>
-          )}
-          <span className='truncate'>{station.address}</span>
-        </div>
-        <div className='flex justify-end'>
+          {price && <FillEstimate pricePerLiter={price.price} distanceKm={roundedDistance} />}
           {price?.updated_at &&
             (() => {
               const freshness = getPriceFreshness(price.updated_at)

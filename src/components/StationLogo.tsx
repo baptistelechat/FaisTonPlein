@@ -49,7 +49,7 @@ export const StationLogo = ({ name, size = 'sm', className }: StationLogoProps) 
   const sources: string[] = [localSrc, googleSrc].filter(Boolean) as string[]
   const currentSrc = sources[srcIndex] ?? null
 
-  const sizeClass = size === 'md' ? 'size-10' : 'size-6'
+  const sizeClass = size === 'md' ? 'size-10' : 'size-7'
   const textClass = size === 'md' ? 'text-sm' : 'text-[10px]'
 
   return (

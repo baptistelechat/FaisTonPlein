@@ -5,12 +5,12 @@ import { Button } from '@/components/ui/button'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Skeleton } from '@/components/ui/skeleton'
 import { DRAWER_SNAP_POINTS } from '@/lib/constants'
-import { cn } from '@/lib/utils'
+import { calculateDistance, cn } from '@/lib/utils'
 import { useFilteredStats } from '@/hooks/useFilteredStats'
 import { useStationName } from '@/hooks/useStationName'
 import { StationLogo } from '@/components/StationLogo'
 import { useAppStore } from '@/store/useAppStore'
-import { CreditCard, Euro, History, MapPin, Navigation, Road, Route } from 'lucide-react'
+import { CreditCard, Euro, History, MapPin, Navigation, Road, Route, Scale } from 'lucide-react'
 import { toast } from 'sonner'
 import { PriceCard } from './components/PriceCard'
 
@@ -24,15 +24,24 @@ export function StationDetail({ mobileDrawerSnap }: StationDetailProps) {
     selectedFuel,
     bestPriceStationIds,
     bestDistanceStationIds,
+    bestRealCostStationIds,
+    userLocation,
+    searchLocation,
   } = useAppStore()
 
   const filteredStats = useFilteredStats()
   const selectedStationId = selectedStation?.id ?? null
   const isBestPrice = selectedStationId !== null && bestPriceStationIds.includes(selectedStationId)
   const isBestDistance = selectedStationId !== null && bestDistanceStationIds.includes(selectedStationId)
+  const isBestRealCost = selectedStationId !== null && bestRealCostStationIds.includes(selectedStationId)
   const { name: stationName, isLoading: nameIsLoading } = useStationName(selectedStation)
 
   if (!selectedStation) return null
+
+  const referenceLocation = searchLocation || userLocation
+  const distanceKm = referenceLocation
+    ? calculateDistance(referenceLocation[1], referenceLocation[0], selectedStation.lat, selectedStation.lon)
+    : null
 
   const selectedPrice = selectedStation.prices.find((p) => p.fuel_type === selectedFuel)
   const sortedPrices = [...selectedStation.prices].sort(
@@ -85,7 +94,7 @@ export function StationDetail({ mobileDrawerSnap }: StationDetailProps) {
             <MapPin className='size-3.5' />
             {selectedStation.address}
           </p>
-          {(isBestPrice || isBestDistance || selectedStation.isHighway) && (
+          {(isBestPrice || isBestDistance || isBestRealCost || selectedStation.isHighway) && (
             <div className='flex flex-wrap gap-2'>
               {isBestPrice && (
                 <Badge variant='outline' className='border-yellow-500/30 bg-yellow-500/10 text-yellow-600'>
@@ -97,6 +106,12 @@ export function StationDetail({ mobileDrawerSnap }: StationDetailProps) {
                 <Badge variant='outline' className='border-yellow-500/30 bg-yellow-500/10 text-yellow-600'>
                   <Route className='size-3.5' />
                   Plus proche
+                </Badge>
+              )}
+              {isBestRealCost && (
+                <Badge variant='outline' className='border-yellow-500/30 bg-yellow-500/10 text-yellow-600'>
+                  <Scale className='size-3.5' />
+                  Meilleur coût/trajet
                 </Badge>
               )}
               {selectedStation.isHighway && (
@@ -115,6 +130,7 @@ export function StationDetail({ mobileDrawerSnap }: StationDetailProps) {
             selectedFuel={selectedFuel}
             filteredStats={filteredStats[selectedPrice.fuel_type] ?? null}
             inlineEstimate
+            distanceKm={distanceKm}
           />
         )}
 
@@ -128,6 +144,7 @@ export function StationDetail({ mobileDrawerSnap }: StationDetailProps) {
                   selectedFuel={selectedFuel}
                   key={price.fuel_type}
                   filteredStats={filteredStats[price.fuel_type] ?? null}
+                  distanceKm={distanceKm}
                 />
               ))}
             </div>

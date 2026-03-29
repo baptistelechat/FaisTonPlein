@@ -1,8 +1,9 @@
 import { FuelType } from "@/lib/constants";
 import { getPriceMarkerClasses } from "@/lib/priceColor";
-import { cn } from "@/lib/utils";
+import { FRESHNESS_DOT_COLORS, getPriceFreshness } from "@/lib/priceFreshness";
+import { cn, formatPrice } from "@/lib/utils";
 import { FuelStats } from "@/store/useAppStore";
-import { Euro, Fuel, Route } from "lucide-react";
+import { Euro, Fuel, Route, Scale } from "lucide-react";
 
 type PriceMarkerProps = {
   price: number;
@@ -10,8 +11,10 @@ type PriceMarkerProps = {
   isSelected?: boolean;
   isBestPrice?: boolean;
   isBestDistance?: boolean;
+  isBestRealCost?: boolean;
   trend?: "up" | "down" | "stable";
   filteredStats?: FuelStats | null;
+  updatedAt?: string | number | Date | null;
 };
 
 export function PriceMarker({
@@ -19,12 +22,13 @@ export function PriceMarker({
   isSelected,
   isBestPrice,
   isBestDistance,
+  isBestRealCost,
   filteredStats,
+  updatedAt,
 }: PriceMarkerProps) {
   const statusColor = getPriceMarkerClasses(price, filteredStats ?? null);
-  // const showBestBadge = isBestPrice || isBestDistance;
 
-  const isBest = isBestPrice || isBestDistance;
+  const isBest = isBestPrice || isBestDistance || isBestRealCost;
 
   return (
     <div className="relative flex items-center justify-center">
@@ -55,18 +59,29 @@ export function PriceMarker({
           {isBestDistance && <MapPin className="size-3" />}
         </div>
       )} */}
+        {updatedAt && (
+          <span
+            className={cn(
+              "border-background absolute -top-1 -right-1 z-20 size-2.5 rounded-full border",
+              FRESHNESS_DOT_COLORS[getPriceFreshness(updatedAt)],
+            )}
+          />
+        )}
         <div className="flex items-center gap-1 px-2 py-1">
           {isBestPrice && <Euro className="size-3.5" />}
           {isBestDistance && <Route className="size-3.5" />}
-          {!isBestPrice && !isBestDistance && <Fuel className="size-3.5" />}
+          {isBestRealCost && <Scale className="size-3.5" />}
+          {!isBestPrice && !isBestDistance && !isBestRealCost && (
+            <Fuel className="size-3.5" />
+          )}
           <span className="font-mono text-sm leading-none font-extrabold tracking-tight">
-            {price.toFixed(3)}€
+            {formatPrice(price)}
           </span>
         </div>
 
         <div
           className={cn(
-            "absolute -bottom-1.5 left-1/2 h-3 w-3 -translate-x-1/2 rotate-45 border-r border-b",
+            "absolute -bottom-1.5 left-1/2 size-3 -translate-x-1/2 rotate-45 border-r border-b",
             isSelected
               ? "border-primary bg-primary"
               : cn(statusColor.split(" ")[2], statusColor.split(" ")[1]),

@@ -289,7 +289,7 @@ function SettingsBody() {
           <div className="text-muted-foreground text-xs font-bold tracking-wider uppercase">
             Mes habitudes
           </div>
-          <p className="text-muted-foreground text-xs -mt-2">
+          <p className="text-muted-foreground -mt-2 text-xs">
             Je fais le plein quand...
           </p>
           <div className="flex flex-wrap gap-1">

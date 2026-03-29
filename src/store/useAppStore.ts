@@ -1,5 +1,5 @@
 import { DEFAULT_SEARCH_RADIUS, FILL_HABIT_OPTIONS, FillHabit, FUEL_TYPES, FuelType, RADIUS_OPTIONS, VEHICLE_PRESETS, VehicleType } from '@/lib/constants';
-import { filterStationsByLocation, getBestStationsForFuel } from '@/lib/utils';
+import { filterStationsByLocation, getBestRealCostStation, getBestStationsForFuel } from '@/lib/utils';
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
@@ -45,9 +45,10 @@ type AppStore = {
   searchQuery: string;
   selectedStation: Station | null;
   flyToStation: Station | null;
-  listSortBy: "price" | "distance";
+  listSortBy: "price" | "distance" | "real-cost";
   bestPriceStationIds: string[];
   bestDistanceStationIds: string[];
+  bestRealCostStationIds: string[];
   resolvedNames: Record<string, string>;
   searchRadius: number;
   showHighwayStations: boolean;
@@ -67,7 +68,7 @@ type AppStore = {
   setSearchQuery: (query: string) => void;
   setSelectedStation: (station: Station | null) => void;
   setFlyToStation: (station: Station | null) => void;
-  setListSortBy: (sortBy: "price" | "distance") => void;
+  setListSortBy: (sortBy: "price" | "distance" | "real-cost") => void;
   setResolvedName: (stationId: string, name: string) => void;
   setSearchRadius: (radius: number) => void;
   setShowHighwayStations: (show: boolean) => void;
@@ -101,6 +102,33 @@ function getFilteredStations(
 
 const VALID_FUEL_TYPES = FUEL_TYPES.map((f) => f.type) as string[];
 
+function computeBestStations(
+  stations: Station[],
+  selectedFuel: string,
+  showHighwayStations: boolean,
+  searchRadius: number,
+  referenceLocation: [number, number] | null,
+  consumption: number,
+  tankCapacity: number,
+  fillHabit: number,
+) {
+  const filtered = getFilteredStations(stations, selectedFuel, showHighwayStations, searchRadius, referenceLocation)
+  const { bestPriceStationIds, bestDistanceStationIds } = getBestStationsForFuel({
+    stations: filtered,
+    selectedFuel,
+    referenceLocation,
+  })
+  const { bestRealCostStationIds } = getBestRealCostStation({
+    stations: filtered,
+    selectedFuel,
+    referenceLocation,
+    consumption,
+    tankCapacity,
+    fillHabit,
+  })
+  return { bestPriceStationIds, bestDistanceStationIds, bestRealCostStationIds }
+}
+
 export const useAppStore = create<AppStore>()(
   persist(
     (set, get) => ({
@@ -116,6 +144,7 @@ export const useAppStore = create<AppStore>()(
       listSortBy: "distance",
       bestPriceStationIds: [],
       bestDistanceStationIds: [],
+      bestRealCostStationIds: [],
       resolvedNames: {},
       searchRadius: DEFAULT_SEARCH_RADIUS,
       showHighwayStations: true,
@@ -126,74 +155,41 @@ export const useAppStore = create<AppStore>()(
 
       searchLocation: null,
       setSearchLocation: (searchLocation) => {
-        const { stations, selectedFuel, userLocation, showHighwayStations, searchRadius } = get();
+        const { stations, selectedFuel, userLocation, showHighwayStations, searchRadius, consumption, tankCapacity, fillHabit } = get();
         const referenceLocation = searchLocation || userLocation;
-        const filtered = getFilteredStations(stations, selectedFuel, showHighwayStations, searchRadius, referenceLocation);
-        const { bestPriceStationIds, bestDistanceStationIds } =
-          getBestStationsForFuel({
-            stations: filtered,
-            selectedFuel,
-            referenceLocation,
-          });
-        set({
-          searchLocation,
-          bestPriceStationIds,
-          bestDistanceStationIds,
-        });
+        const { bestPriceStationIds, bestDistanceStationIds, bestRealCostStationIds } = computeBestStations(
+          stations, selectedFuel, showHighwayStations, searchRadius, referenceLocation, consumption, tankCapacity, fillHabit,
+        )
+        set({ searchLocation, bestPriceStationIds, bestDistanceStationIds, bestRealCostStationIds });
       },
 
       setStations: (stations) => {
-        const { selectedFuel, userLocation, searchLocation, showHighwayStations, searchRadius, selectedStation } = get();
+        const { selectedFuel, userLocation, searchLocation, showHighwayStations, searchRadius, selectedStation, consumption, tankCapacity, fillHabit } = get();
         const referenceLocation = searchLocation || userLocation;
-        const filtered = getFilteredStations(stations, selectedFuel, showHighwayStations, searchRadius, referenceLocation);
-        const { bestPriceStationIds, bestDistanceStationIds } =
-          getBestStationsForFuel({
-            stations: filtered,
-            selectedFuel,
-            referenceLocation,
-          });
+        const { bestPriceStationIds, bestDistanceStationIds, bestRealCostStationIds } = computeBestStations(
+          stations, selectedFuel, showHighwayStations, searchRadius, referenceLocation, consumption, tankCapacity, fillHabit,
+        )
         const updatedSelectedStation = selectedStation
           ? stations.find((s) => s.id === selectedStation.id) ?? null
           : null;
-        set({
-          stations,
-          bestPriceStationIds,
-          bestDistanceStationIds,
-          selectedStation: updatedSelectedStation,
-        });
+        set({ stations, bestPriceStationIds, bestDistanceStationIds, bestRealCostStationIds, selectedStation: updatedSelectedStation });
       },
       setIsLoading: (isLoading) => set({ isLoading }),
       setUserLocation: (userLocation) => {
-        const { stations, selectedFuel, searchLocation, showHighwayStations, searchRadius } = get();
+        const { stations, selectedFuel, searchLocation, showHighwayStations, searchRadius, consumption, tankCapacity, fillHabit } = get();
         const referenceLocation = searchLocation || userLocation;
-        const filtered = getFilteredStations(stations, selectedFuel, showHighwayStations, searchRadius, referenceLocation);
-        const { bestPriceStationIds, bestDistanceStationIds } =
-          getBestStationsForFuel({
-            stations: filtered,
-            selectedFuel,
-            referenceLocation,
-          });
-        set({
-          userLocation,
-          bestPriceStationIds,
-          bestDistanceStationIds,
-        });
+        const { bestPriceStationIds, bestDistanceStationIds, bestRealCostStationIds } = computeBestStations(
+          stations, selectedFuel, showHighwayStations, searchRadius, referenceLocation, consumption, tankCapacity, fillHabit,
+        )
+        set({ userLocation, bestPriceStationIds, bestDistanceStationIds, bestRealCostStationIds });
       },
       setSelectedFuel: (selectedFuel) => {
-        const { stations, userLocation, searchLocation, showHighwayStations, searchRadius } = get();
+        const { stations, userLocation, searchLocation, showHighwayStations, searchRadius, consumption, tankCapacity, fillHabit } = get();
         const referenceLocation = searchLocation || userLocation;
-        const filtered = getFilteredStations(stations, selectedFuel, showHighwayStations, searchRadius, referenceLocation);
-        const { bestPriceStationIds, bestDistanceStationIds } =
-          getBestStationsForFuel({
-            stations: filtered,
-            selectedFuel,
-            referenceLocation,
-          });
-        set({
-          selectedFuel,
-          bestPriceStationIds,
-          bestDistanceStationIds,
-        });
+        const { bestPriceStationIds, bestDistanceStationIds, bestRealCostStationIds } = computeBestStations(
+          stations, selectedFuel, showHighwayStations, searchRadius, referenceLocation, consumption, tankCapacity, fillHabit,
+        )
+        set({ selectedFuel, bestPriceStationIds, bestDistanceStationIds, bestRealCostStationIds });
       },
       setSelectedDepartment: (selectedDepartment) =>
         set({ selectedDepartment }),
@@ -207,26 +203,20 @@ export const useAppStore = create<AppStore>()(
           resolvedNames: { ...state.resolvedNames, [stationId]: name },
         })),
       setSearchRadius: (searchRadius) => {
-        const { stations, selectedFuel, userLocation, searchLocation, showHighwayStations } = get();
+        const { stations, selectedFuel, userLocation, searchLocation, showHighwayStations, consumption, tankCapacity, fillHabit } = get();
         const referenceLocation = searchLocation || userLocation;
-        const filtered = getFilteredStations(stations, selectedFuel, showHighwayStations, searchRadius, referenceLocation);
-        const { bestPriceStationIds, bestDistanceStationIds } = getBestStationsForFuel({
-          stations: filtered,
-          selectedFuel,
-          referenceLocation,
-        });
-        set({ searchRadius, bestPriceStationIds, bestDistanceStationIds });
+        const { bestPriceStationIds, bestDistanceStationIds, bestRealCostStationIds } = computeBestStations(
+          stations, selectedFuel, showHighwayStations, searchRadius, referenceLocation, consumption, tankCapacity, fillHabit,
+        )
+        set({ searchRadius, bestPriceStationIds, bestDistanceStationIds, bestRealCostStationIds });
       },
       setShowHighwayStations: (showHighwayStations) => {
-        const { stations, selectedFuel, userLocation, searchLocation, searchRadius } = get();
+        const { stations, selectedFuel, userLocation, searchLocation, searchRadius, consumption, tankCapacity, fillHabit } = get();
         const referenceLocation = searchLocation || userLocation;
-        const filtered = getFilteredStations(stations, selectedFuel, showHighwayStations, searchRadius, referenceLocation);
-        const { bestPriceStationIds, bestDistanceStationIds } = getBestStationsForFuel({
-          stations: filtered,
-          selectedFuel,
-          referenceLocation,
-        });
-        set({ showHighwayStations, bestPriceStationIds, bestDistanceStationIds });
+        const { bestPriceStationIds, bestDistanceStationIds, bestRealCostStationIds } = computeBestStations(
+          stations, selectedFuel, showHighwayStations, searchRadius, referenceLocation, consumption, tankCapacity, fillHabit,
+        )
+        set({ showHighwayStations, bestPriceStationIds, bestDistanceStationIds, bestRealCostStationIds });
       },
       triggerFitToList: () =>
         set((state) => ({ fitToListSignal: state.fitToListSignal + 1 })),
@@ -237,16 +227,64 @@ export const useAppStore = create<AppStore>()(
       fillHabit: 1.0,
       setVehicleType: (type) => {
         if (type === null) {
-          set({ vehicleType: null, tankCapacity: 0, consumption: 0 });
+          const currentSort = get().listSortBy
+          set({
+            vehicleType: null,
+            tankCapacity: 0,
+            consumption: 0,
+            listSortBy: currentSort === 'real-cost' ? 'distance' : currentSort,
+            bestRealCostStationIds: [],
+          });
           return;
         }
         const preset = VEHICLE_PRESETS.find((p) => p.type === type);
         if (!preset) return;
-        set({ vehicleType: type, tankCapacity: preset.tankCapacity, consumption: preset.consumption });
+        const { stations, selectedFuel, userLocation, searchLocation, showHighwayStations, searchRadius, fillHabit } = get()
+        const referenceLocation = searchLocation || userLocation
+        const { bestPriceStationIds, bestDistanceStationIds, bestRealCostStationIds } = computeBestStations(
+          stations, selectedFuel, showHighwayStations, searchRadius, referenceLocation, preset.consumption, preset.tankCapacity, fillHabit,
+        )
+        set({ vehicleType: type, tankCapacity: preset.tankCapacity, consumption: preset.consumption, bestPriceStationIds, bestDistanceStationIds, bestRealCostStationIds });
       },
-      setTankCapacity: (tankCapacity) => set({ tankCapacity }),
-      setConsumption: (consumption) => set({ consumption }),
-      setFillHabit: (fillHabit) => set({ fillHabit }),
+      setTankCapacity: (tankCapacity) => {
+        const { stations, selectedFuel, userLocation, searchLocation, showHighwayStations, searchRadius, consumption, fillHabit } = get()
+        const referenceLocation = searchLocation || userLocation
+        const { bestRealCostStationIds } = getBestRealCostStation({
+          stations: getFilteredStations(stations, selectedFuel, showHighwayStations, searchRadius, referenceLocation),
+          selectedFuel,
+          referenceLocation,
+          consumption,
+          tankCapacity,
+          fillHabit,
+        })
+        set({ tankCapacity, bestRealCostStationIds })
+      },
+      setConsumption: (consumption) => {
+        const { stations, selectedFuel, userLocation, searchLocation, showHighwayStations, searchRadius, tankCapacity, fillHabit } = get()
+        const referenceLocation = searchLocation || userLocation
+        const { bestRealCostStationIds } = getBestRealCostStation({
+          stations: getFilteredStations(stations, selectedFuel, showHighwayStations, searchRadius, referenceLocation),
+          selectedFuel,
+          referenceLocation,
+          consumption,
+          tankCapacity,
+          fillHabit,
+        })
+        set({ consumption, bestRealCostStationIds })
+      },
+      setFillHabit: (fillHabit) => {
+        const { stations, selectedFuel, userLocation, searchLocation, showHighwayStations, searchRadius, tankCapacity, consumption } = get()
+        const referenceLocation = searchLocation || userLocation
+        const { bestRealCostStationIds } = getBestRealCostStation({
+          stations: getFilteredStations(stations, selectedFuel, showHighwayStations, searchRadius, referenceLocation),
+          selectedFuel,
+          referenceLocation,
+          consumption,
+          tankCapacity,
+          fillHabit,
+        })
+        set({ fillHabit, bestRealCostStationIds })
+      },
     }),
     {
       name: "faistonplein-preferences",
@@ -258,6 +296,7 @@ export const useAppStore = create<AppStore>()(
         tankCapacity: state.tankCapacity,
         consumption: state.consumption,
         fillHabit: state.fillHabit,
+        listSortBy: state.listSortBy,
       }),
       merge: (persistedState, currentState) => {
         const ps = persistedState as Partial<AppStore>;
@@ -265,6 +304,11 @@ export const useAppStore = create<AppStore>()(
           ps.selectedFuel && VALID_FUEL_TYPES.includes(ps.selectedFuel)
             ? ps.selectedFuel
             : "Gazole";
+        const vehicleOk =
+          typeof ps.consumption === 'number' && ps.consumption > 0 &&
+          typeof ps.tankCapacity === 'number' && ps.tankCapacity > 0
+        const restoredSort =
+          ps.listSortBy === 'real-cost' && !vehicleOk ? 'distance' : (ps.listSortBy ?? 'distance')
         return {
           ...currentState,
           selectedFuel,
@@ -274,6 +318,7 @@ export const useAppStore = create<AppStore>()(
           tankCapacity: typeof ps.tankCapacity === 'number' && ps.tankCapacity >= 0 ? ps.tankCapacity : 0,
           consumption: typeof ps.consumption === 'number' && ps.consumption >= 0 ? ps.consumption : 0,
           fillHabit: FILL_HABIT_OPTIONS.some((o) => o.value === ps.fillHabit) ? (ps.fillHabit as FillHabit) : 1.0,
+          listSortBy: restoredSort,
         };
       },
     },

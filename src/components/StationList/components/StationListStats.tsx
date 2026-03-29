@@ -22,6 +22,7 @@ import { Separator } from "@/components/ui/separator";
 import { useMediaQuery } from "@/hooks/use-media-query";
 import { DRAWER_SNAP_POINTS } from "@/lib/constants";
 import { FuelStats } from "@/store/useAppStore";
+import { formatPrice } from "@/lib/utils";
 import { ChartNoAxesCombined } from "lucide-react";
 
 interface StationListStatsProps {
@@ -29,8 +30,6 @@ interface StationListStatsProps {
 }
 
 function StatsBody({ statistics }: { statistics: FuelStats }) {
-  const formatPrice = (value: number) => `${value.toFixed(3)}€`;
-
   return (
     <div className="flex flex-col gap-4 pr-4 pb-4">
       <div className="text-muted-foreground text-xs font-bold tracking-wider uppercase">

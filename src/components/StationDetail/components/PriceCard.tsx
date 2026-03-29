@@ -1,7 +1,6 @@
 'use client'
 
 import { FillEstimate } from '@/components/FillEstimate'
-import { cn } from '@/lib/utils'
 import { getPriceTextColor } from '@/lib/priceColor'
 import {
   formatPriceAge,
@@ -9,6 +8,7 @@ import {
   FRESHNESS_TEXT_COLORS,
   getPriceFreshness,
 } from '@/lib/priceFreshness'
+import { cn, formatPrice } from '@/lib/utils'
 import { FuelPrice, FuelStats } from '@/store/useAppStore'
 
 export const PriceCard = ({
@@ -16,11 +16,13 @@ export const PriceCard = ({
   selectedFuel,
   filteredStats,
   inlineEstimate = false,
+  distanceKm,
 }: {
   price: FuelPrice
   selectedFuel: string
   filteredStats: FuelStats | null
   inlineEstimate?: boolean
+  distanceKm?: number | null
 }) => {
   const priceColor = getPriceTextColor(price.price, filteredStats)
 
@@ -36,7 +38,7 @@ export const PriceCard = ({
         : 'bg-amber-500/10 text-amber-500'
     diffBadge = (
       <span className={`rounded-sm px-1.5 py-0.5 text-[10px] font-bold ${colorClass}`}>
-        {`${diff > 0 ? '+ ' : '- '}${Math.abs(diff).toFixed(3)}€`}
+        {`${diff > 0 ? '+ ' : '- '}${formatPrice(Math.abs(diff))}`}
       </span>
     )
   }
@@ -60,10 +62,10 @@ export const PriceCard = ({
         <span className={cn('font-mono text-xl font-extrabold tracking-tighter', priceColor)}>
           {price.price.toFixed(3)}
         </span>
-        <span className='text-xs font-semibold opacity-70'>€</span>
+        <span className='text-xs font-semibold opacity-70'>€/L</span>
         {inlineEstimate && <FillEstimate pricePerLiter={price.price} inline />}
       </div>
-      {!inlineEstimate && <FillEstimate pricePerLiter={price.price} />}
+      {!inlineEstimate && <FillEstimate pricePerLiter={price.price} distanceKm={distanceKm} />}
       {price.updated_at && (() => {
         const freshness = getPriceFreshness(price.updated_at)
         const label = formatPriceAge(price.updated_at)

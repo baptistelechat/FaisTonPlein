@@ -7,11 +7,17 @@ import { useFilteredStations } from "@/hooks/useFilteredStations";
 import { useFilteredStats } from "@/hooks/useFilteredStats";
 import { DRAWER_SNAP_POINTS, RADIUS_OPTIONS } from "@/lib/constants";
 import { getStationNamesDb } from "@/lib/stationName";
-import { calculateDistance, capitalize, cn } from "@/lib/utils";
+import {
+  calculateDistance,
+  calculateEffectiveCost,
+  capitalize,
+  cn,
+  formatPrice,
+} from "@/lib/utils";
 import { Station, useAppStore } from "@/store/useAppStore";
 import { formatRelative } from "date-fns";
 import { fr } from "date-fns/locale";
-import { Clock, Euro, Route } from "lucide-react";
+import { Clock, Euro, Route, Scale } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { StationCard } from "./components/StationCard";
 import { StationCardSkeleton } from "./components/StationCardSkeleton";
@@ -38,12 +44,16 @@ export function StationList({ mobileDrawerSnap }: StationListProps = {}) {
     setListSortBy,
     bestPriceStationIds,
     bestDistanceStationIds,
+    bestRealCostStationIds,
     resolvedNames,
     setResolvedName,
     searchRadius,
     setSearchRadius,
     lastUpdate,
     isLoading,
+    consumption,
+    tankCapacity,
+    fillHabit,
   } = useAppStore();
 
   const majLabel = lastUpdate
@@ -64,8 +74,13 @@ export function StationList({ mobileDrawerSnap }: StationListProps = {}) {
   // Use search location if available, otherwise fallback to user location
   const referenceLocation = searchLocation || userLocation;
 
+  const canUseRealCost =
+    consumption > 0 && tankCapacity > 0 && referenceLocation !== null;
+
   const sortedStations = useMemo(() => {
     if (!referenceLocation) return filteredStations;
+
+    const fillAmount = tankCapacity * fillHabit;
 
     return [...filteredStations].sort((a, b) => {
       const priceA = a.prices.find((p) => p.fuel_type === selectedFuel)?.price;
@@ -90,21 +105,50 @@ export function StationList({ mobileDrawerSnap }: StationListProps = {}) {
           ) * 10,
         ) / 10;
 
+      if (listSortBy === "real-cost") {
+        if (!priceA) return 1;
+        if (!priceB) return -1;
+        const costA = calculateEffectiveCost({
+          pricePerLiter: priceA,
+          distanceKm: distA,
+          fillAmount,
+          consumption,
+        }).total;
+        const costB = calculateEffectiveCost({
+          pricePerLiter: priceB,
+          distanceKm: distB,
+          fillAmount,
+          consumption,
+        }).total;
+        const diff = costA - costB;
+        if (diff !== 0) return diff;
+        return distA - distB;
+      }
+
       if (listSortBy === "price") {
         if (!priceA) return 1;
         if (!priceB) return -1;
         const priceDiff = priceA - priceB;
         if (priceDiff !== 0) return priceDiff;
         return distA - distB;
-      } else {
-        const distDiff = distA - distB;
-        if (distDiff !== 0) return distDiff;
-        if (!priceA) return 1;
-        if (!priceB) return -1;
-        return priceA - priceB;
       }
+
+      // distance (default)
+      const distDiff = distA - distB;
+      if (distDiff !== 0) return distDiff;
+      if (!priceA) return 1;
+      if (!priceB) return -1;
+      return priceA - priceB;
     });
-  }, [filteredStations, referenceLocation, selectedFuel, listSortBy]);
+  }, [
+    filteredStations,
+    referenceLocation,
+    selectedFuel,
+    listSortBy,
+    consumption,
+    tankCapacity,
+    fillHabit,
+  ]);
 
   // Derived state pattern (React-recommended): reset pagination on filter change without extra effect
   const [prevSortedStations, setPrevSortedStations] = useState(sortedStations);
@@ -171,74 +215,90 @@ export function StationList({ mobileDrawerSnap }: StationListProps = {}) {
   return (
     <div className="flex h-full flex-col">
       {/* Header : toujours visible */}
-      <div className="flex items-center justify-between p-4 pb-2">
-        <h2 className="text-lg font-bold">
-          {listSortBy === "price" ? "Les plus économique" : "Autour de moi"}
-        </h2>
-        <div className="flex gap-2">
-          <Badge
-            variant={listSortBy === "distance" ? "default" : "outline"}
-            className="cursor-pointer"
-            onClick={() => setListSortBy("distance")}
-          >
-            <Route className="size-4" />
-            Distance
-          </Badge>
-          <Badge
-            variant={listSortBy === "price" ? "default" : "outline"}
-            className="cursor-pointer"
-            onClick={() => setListSortBy("price")}
-          >
-            <Euro className="size-4" />
-            Prix
-          </Badge>
+      <div className="flex flex-col gap-2 p-4 pb-3">
+        <div className="flex flex-col gap-1">
+          <h2 className="text-lg font-bold">
+            {listSortBy === "price"
+              ? "Les plus économiques"
+              : listSortBy === "real-cost"
+                ? "Meilleur rapport coût/trajet"
+                : "Autour de moi"}
+          </h2>
+          {majLabel && (
+            <span className="text-muted-foreground flex items-center gap-1 text-[11px]">
+              <Clock className="size-3" />
+              {`Mise à jour : ${majLabel}`}
+            </span>
+          )}
+        </div>
+        <div className="flex items-center gap-2  pr-3">
+          <div className="flex flex-1 flex-col gap-2">
+            <div className="flex flex-wrap gap-2">
+              <Badge
+                variant={listSortBy === "distance" ? "default" : "outline"}
+                className="cursor-pointer"
+                onClick={() => setListSortBy("distance")}
+              >
+                <Route className="size-4" />
+                Distance
+              </Badge>
+              <Badge
+                variant={listSortBy === "price" ? "default" : "outline"}
+                className="cursor-pointer"
+                onClick={() => setListSortBy("price")}
+              >
+                <Euro className="size-4" />
+                Prix
+              </Badge>
+              {canUseRealCost && (
+                <Badge
+                  variant={listSortBy === "real-cost" ? "default" : "outline"}
+                  className="cursor-pointer"
+                  onClick={() => setListSortBy("real-cost")}
+                >
+                  <Scale className="size-4" />
+                  Coût/trajet
+                </Badge>
+              )}
+            </div>
+            <div className="flex flex-wrap gap-1">
+              {RADIUS_OPTIONS.map((option) => (
+                <Badge
+                  key={option.value}
+                  variant={
+                    searchRadius === option.value ? "default" : "outline"
+                  }
+                  className="cursor-pointer"
+                  onClick={() => setSearchRadius(option.value)}
+                >
+                  {option.label}
+                </Badge>
+              ))}
+            </div>
+          </div>
+          <StationListSettings />
         </div>
       </div>
 
       <div className="flex flex-col gap-3 px-4 pb-3">
-        {majLabel && (
-          <span className="text-muted-foreground flex items-center gap-1 text-[11px]">
-            <Clock className="size-3" />
-            {`Mise à jour : ${majLabel}`}
-          </span>
-        )}
-
-        <div className="flex flex-wrap items-center gap-1">
-          {RADIUS_OPTIONS.map((option) => (
-            <Badge
-              key={option.value}
-              variant={
-                searchRadius === option.value ? "default" : "outline"
-              }
-              className="cursor-pointer"
-              onClick={() => setSearchRadius(option.value)}
-            >
-              {option.label}
-            </Badge>
-          ))}
-          <div className="ml-auto">
-            <StationListSettings />
-          </div>
-        </div>
-
         {currentStats && (
           <div className="bg-muted/50 grid w-full grid-cols-[1fr_1fr_1fr_auto] items-center gap-3 rounded-lg p-3 text-sm">
             <div className="flex flex-col items-center">
               <span className="text-xs font-bold">Min.</span>
               <span className="font-mono font-semibold text-emerald-600">
-                {currentStats.min.toFixed(3)}€
+                {formatPrice(currentStats.min)}
               </span>
             </div>
             <div className="flex flex-col items-center">
               <span className="text-xs font-bold">Médiane</span>
               <span className="font-mono font-semibold text-amber-600">
-                {currentStats.median.toFixed(3)}€
+                {formatPrice(currentStats.median)}
               </span>
             </div>
             <div className="flex flex-col items-center">
               <span className="text-xs font-bold">Max.</span>
               <span className="font-mono font-semibold text-rose-600">
-                {currentStats.max.toFixed(3)}€
+                {formatPrice(currentStats.max)}
               </span>
             </div>
             <StationListStats statistics={currentStats} />
@@ -279,6 +339,8 @@ export function StationList({ mobileDrawerSnap }: StationListProps = {}) {
                   filteredStats={currentStats}
                   bestPriceStationIds={bestPriceStationIds}
                   bestDistanceStationIds={bestDistanceStationIds}
+                  bestRealCostStationIds={bestRealCostStationIds}
+                  listSortBy={listSortBy}
                   onClick={() => handleStationClick(station)}
                 />
               ))}
@@ -290,4 +352,3 @@ export function StationList({ mobileDrawerSnap }: StationListProps = {}) {
     </div>
   );
 }
-
