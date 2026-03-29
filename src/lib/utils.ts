@@ -187,3 +187,37 @@ export function getBestRealCostStation({
 export function formatPrice(value: number): string {
   return `${value.toFixed(3)}€/L`
 }
+
+function isPointInRing(point: [number, number], ring: [number, number][]): boolean {
+  const [x, y] = point
+  let inside = false
+  for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+    const [xi, yi] = ring[i]
+    const [xj, yj] = ring[j]
+    const intersect = yi > y !== yj > y && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi
+    if (intersect) inside = !inside
+  }
+  return inside
+}
+
+export function isPointInGeometry(point: [number, number], geometry: GeoJSON.Geometry): boolean {
+  if (geometry.type === 'Polygon') {
+    if (!isPointInRing(point, geometry.coordinates[0] as [number, number][])) return false
+    for (let i = 1; i < geometry.coordinates.length; i++) {
+      if (isPointInRing(point, geometry.coordinates[i] as [number, number][])) return false
+    }
+    return true
+  }
+  if (geometry.type === 'MultiPolygon') {
+    return geometry.coordinates.some((polygon) => {
+      if (!isPointInRing(point, polygon[0] as [number, number][])) return false
+      for (let i = 1; i < polygon.length; i++) {
+        if (isPointInRing(point, polygon[i] as [number, number][])) return false
+      }
+      return true
+    })
+  }
+  return false
+}
+
+

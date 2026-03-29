@@ -159,9 +159,9 @@
 
 **Critères d'Acceptation :**
 
-- [ ] Badge "Coût réel" visible uniquement si un véhicule est configuré et une position de référence est disponible.
-- [ ] Formule : `effectiveCost = price × fillAmount + price × distance × (consumption / 100)`.
-- [ ] Affichage du coût de trajet sous l'estimation de plein dans `StationCard` quand le tri est actif.
+- [x] Badge "Coût réel" visible uniquement si un véhicule est configuré et une position de référence est disponible.
+- [x] Formule : `effectiveCost = price × fillAmount + price × distance × (consumption / 100)`.
+- [x] Affichage du coût de trajet sous l'estimation de plein dans `StationCard` quand le tri est actif.
 
 ### US-02-04 : Distances Routières Réelles (OSRM + Isodistance)
 
@@ -171,11 +171,11 @@
 
 **Critères d'Acceptation :**
 
-- [ ] Toggle `Route réelle` / `Vol d'oiseau` dans les settings (préférence persistée, défaut : route réelle).
-- [ ] Mode route : distances OSRM `/table` dans la liste + polygone isodistance IGN sur la carte.
-- [ ] Mode vol d'oiseau : Haversine dans la liste + cercle sur la carte (comportement actuel).
-- [ ] Fallback silencieux vers Haversine/cercle si les APIs sont indisponibles.
-- [ ] Indicateur discret `~` sur les distances Haversine temporaires en mode route.
+- [x] Toggle `Route réelle` / `Vol d'oiseau` dans les settings (préférence persistée, défaut : route réelle).
+- [x] Mode route : distances OSRM `/table` dans la liste + polygone isodistance IGN sur la carte.
+- [x] Mode vol d'oiseau : Haversine dans la liste + cercle sur la carte (comportement actuel).
+- [x] Fallback silencieux vers Haversine/cercle si les APIs sont indisponibles.
+- [x] Indicateur discret `~` sur les distances Haversine temporaires en mode route.
 
 ***
 

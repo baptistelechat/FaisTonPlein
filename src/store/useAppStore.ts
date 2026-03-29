@@ -1,4 +1,5 @@
 import { DEFAULT_SEARCH_RADIUS, FILL_HABIT_OPTIONS, FillHabit, FUEL_TYPES, FuelType, RADIUS_OPTIONS, VEHICLE_PRESETS, VehicleType } from '@/lib/constants';
+import type { Geometry } from 'geojson';
 import { filterStationsByLocation, getBestRealCostStation, getBestStationsForFuel } from '@/lib/utils';
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
@@ -83,6 +84,16 @@ type AppStore = {
   setTankCapacity: (capacity: number) => void;
   setConsumption: (consumption: number) => void;
   setFillHabit: (habit: FillHabit) => void;
+
+  distanceMode: 'road' | 'crow-fly';
+  roadDistances: Record<string, number>;
+  isLoadingRoadDistances: boolean;
+  isodistanceGeometry: Geometry | null;
+  setDistanceMode: (mode: 'road' | 'crow-fly') => void;
+  setRoadDistances: (distances: Record<string, number>) => void;
+  setIsLoadingRoadDistances: (loading: boolean) => void;
+  setIsodistanceGeometry: (geometry: Geometry | null) => void;
+
 };
 
 function getFilteredStations(
@@ -221,6 +232,15 @@ export const useAppStore = create<AppStore>()(
       triggerFitToList: () =>
         set((state) => ({ fitToListSignal: state.fitToListSignal + 1 })),
 
+      distanceMode: 'road',
+      roadDistances: {},
+      isLoadingRoadDistances: false,
+      isodistanceGeometry: null,
+      setDistanceMode: (distanceMode) => set({ distanceMode }),
+      setRoadDistances: (roadDistances) => set({ roadDistances }),
+      setIsLoadingRoadDistances: (isLoadingRoadDistances) => set({ isLoadingRoadDistances }),
+      setIsodistanceGeometry: (isodistanceGeometry) => set({ isodistanceGeometry }),
+
       vehicleType: null,
       tankCapacity: 0,
       consumption: 0,
@@ -297,6 +317,7 @@ export const useAppStore = create<AppStore>()(
         consumption: state.consumption,
         fillHabit: state.fillHabit,
         listSortBy: state.listSortBy,
+        distanceMode: state.distanceMode,
       }),
       merge: (persistedState, currentState) => {
         const ps = persistedState as Partial<AppStore>;
@@ -319,6 +340,7 @@ export const useAppStore = create<AppStore>()(
           consumption: typeof ps.consumption === 'number' && ps.consumption >= 0 ? ps.consumption : 0,
           fillHabit: FILL_HABIT_OPTIONS.some((o) => o.value === ps.fillHabit) ? (ps.fillHabit as FillHabit) : 1.0,
           listSortBy: restoredSort,
+          distanceMode: ps.distanceMode === 'crow-fly' ? 'crow-fly' : 'road',
         };
       },
     },

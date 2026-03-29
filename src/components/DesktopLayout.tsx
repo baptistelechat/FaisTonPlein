@@ -4,10 +4,12 @@ import { SearchBar } from "@/components/SearchBar";
 import { StationDetail } from "@/components/StationDetail";
 import { StationList } from "@/components/StationList";
 import { Button } from "@/components/ui/button";
+import { useRoadDistances } from "@/hooks/useRoadDistances";
 import { useAppStore } from "@/store/useAppStore";
 import { ArrowLeft } from "lucide-react";
 
 export function DesktopLayout() {
+  useRoadDistances();
   const { selectedStation, setSelectedStation, triggerFitToList } =
     useAppStore();
 

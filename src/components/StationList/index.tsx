@@ -54,6 +54,9 @@ export function StationList({ mobileDrawerSnap }: StationListProps = {}) {
     consumption,
     tankCapacity,
     fillHabit,
+    roadDistances,
+    isLoadingRoadDistances,
+    distanceMode,
   } = useAppStore();
 
   const majLabel = lastUpdate
@@ -82,28 +85,19 @@ export function StationList({ mobileDrawerSnap }: StationListProps = {}) {
 
     const fillAmount = tankCapacity * fillHabit;
 
+    const getEffectiveDistance = (station: Station): number => {
+      if (distanceMode === 'road' && roadDistances[station.id] !== undefined) {
+        return roadDistances[station.id]
+      }
+      return Math.round(calculateDistance(referenceLocation[1], referenceLocation[0], station.lat, station.lon) * 10) / 10
+    }
+
     return [...filteredStations].sort((a, b) => {
       const priceA = a.prices.find((p) => p.fuel_type === selectedFuel)?.price;
       const priceB = b.prices.find((p) => p.fuel_type === selectedFuel)?.price;
 
-      const distA =
-        Math.round(
-          calculateDistance(
-            referenceLocation[1],
-            referenceLocation[0],
-            a.lat,
-            a.lon,
-          ) * 10,
-        ) / 10;
-      const distB =
-        Math.round(
-          calculateDistance(
-            referenceLocation[1],
-            referenceLocation[0],
-            b.lat,
-            b.lon,
-          ) * 10,
-        ) / 10;
+      const distA = getEffectiveDistance(a)
+      const distB = getEffectiveDistance(b)
 
       if (listSortBy === "real-cost") {
         if (!priceA) return 1;
@@ -148,6 +142,8 @@ export function StationList({ mobileDrawerSnap }: StationListProps = {}) {
     consumption,
     tankCapacity,
     fillHabit,
+    roadDistances,
+    distanceMode,
   ]);
 
   // Derived state pattern (React-recommended): reset pagination on filter change without extra effect
@@ -202,7 +198,7 @@ export function StationList({ mobileDrawerSnap }: StationListProps = {}) {
     );
     observer.observe(sentinel);
     return () => observer.disconnect();
-  }, [sortedStations.length]);
+  }, [sortedStations.length, isLoading, isLoadingRoadDistances]);
 
   const handleStationClick = (station: Station) => {
     setSelectedStation(station);
@@ -306,7 +302,7 @@ export function StationList({ mobileDrawerSnap }: StationListProps = {}) {
         )}
       </div>
 
-      {isExpanded && isLoading ? (
+      {isExpanded && (isLoading || (distanceMode === 'road' && isLoadingRoadDistances)) ? (
         <div className="flex-1 overflow-hidden">
           <div className="flex flex-col gap-3 px-4 pt-1 pb-4">
             {Array.from({ length: 20 }).map((_, i) => (

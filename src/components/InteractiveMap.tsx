@@ -4,10 +4,12 @@ import {
   Map,
   MapControls,
   MapMarker,
+  useMap,
   type MapViewport,
 } from "@/components/ui/map";
 import { useFilteredStations } from "@/hooks/useFilteredStations";
 import { useFilteredStats } from "@/hooks/useFilteredStats";
+import { useIsodistance } from "@/hooks/useIsodistance";
 import { reverseGeocode } from "@/lib/api-adresse";
 import { useAppStore } from "@/store/useAppStore";
 import { Loader2 } from "lucide-react";
@@ -56,6 +58,87 @@ const createCircleGeoJSON = (
   };
 };
 
+const RADIUS_SOURCE_ID = 'radius-zone';
+const RADIUS_PRIMARY_COLOR = '#4f46e5';
+
+function RadiusZone({
+  referenceLocation,
+  searchRadius,
+  distanceMode,
+}: {
+  referenceLocation: [number, number] | null;
+  searchRadius: number;
+  distanceMode: 'road' | 'crow-fly';
+}) {
+  const { map, isLoaded } = useMap();
+  const isodistanceGeometry = useAppStore((s) => s.isodistanceGeometry);
+
+  // Créer la source et les layers une seule fois quand la carte est chargée
+  useEffect(() => {
+    if (!isLoaded || !map) return;
+    if (!map.getSource(RADIUS_SOURCE_ID)) {
+      map.addSource(RADIUS_SOURCE_ID, {
+        type: 'geojson',
+        data: { type: 'FeatureCollection', features: [] },
+      });
+      map.addLayer({
+        id: 'radius-fill',
+        type: 'fill',
+        source: RADIUS_SOURCE_ID,
+        paint: { 'fill-color': RADIUS_PRIMARY_COLOR, 'fill-opacity': 0.04 },
+      });
+      map.addLayer({
+        id: 'radius-border',
+        type: 'line',
+        source: RADIUS_SOURCE_ID,
+        paint: {
+          'line-color': RADIUS_PRIMARY_COLOR,
+          'line-width': 1.5,
+          'line-opacity': 0.5,
+        },
+      });
+    }
+    return () => {
+      try {
+        if (map.getLayer('radius-border')) map.removeLayer('radius-border');
+        if (map.getLayer('radius-fill')) map.removeLayer('radius-fill');
+        if (map.getSource(RADIUS_SOURCE_ID)) map.removeSource(RADIUS_SOURCE_ID);
+      } catch {
+        // la carte a déjà été détruite, rien à nettoyer
+      }
+    };
+  }, [isLoaded, map]);
+
+  // Mettre à jour les données et le style de la zone quand les paramètres changent
+  useEffect(() => {
+    if (!isLoaded || !map) return;
+    const source = map.getSource(RADIUS_SOURCE_ID) as GeoJSONSource;
+    if (!source) return;
+
+    if (map.getLayer('radius-border')) {
+      map.setPaintProperty(
+        'radius-border',
+        'line-dasharray',
+        distanceMode === 'crow-fly' ? [3, 3] : null,
+      );
+    }
+
+    if (!referenceLocation || searchRadius === 0) {
+      source.setData({ type: 'FeatureCollection', features: [] });
+    } else if (distanceMode === 'road') {
+      if (isodistanceGeometry) {
+        source.setData({ type: 'Feature', geometry: isodistanceGeometry, properties: {} });
+      } else {
+        source.setData({ type: 'FeatureCollection', features: [] });
+      }
+    } else {
+      source.setData(createCircleGeoJSON(referenceLocation, searchRadius));
+    }
+  }, [isLoaded, map, referenceLocation, searchRadius, distanceMode, isodistanceGeometry]);
+
+  return null;
+}
+
 export default function InteractiveMap({
   children,
   mobileDrawerSnap,
@@ -84,6 +167,10 @@ export default function InteractiveMap({
     searchRadius,
     fitToListSignal,
   } = useAppStore();
+
+  const distanceMode = useAppStore((s) => s.distanceMode)
+  const isodistanceGeometry = useAppStore((s) => s.isodistanceGeometry)
+  useIsodistance()
 
   const filteredStations = useFilteredStations();
   const allFilteredStats = useFilteredStats();
@@ -157,56 +244,27 @@ export default function InteractiveMap({
     referenceLocationRef.current = referenceLocation;
   }, [searchRadius, referenceLocation]);
 
+  // Adapter le zoom quand l'isodistance routière arrive
   useEffect(() => {
-    if (!mapInstance) return;
+    if (!mapRef.current || !isodistanceGeometry || distanceMode !== 'road') return;
 
-    const updateCircle = () => {
-      if (!mapInstance.getSource("radius-circle")) {
-        const primaryColor = "#4f46e5"; // indigo-600
-        mapInstance.addSource("radius-circle", {
-          type: "geojson",
-          data: { type: "FeatureCollection", features: [] },
-        });
-        mapInstance.addLayer({
-          id: "radius-fill",
-          type: "fill",
-          source: "radius-circle",
-          paint: {
-            "fill-color": primaryColor,
-            "fill-opacity": 0.04,
-          },
-        });
-        mapInstance.addLayer({
-          id: "radius-border",
-          type: "line",
-          source: "radius-circle",
-          paint: {
-            "line-color": primaryColor,
-            "line-width": 1.5,
-            "line-opacity": 0.5,
-            "line-dasharray": [3, 3],
-          },
-        });
+    const coords: [number, number][] = [];
+    if (isodistanceGeometry.type === 'Polygon') {
+      coords.push(...(isodistanceGeometry.coordinates[0] as [number, number][]));
+    } else if (isodistanceGeometry.type === 'MultiPolygon') {
+      for (const polygon of isodistanceGeometry.coordinates) {
+        coords.push(...(polygon[0] as [number, number][]));
       }
-
-      const source = mapInstance.getSource("radius-circle") as GeoJSONSource;
-
-      if (!referenceLocation || searchRadius === 0) {
-        source.setData({ type: "FeatureCollection", features: [] });
-      } else {
-        source.setData(createCircleGeoJSON(referenceLocation, searchRadius));
-      }
-    };
-
-    if (!mapInstance.isStyleLoaded()) {
-      mapInstance.once("load", updateCircle);
-      return () => {
-        mapInstance.off("load", updateCircle);
-      };
     }
+    if (coords.length === 0) return;
 
-    updateCircle();
-  }, [mapInstance, referenceLocation, searchRadius]);
+    const lons = coords.map(([lon]) => lon);
+    const lats = coords.map(([, lat]) => lat);
+    mapRef.current.fitBounds(
+      [[Math.min(...lons), Math.min(...lats)], [Math.max(...lons), Math.max(...lats)]],
+      { padding: 60, duration: 800 },
+    );
+  }, [isodistanceGeometry, distanceMode]);
 
   // Recentrer la carte quand le rayon de recherche change
   useEffect(() => {
@@ -450,6 +508,13 @@ export default function InteractiveMap({
           }
         />
         {children}
+
+        {/* Zone de rayon — isodistance routière ou cercle à vol d'oiseau */}
+        <RadiusZone
+          referenceLocation={referenceLocation}
+          searchRadius={searchRadius}
+          distanceMode={distanceMode}
+        />
 
         {/* User Location Marker */}
         {userLocation && !searchLocation && (

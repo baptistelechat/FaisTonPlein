@@ -27,6 +27,8 @@ export function StationDetail({ mobileDrawerSnap }: StationDetailProps) {
     bestRealCostStationIds,
     userLocation,
     searchLocation,
+    roadDistances,
+    distanceMode,
   } = useAppStore()
 
   const filteredStats = useFilteredStats()
@@ -39,9 +41,13 @@ export function StationDetail({ mobileDrawerSnap }: StationDetailProps) {
   if (!selectedStation) return null
 
   const referenceLocation = searchLocation || userLocation
-  const distanceKm = referenceLocation
-    ? calculateDistance(referenceLocation[1], referenceLocation[0], selectedStation.lat, selectedStation.lon)
+
+  const haversineDistance = referenceLocation
+    ? Math.round(calculateDistance(referenceLocation[1], referenceLocation[0], selectedStation.lat, selectedStation.lon) * 10) / 10
     : null
+  const roadDistance = roadDistances[selectedStation.id] ?? null
+  const distanceKm = distanceMode === 'road' && roadDistance !== null ? roadDistance : haversineDistance
+  const isExactDistance = distanceMode === 'road' && roadDistance !== null
 
   const selectedPrice = selectedStation.prices.find((p) => p.fuel_type === selectedFuel)
   const sortedPrices = [...selectedStation.prices].sort(
@@ -90,6 +96,12 @@ export function StationDetail({ mobileDrawerSnap }: StationDetailProps) {
               </Badge>
             )}
           </div>
+          {distanceKm !== null && (
+            <p className='text-primary/80 flex items-center gap-1.5 text-sm'>
+              <Navigation className='size-3.5' />
+              {!isExactDistance && '~'}{distanceKm.toFixed(1)} km
+            </p>
+          )}
           <p className='text-muted-foreground flex items-center gap-1.5 text-sm'>
             <MapPin className='size-3.5' />
             {selectedStation.address}

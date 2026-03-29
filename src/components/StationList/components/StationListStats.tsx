@@ -1,8 +1,10 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+
 import {
   Dialog,
+  DialogClose,
   DialogContent,
   DialogDescription,
   DialogHeader,
@@ -155,6 +157,11 @@ const StationListStats = ({ statistics }: StationListStatsProps) => {
           <ScrollArea className="max-h-[70vh]">
             <StatsBody statistics={statistics} />
           </ScrollArea>
+          <div className="flex justify-end pt-2">
+            <DialogClose>
+              <Button variant="outline">Fermer</Button>
+            </DialogClose>
+          </div>
         </DialogContent>
       </Dialog>
     );

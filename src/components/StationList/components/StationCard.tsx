@@ -13,7 +13,7 @@ import {
 } from '@/lib/priceFreshness'
 import { calculateDistance, cn } from '@/lib/utils'
 import { FuelStats, Station, useAppStore } from '@/store/useAppStore'
-import { Euro, Navigation, Road, Route, Scale } from 'lucide-react'
+import { Bird, Euro, Navigation, Road, Route, Scale } from 'lucide-react'
 
 export interface StationCardProps {
   station: Station
@@ -39,20 +39,19 @@ export function StationCard({
   onClick,
 }: StationCardProps) {
   const resolvedName = useAppStore((s) => s.resolvedNames[String(station.id)])
+  const roadDistances = useAppStore((s) => s.roadDistances)
+  const distanceMode = useAppStore((s) => s.distanceMode)
   const displayName = resolvedName ?? station.name
   const isNameLoading = resolvedName === undefined
   const price = station.prices.find((p) => p.fuel_type === selectedFuel)
-  const distance = referenceLocation
-    ? calculateDistance(
-        referenceLocation[1], // lat
-        referenceLocation[0], // lon
-        station.lat,
-        station.lon,
-      )
+
+  const haversineDistance = referenceLocation
+    ? Math.round(calculateDistance(referenceLocation[1], referenceLocation[0], station.lat, station.lon) * 10) / 10
     : null
 
-  // Distance arrondie à 1 décimale — identique au tri dans StationList
-  const roundedDistance = distance !== null ? Math.round(distance * 10) / 10 : null
+  const roadDistance = roadDistances[station.id] ?? null
+  const distance = distanceMode === 'road' && roadDistance !== null ? roadDistance : haversineDistance
+  const isExactDistance = distanceMode === 'road' && roadDistance !== null
 
   const priceColor = price
     ? getPriceTextColor(price.price, filteredStats)
@@ -91,8 +90,8 @@ export function StationCard({
           <div className='text-muted-foreground flex min-w-0 items-center gap-2 text-xs'>
             {distance !== null && (
               <span className='text-primary/80 flex shrink-0 items-center gap-0.5 whitespace-nowrap'>
-                <Navigation className='size-3' />
-                {distance.toFixed(1)} km
+                {isExactDistance ? <Navigation className='size-3' /> : <Bird className='size-3' />}
+                {!isExactDistance && '~'}{distance.toFixed(1)} km
               </span>
             )}
             <span className='truncate'>{station.address}</span>
@@ -116,7 +115,7 @@ export function StationCard({
           ) : (
             <span className='text-muted-foreground text-xs'>-</span>
           )}
-          {price && <FillEstimate pricePerLiter={price.price} distanceKm={roundedDistance} />}
+          {price && <FillEstimate pricePerLiter={price.price} distanceKm={distance} />}
           {price?.updated_at &&
             (() => {
               const freshness = getPriceFreshness(price.updated_at)

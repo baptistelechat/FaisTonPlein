@@ -23,7 +23,6 @@ export const RADIUS_OPTIONS = [
   { label: "10 km", value: 10 },
   { label: "20 km", value: 20 },
   { label: "50 km", value: 50 },
-  { label: "100 km", value: 100 },
 ] as const;
 
 export type SearchRadius = (typeof RADIUS_OPTIONS)[number]["value"];

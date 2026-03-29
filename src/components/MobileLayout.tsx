@@ -5,12 +5,14 @@ import { StationDetail } from "@/components/StationDetail";
 import { StationList } from "@/components/StationList";
 import { Button } from "@/components/ui/button";
 import { Drawer, DrawerContent, DrawerTitle } from "@/components/ui/drawer";
+import { useRoadDistances } from "@/hooks/useRoadDistances";
 import { DRAWER_SNAP_POINTS, DRAWER_SNAP_POINTS_ARRAY } from "@/lib/constants";
 import { useAppStore } from "@/store/useAppStore";
 import { ArrowLeft, Search } from "lucide-react";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 
 export function MobileLayout() {
+  useRoadDistances();
   const {
     selectedStation,
     setSelectedStation,
@@ -134,13 +136,9 @@ export function MobileLayout() {
                       variant="ghost"
                       size="sm"
                       onClick={() => {
-                        if (snap === DRAWER_SNAP_POINTS.EXPANDED) {
-                          setSnap(DRAWER_SNAP_POINTS.DEFAULT);
-                        } else {
-                          setSelectedStation(null);
-                          setSnap(DRAWER_SNAP_POINTS.DEFAULT);
-                          triggerFitToList();
-                        }
+                        setSelectedStation(null);
+                        setSnap(DRAWER_SNAP_POINTS.DEFAULT);
+                        triggerFitToList();
                       }}
                       className="max-w-full justify-start gap-2"
                     >

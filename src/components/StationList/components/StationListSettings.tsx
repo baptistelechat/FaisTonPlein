@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
+  DialogClose,
   DialogContent,
   DialogDescription,
   DialogHeader,
@@ -37,11 +38,13 @@ import { calculateDistance, cn } from "@/lib/utils";
 import { useAppStore } from "@/store/useAppStore";
 import type { LucideIcon } from "lucide-react";
 import {
+  Bird,
   Bus,
   Car,
   CarFront,
   Fuel,
   Gauge,
+  Navigation,
   Plug,
   Road,
   RotateCcw,
@@ -101,7 +104,7 @@ function VehicleInputs({ vehicleType }: { vehicleType: VehicleType }) {
           <RotateCcw className="size-3.5" />
         </Button>
       </div>
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-1.5">
           <Label htmlFor="tank-capacity" className="flex items-center gap-1.5">
             <Fuel className="size-3.5" />
@@ -175,6 +178,8 @@ function SettingsBody() {
     fillHabit,
     setFillHabit,
     tankCapacity,
+    distanceMode,
+    setDistanceMode,
   } = useAppStore();
 
   const referenceLocation = searchLocation || userLocation;
@@ -244,6 +249,32 @@ function SettingsBody() {
             disabled={!hasHighwayInRadius}
           />
         </div>
+      </div>
+      <Separator />
+      <div className="text-muted-foreground text-xs font-bold tracking-wider uppercase">
+        Distances
+      </div>
+      <div className="grid grid-cols-2 gap-1.5">
+        {(
+          [
+            { value: 'road', label: 'Route réelle', icon: Navigation },
+            { value: 'crow-fly', label: "Vol d'oiseau", icon: Bird },
+          ] as const
+        ).map(({ value, label, icon: Icon }) => (
+          <button
+            key={value}
+            onClick={() => setDistanceMode(value)}
+            className={cn(
+              'flex items-center gap-1.5 rounded-lg border p-2 text-left text-xs transition-all',
+              distanceMode === value
+                ? 'border-primary bg-primary/5 text-primary font-semibold'
+                : 'border-border/50 text-muted-foreground hover:border-border hover:text-foreground',
+            )}
+          >
+            <Icon className="size-3.5 shrink-0" />
+            {label}
+          </button>
+        ))}
       </div>
       <Separator />
 
@@ -332,6 +363,11 @@ const StationListSettings = () => {
           <ScrollArea className="max-h-[72vh]">
             <SettingsBody />
           </ScrollArea>
+          <div className="flex justify-end pt-2">
+            <DialogClose>
+              <Button variant="outline">Fermer</Button>
+            </DialogClose>
+          </div>
         </DialogContent>
       </Dialog>
     );
