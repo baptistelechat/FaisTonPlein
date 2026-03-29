@@ -6,7 +6,7 @@
 **Version :** 1.0
 **Source :** [PRD](../planning/prd-faistonplein.md)
 
----
+***
 
 ## E00 - Fondations Techniques
 
@@ -66,7 +66,7 @@
 - [x] Conversion et intégration dans le pipeline existant (Parquet + HuggingFace).
 - [x] Gestion des cas limites (fichiers corrompus, jours manquants).
 
----
+***
 
 ## E01 - Exploration Géographique
 
@@ -122,7 +122,7 @@
 - [x] La carte et la liste se mettent à jour instantanément.
 - [x] Le choix est sauvegardé pour les prochaines sessions.
 
----
+***
 
 ## E02 - Comparaison Économique
 
@@ -147,9 +147,9 @@
 
 **Critères d'Acceptation :**
 
-- [ ] Input pour saisir la capacité (en Litres) dans les paramètres.
-- [ ] Affichage du coût total (ex: "85€") en évidence.
-- [ ] Le calcul se met à jour si le prix change.
+- [x] Input pour saisir la capacité (en Litres) dans les paramètres.
+- [x] Affichage du coût total (ex: "85€") en évidence.
+- [x] Le calcul se met à jour si le prix change.
 
 ### US-02-03 : Tri Intelligent (Prix + Distance)
 
@@ -162,7 +162,7 @@
 - [ ] Algorithme prenant en compte la consommation moyenne (paramétrable ou défaut).
 - [ ] Affichage du surcoût lié au détour.
 
----
+***
 
 ## E03 - Intelligence & Analyse
 
@@ -201,7 +201,7 @@
 - [ ] Graphique linéaire interactif (Recharts).
 - [ ] Affichage des points de données au survol.
 
----
+***
 
 ## E04 - Résilience (Offline)
 
@@ -230,3 +230,4 @@
 - [ ] L'application se lance sans réseau.
 - [ ] Accès complet à la carte et liste (données en cache).
 - [ ] Indicateur "Mode Hors Ligne".
+
