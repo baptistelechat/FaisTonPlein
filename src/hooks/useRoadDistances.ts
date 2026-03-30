@@ -11,17 +11,20 @@ export function useRoadDistances() {
     searchLocation,
     distanceMode,
     setRoadDistances,
+    setRoadDurations,
     setIsLoadingRoadDistances,
   } = useAppStore()
   const filteredStations = useFilteredStations()
   const referenceLocation = searchLocation ?? userLocation
 
   const distanceCacheRef = useRef<Map<string, number>>(new Map())
+  const durationCacheRef = useRef<Map<string, number>>(new Map())
   const cachedLocationKeyRef = useRef<string | null>(null)
 
   useEffect(() => {
     if (distanceMode !== 'road' || !referenceLocation || filteredStations.length === 0) {
       setRoadDistances({})
+      setRoadDurations({})
       setIsLoadingRoadDistances(false)
       return
     }
@@ -30,43 +33,51 @@ export function useRoadDistances() {
 
     if (cachedLocationKeyRef.current !== locationKey) {
       distanceCacheRef.current = new Map()
+      durationCacheRef.current = new Map()
       cachedLocationKeyRef.current = locationKey
     }
 
     const missing = filteredStations.filter((s) => !distanceCacheRef.current.has(s.id))
 
     if (missing.length === 0) {
-      const result: Record<string, number> = {}
+      const distResult: Record<string, number> = {}
+      const durResult: Record<string, number> = {}
       filteredStations.forEach((s) => {
         const d = distanceCacheRef.current.get(s.id)
-        if (d !== undefined) result[s.id] = d
+        if (d !== undefined) distResult[s.id] = d
+        const dur = durationCacheRef.current.get(s.id)
+        if (dur !== undefined) durResult[s.id] = dur
       })
-      setRoadDistances(result)
+      setRoadDistances(distResult)
+      setRoadDurations(durResult)
       setIsLoadingRoadDistances(false)
       return
     }
 
     let cancelled = false
     setIsLoadingRoadDistances(true)
-    fetchRoadDistances(referenceLocation, filteredStations).then((map) => {
+    fetchRoadDistances(referenceLocation, filteredStations).then(({ distances, durations }) => {
       if (cancelled) return
 
-      // Si OSRM a retourné des résultats, on met à jour le cache et le store
-      if (map.size > 0) {
-        map.forEach((v, k) => distanceCacheRef.current.set(k, v))
-        const result: Record<string, number> = {}
+      if (distances.size > 0) {
+        distances.forEach((v, k) => distanceCacheRef.current.set(k, v))
+        durations.forEach((v, k) => durationCacheRef.current.set(k, v))
+
+        const distResult: Record<string, number> = {}
+        const durResult: Record<string, number> = {}
         filteredStations.forEach((s) => {
           const d = distanceCacheRef.current.get(s.id)
-          if (d !== undefined) result[s.id] = d
+          if (d !== undefined) distResult[s.id] = d
+          const dur = durationCacheRef.current.get(s.id)
+          if (dur !== undefined) durResult[s.id] = dur
         })
-        setRoadDistances(result)
+        setRoadDistances(distResult)
+        setRoadDurations(durResult)
       }
-      // Si map est vide (OSRM indisponible après tous les retries), on ne touche pas
-      // aux distances existantes — les stations gardent leurs distances actuelles
 
       setIsLoadingRoadDistances(false)
     })
 
     return () => { cancelled = true }
-  }, [referenceLocation, filteredStations, distanceMode, setRoadDistances, setIsLoadingRoadDistances])
+  }, [referenceLocation, filteredStations, distanceMode, setRoadDistances, setRoadDurations, setIsLoadingRoadDistances])
 }

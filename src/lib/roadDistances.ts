@@ -28,10 +28,15 @@ async function fetchWithRetry(url: string): Promise<Response> {
   throw lastError
 }
 
+export type RoadData = {
+  distances: Map<string, number>
+  durations: Map<string, number>
+}
+
 export async function fetchRoadDistances(
   origin: [number, number], // [lon, lat]
   stations: Station[],
-): Promise<Map<string, number>> {
+): Promise<RoadData> {
   const sorted = [...stations].sort(
     (a, b) =>
       calculateDistance(origin[1], origin[0], a.lat, a.lon) -
@@ -44,22 +49,28 @@ export async function fetchRoadDistances(
     ...batch.map((s) => `${s.lon},${s.lat}`),
   ].join(';')
 
-  const url = `${OSRM_TABLE_URL}/${coords}?sources=0&destinations=all&annotations=distance`
+  const url = `${OSRM_TABLE_URL}/${coords}?sources=0&destinations=all&annotations=duration,distance`
 
   try {
     const res = await fetchWithRetry(url)
     const data = await res.json()
-    const distances: (number | null)[] = data.distances[0]
+    const rawDistances: (number | null)[] = data.distances[0]
+    const rawDurations: (number | null)[] = data.durations[0]
 
-    const result = new Map<string, number>()
+    const distances = new Map<string, number>()
+    const durations = new Map<string, number>()
     batch.forEach((station, i) => {
-      const meters = distances[i + 1] // index 0 = origin→origin = 0
+      const meters = rawDistances[i + 1] // index 0 = origin→origin = 0
       if (meters !== null && meters > 0) {
-        result.set(station.id, Math.round((meters / 1000) * 10) / 10)
+        distances.set(station.id, Math.round((meters / 1000) * 10) / 10)
+      }
+      const seconds = rawDurations?.[i + 1]
+      if (seconds !== null && seconds !== undefined && seconds > 0) {
+        durations.set(station.id, Math.round(seconds))
       }
     })
-    return result
+    return { distances, durations }
   } catch {
-    return new Map<string, number>()
+    return { distances: new Map(), durations: new Map() }
   }
 }

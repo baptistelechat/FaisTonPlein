@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Skeleton } from '@/components/ui/skeleton'
 import { DRAWER_SNAP_POINTS } from '@/lib/constants'
-import { calculateDistance, cn } from '@/lib/utils'
+import { calculateDistance, cn, formatDuration } from '@/lib/utils'
 import { useFilteredStats } from '@/hooks/useFilteredStats'
 import { useStationName } from '@/hooks/useStationName'
 import { StationLogo } from '@/components/StationLogo'
@@ -28,6 +28,7 @@ export function StationDetail({ mobileDrawerSnap }: StationDetailProps) {
     userLocation,
     searchLocation,
     roadDistances,
+    roadDurations,
     distanceMode,
   } = useAppStore()
 
@@ -48,6 +49,7 @@ export function StationDetail({ mobileDrawerSnap }: StationDetailProps) {
   const roadDistance = roadDistances[selectedStation.id] ?? null
   const distanceKm = distanceMode === 'road' && roadDistance !== null ? roadDistance : haversineDistance
   const isExactDistance = distanceMode === 'road' && roadDistance !== null
+  const durationSeconds = distanceMode === 'road' ? (roadDurations[selectedStation.id] ?? null) : null
 
   const selectedPrice = selectedStation.prices.find((p) => p.fuel_type === selectedFuel)
   const sortedPrices = [...selectedStation.prices].sort(
@@ -100,6 +102,9 @@ export function StationDetail({ mobileDrawerSnap }: StationDetailProps) {
             <p className='text-primary/80 flex items-center gap-1.5 text-sm'>
               {isExactDistance ? <Navigation className='size-3.5' /> : <Bird className='size-3.5' />}
               {!isExactDistance && '~'}{distanceKm.toFixed(1)} km
+              {durationSeconds !== null && (
+                <span className='text-muted-foreground'>· ~{formatDuration(durationSeconds)}</span>
+              )}
             </p>
           )}
           <p className='text-muted-foreground flex items-center gap-1.5 text-sm'>

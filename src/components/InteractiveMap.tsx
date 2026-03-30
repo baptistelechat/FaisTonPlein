@@ -30,6 +30,8 @@ import { StationRoute } from "./StationRoute";
 
 const DEFAULT_CENTER: [number, number] = [2.3522, 48.8566]; // Paris [lon, lat]
 const DEFAULT_ZOOM = 13;
+const MAP_HEADER_HEIGHT = 100; // search bar + fuel selector flottants
+const MAP_DRAWER_CLEARANCE = 16; // marge au-dessus du drawer mobile
 
 const createCircleGeoJSON = (
   center: [number, number],
@@ -171,10 +173,18 @@ export default function InteractiveMap({
   } = useAppStore();
 
   const distanceMode = useAppStore((s) => s.distanceMode)
+  const showRoute = useAppStore((s) => s.showRoute)
   const isodistanceGeometry = useAppStore((s) => s.isodistanceGeometry)
   useIsodistance()
 
   const route = useRouteGeometry()
+
+  const getMapPadding = useCallback((base: number) => {
+    const drawerPx = typeof mobileDrawerSnap === 'number' && typeof window !== 'undefined'
+      ? Math.round(window.innerHeight * mobileDrawerSnap) + MAP_DRAWER_CLEARANCE
+      : base
+    return { top: base + MAP_HEADER_HEIGHT, right: base, bottom: drawerPx, left: base }
+  }, [mobileDrawerSnap])
 
   const filteredStations = useFilteredStations();
   const allFilteredStats = useFilteredStats();
@@ -266,9 +276,9 @@ export default function InteractiveMap({
     const lats = coords.map(([, lat]) => lat);
     mapRef.current.fitBounds(
       [[Math.min(...lons), Math.min(...lats)], [Math.max(...lons), Math.max(...lats)]],
-      { padding: 60, duration: 800 },
+      { padding: getMapPadding(60), duration: 800 },
     );
-  }, [isodistanceGeometry, distanceMode]);
+  }, [isodistanceGeometry, distanceMode, getMapPadding]);
 
   // Recentrer la carte quand le rayon de recherche change
   useEffect(() => {
@@ -285,9 +295,9 @@ export default function InteractiveMap({
         [lon - lonOffset, lat - latOffset],
         [lon + lonOffset, lat + latOffset],
       ],
-      { padding: 60, duration: 800 },
+      { padding: getMapPadding(60), duration: 800 },
     );
-  }, [searchRadius, referenceLocation]);
+  }, [searchRadius, referenceLocation, getMapPadding]);
 
   // Retour à la liste — recentre sur le cercle de rayon (même comportement que le changement de rayon)
   useEffect(() => {
@@ -304,21 +314,21 @@ export default function InteractiveMap({
           [lon - lonOffset, lat - latOffset],
           [lon + lonOffset, lat + latOffset],
         ],
-        { padding: 60, duration: 800 },
+        { padding: getMapPadding(60), duration: 800 },
       );
     }
-  }, [fitToListSignal]);
+  }, [fitToListSignal, getMapPadding]);
 
   // Affiner le zoom quand la vraie géométrie de la route routière arrive
   useEffect(() => {
-    if (!route?.isRoad || route.coordinates.length < 2 || !mapRef.current) return
+    if (!showRoute || !route?.isRoad || route.coordinates.length < 2 || !mapRef.current) return
     const lons = route.coordinates.map(([lon]) => lon)
     const lats = route.coordinates.map(([, lat]) => lat)
     mapRef.current.fitBounds(
       [[Math.min(...lons), Math.min(...lats)], [Math.max(...lons), Math.max(...lats)]],
-      { padding: 80, duration: 400, maxZoom: 16 },
+      { padding: getMapPadding(80), duration: 400, maxZoom: 16 },
     )
-  }, [route])
+  }, [route, showRoute, getMapPadding])
 
   // Handle flyToLocation effect — si un rayon est actif, fitBounds sur le cercle plutôt que flyTo fixe
   useEffect(() => {
@@ -333,7 +343,7 @@ export default function InteractiveMap({
             [lon - lonOffset, lat - latOffset],
             [lon + lonOffset, lat + latOffset],
           ],
-          { padding: 60, duration: 800 },
+          { padding: getMapPadding(60), duration: 800 },
         );
       } else {
         mapRef.current.flyTo({
@@ -344,20 +354,28 @@ export default function InteractiveMap({
       }
       setFlyToLocation(null);
     }
-  }, [flyToLocation, setFlyToLocation, searchRadius]);
+  }, [flyToLocation, setFlyToLocation, searchRadius, getMapPadding]);
 
   // Handle flyToStation effect
   useEffect(() => {
     if (flyToStation && mapRef.current) {
       const timer = setTimeout(() => {
-        if (referenceLocation) {
+        if (!showRoute) {
+          mapRef.current?.flyTo({
+            center: [flyToStation.lon, flyToStation.lat],
+            zoom: 15,
+            speed: 1.2,
+            curve: 1.42,
+            essential: true,
+          });
+        } else if (referenceLocation) {
           const [originLon, originLat] = referenceLocation;
           mapRef.current?.fitBounds(
             [
               [Math.min(originLon, flyToStation.lon), Math.min(originLat, flyToStation.lat)],
               [Math.max(originLon, flyToStation.lon), Math.max(originLat, flyToStation.lat)],
             ],
-            { padding: 80, duration: 800, maxZoom: 16 },
+            { padding: getMapPadding(80), duration: 800, maxZoom: 16 },
           );
         } else {
           mapRef.current?.flyTo({
@@ -372,7 +390,7 @@ export default function InteractiveMap({
       }, 0);
       return () => clearTimeout(timer);
     }
-  }, [flyToStation, setFlyToStation, referenceLocation]);
+  }, [flyToStation, setFlyToStation, referenceLocation, showRoute, getMapPadding]);
 
   // Ensure bounds are updated when viewport stabilizes
   // We removed the timeout here to avoid conflict with handleViewportChange
@@ -543,7 +561,7 @@ export default function InteractiveMap({
         />
 
         {/* Route vers la station sélectionnée */}
-        <StationRoute route={route} />
+        <StationRoute route={showRoute ? route : null} />
 
         {/* User Location Marker */}
         {userLocation && !searchLocation && (
@@ -603,14 +621,21 @@ export default function InteractiveMap({
                 );
                 if (station) {
                   setSelectedStation(station);
-                  if (referenceLocation && mapRef.current) {
+                  if (!showRoute) {
+                    setViewport((prev) => ({
+                      ...prev,
+                      center: [station.lon, station.lat],
+                      zoom: 15,
+                      duration: 800,
+                    }));
+                  } else if (referenceLocation && mapRef.current) {
                     const [originLon, originLat] = referenceLocation;
                     mapRef.current.fitBounds(
                       [
                         [Math.min(originLon, station.lon), Math.min(originLat, station.lat)],
                         [Math.max(originLon, station.lon), Math.max(originLat, station.lat)],
                       ],
-                      { padding: 80, duration: 800, maxZoom: 16 },
+                      { padding: getMapPadding(80), duration: 800, maxZoom: 16 },
                     );
                   } else {
                     setViewport((prev) => ({

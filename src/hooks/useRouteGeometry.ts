@@ -6,10 +6,15 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 const OSRM_ROUTE_URL = 'https://router.project-osrm.org/route/v1/driving'
 const OSRM_ROUTE_TIMEOUT_MS = 8000
 
+type OsrmRouteResult = {
+  coordinates: [number, number][]
+  durationSeconds: number | null
+}
+
 async function fetchOsrmRoute(
   origin: [number, number],
   destination: [number, number],
-): Promise<[number, number][] | null> {
+): Promise<OsrmRouteResult | null> {
   const url = `${OSRM_ROUTE_URL}/${origin[0]},${origin[1]};${destination[0]},${destination[1]}?overview=full&geometries=geojson`
   const controller = new AbortController()
   const timeout = setTimeout(() => controller.abort(), OSRM_ROUTE_TIMEOUT_MS)
@@ -18,7 +23,12 @@ async function fetchOsrmRoute(
     clearTimeout(timeout)
     if (!res.ok) return null
     const data = await res.json()
-    return (data.routes?.[0]?.geometry?.coordinates as [number, number][]) ?? null
+    const coordinates = (data.routes?.[0]?.geometry?.coordinates as [number, number][]) ?? null
+    if (!coordinates) return null
+    const durationSeconds = typeof data.routes?.[0]?.duration === 'number'
+      ? Math.round(data.routes[0].duration)
+      : null
+    return { coordinates, durationSeconds }
   } catch {
     clearTimeout(timeout)
     return null
@@ -28,11 +38,13 @@ async function fetchOsrmRoute(
 type CachedRoadRoute = {
   key: string
   coords: [number, number][]
+  durationSeconds: number | null
 }
 
 export type RouteGeometry = {
   coordinates: [number, number][]
   isRoad: boolean
+  durationSeconds: number | null
 }
 
 export function useRouteGeometry(): RouteGeometry | null {
@@ -41,9 +53,9 @@ export function useRouteGeometry(): RouteGeometry | null {
   const searchLocation = useAppStore((s) => s.searchLocation)
   const distanceMode = useAppStore((s) => s.distanceMode)
   const roadDistances = useAppStore((s) => s.roadDistances)
+  const isLoadingRoadDistances = useAppStore((s) => s.isLoadingRoadDistances)
 
   const [cachedRoadRoute, setCachedRoadRoute] = useState<CachedRoadRoute | null>(null)
-  // Track the last fetch key to avoid redundant OSRM calls
   const fetchedKeyRef = useRef<string | null>(null)
 
   const origin = searchLocation ?? userLocation
@@ -53,7 +65,6 @@ export function useRouteGeometry(): RouteGeometry | null {
   const originLon = origin?.[0]
   const originLat = origin?.[1]
 
-  // Fetch road geometry when a station with a known road distance is selected
   useEffect(() => {
     if (
       !stationId ||
@@ -70,17 +81,17 @@ export function useRouteGeometry(): RouteGeometry | null {
     fetchedKeyRef.current = routeKey
 
     let cancelled = false
-    fetchOsrmRoute([originLon, originLat], [stationLon, stationLat]).then((coords) => {
+    fetchOsrmRoute([originLon, originLat], [stationLon, stationLat]).then((result) => {
       if (cancelled) return
       setCachedRoadRoute({
         key: routeKey,
-        coords: coords ?? [[originLon, originLat], [stationLon, stationLat]],
+        coords: result?.coordinates ?? [[originLon, originLat], [stationLon, stationLat]],
+        durationSeconds: result?.durationSeconds ?? null,
       })
     })
     return () => { cancelled = true }
   }, [stationId, stationLon, stationLat, originLon, originLat, distanceMode, roadDistances])
 
-  // Memoized return — stable reference, only changes when actual route data changes
   return useMemo((): RouteGeometry | null => {
     if (
       !stationId ||
@@ -92,18 +103,22 @@ export function useRouteGeometry(): RouteGeometry | null {
 
     const routeKey = `${stationId}:${originLon},${originLat}`
 
-    // Cache checked first — stays stable even if roadDistances temporarily resets
     if (distanceMode === 'road' && cachedRoadRoute?.key === routeKey) {
-      return { coordinates: cachedRoadRoute.coords, isRoad: true }
+      return { coordinates: cachedRoadRoute.coords, isRoad: true, durationSeconds: cachedRoadRoute.durationSeconds }
     }
 
-    // In road mode: show nothing until the real route is ready (avoid straight-line flash)
-    if (distanceMode === 'road') return null
+    if (distanceMode === 'road') {
+      // OSRM a fini de charger mais n'a pas de route pour cette station → fallback vol d'oiseau
+      if (!isLoadingRoadDistances && roadDistances[stationId] === undefined) {
+        return { coordinates: [[originLon, originLat], [stationLon, stationLat]], isRoad: false, durationSeconds: null }
+      }
+      return null
+    }
 
-    // Crow-fly mode: straight line immediately
     return {
       coordinates: [[originLon, originLat], [stationLon, stationLat]],
       isRoad: false,
+      durationSeconds: null,
     }
-  }, [stationId, stationLon, stationLat, originLon, originLat, distanceMode, cachedRoadRoute])
+  }, [stationId, stationLon, stationLat, originLon, originLat, distanceMode, cachedRoadRoute, isLoadingRoadDistances, roadDistances])
 }

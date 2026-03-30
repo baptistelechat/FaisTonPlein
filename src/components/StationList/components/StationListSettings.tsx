@@ -48,6 +48,7 @@ import {
   Plug,
   Road,
   RotateCcw,
+  Route,
   SlidersHorizontal,
   Truck,
   Van,
@@ -170,6 +171,8 @@ function SettingsBody() {
     setSearchRadius,
     showHighwayStations,
     setShowHighwayStations,
+    showRoute,
+    setShowRoute,
     stations,
     userLocation,
     searchLocation,
@@ -228,7 +231,7 @@ function SettingsBody() {
       <div className="text-muted-foreground text-xs font-bold tracking-wider uppercase">
         Affichage
       </div>
-      <div className="flex flex-col gap-3">
+      <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:gap-6">
         <div className="flex items-center gap-2">
           <Label
             htmlFor="highway-switch-settings"
@@ -247,6 +250,17 @@ function SettingsBody() {
             checked={showHighwayStations}
             onCheckedChange={setShowHighwayStations}
             disabled={!hasHighwayInRadius}
+          />
+        </div>
+        <div className="flex items-center gap-2">
+          <Label htmlFor="route-switch-settings" className="flex cursor-pointer items-center gap-1.5">
+            <Route className="size-3.5" />
+            Tracé de l&apos;itinéraire
+          </Label>
+          <Switch
+            id="route-switch-settings"
+            checked={showRoute}
+            onCheckedChange={setShowRoute}
           />
         </div>
       </div>

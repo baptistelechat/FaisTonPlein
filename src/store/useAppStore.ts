@@ -53,6 +53,8 @@ type AppStore = {
   resolvedNames: Record<string, string>;
   searchRadius: number;
   showHighwayStations: boolean;
+  showRoute: boolean;
+  setShowRoute: (show: boolean) => void;
 
   flyToLocation: [number, number] | null;
   setFlyToLocation: (loc: [number, number] | null) => void;
@@ -87,10 +89,12 @@ type AppStore = {
 
   distanceMode: 'road' | 'crow-fly';
   roadDistances: Record<string, number>;
+  roadDurations: Record<string, number>;
   isLoadingRoadDistances: boolean;
   isodistanceGeometry: Geometry | null;
   setDistanceMode: (mode: 'road' | 'crow-fly') => void;
   setRoadDistances: (distances: Record<string, number>) => void;
+  setRoadDurations: (durations: Record<string, number>) => void;
   setIsLoadingRoadDistances: (loading: boolean) => void;
   setIsodistanceGeometry: (geometry: Geometry | null) => void;
 
@@ -159,6 +163,8 @@ export const useAppStore = create<AppStore>()(
       resolvedNames: {},
       searchRadius: DEFAULT_SEARCH_RADIUS,
       showHighwayStations: true,
+      showRoute: true,
+      setShowRoute: (showRoute) => set({ showRoute }),
       fitToListSignal: 0,
 
       flyToLocation: null,
@@ -234,10 +240,12 @@ export const useAppStore = create<AppStore>()(
 
       distanceMode: 'road',
       roadDistances: {},
+      roadDurations: {},
       isLoadingRoadDistances: false,
       isodistanceGeometry: null,
       setDistanceMode: (distanceMode) => set({ distanceMode }),
       setRoadDistances: (roadDistances) => set({ roadDistances }),
+      setRoadDurations: (roadDurations) => set({ roadDurations }),
       setIsLoadingRoadDistances: (isLoadingRoadDistances) => set({ isLoadingRoadDistances }),
       setIsodistanceGeometry: (isodistanceGeometry) => set({ isodistanceGeometry }),
 
@@ -312,6 +320,7 @@ export const useAppStore = create<AppStore>()(
         selectedFuel: state.selectedFuel,
         searchRadius: state.searchRadius,
         showHighwayStations: state.showHighwayStations,
+        showRoute: state.showRoute,
         vehicleType: state.vehicleType,
         tankCapacity: state.tankCapacity,
         consumption: state.consumption,
@@ -335,6 +344,7 @@ export const useAppStore = create<AppStore>()(
           selectedFuel,
           searchRadius: ps.searchRadius && RADIUS_OPTIONS.some((o) => o.value === ps.searchRadius) ? ps.searchRadius : DEFAULT_SEARCH_RADIUS,
           showHighwayStations: ps.showHighwayStations ?? true,
+          showRoute: ps.showRoute ?? true,
           vehicleType: ps.vehicleType ?? null,
           tankCapacity: typeof ps.tankCapacity === 'number' && ps.tankCapacity >= 0 ? ps.tankCapacity : 0,
           consumption: typeof ps.consumption === 'number' && ps.consumption >= 0 ? ps.consumption : 0,
