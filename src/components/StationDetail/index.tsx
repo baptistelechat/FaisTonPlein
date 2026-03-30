@@ -10,7 +10,7 @@ import { useFilteredStats } from '@/hooks/useFilteredStats'
 import { useStationName } from '@/hooks/useStationName'
 import { StationLogo } from '@/components/StationLogo'
 import { useAppStore } from '@/store/useAppStore'
-import { CreditCard, Euro, History, MapPin, Navigation, Road, Route, Scale } from 'lucide-react'
+import { Bird, CreditCard, Euro, History, MapPin, Navigation, Road, Route, Scale } from 'lucide-react'
 import { toast } from 'sonner'
 import { PriceCard } from './components/PriceCard'
 
@@ -98,7 +98,7 @@ export function StationDetail({ mobileDrawerSnap }: StationDetailProps) {
           </div>
           {distanceKm !== null && (
             <p className='text-primary/80 flex items-center gap-1.5 text-sm'>
-              <Navigation className='size-3.5' />
+              {isExactDistance ? <Navigation className='size-3.5' /> : <Bird className='size-3.5' />}
               {!isExactDistance && '~'}{distanceKm.toFixed(1)} km
             </p>
           )}

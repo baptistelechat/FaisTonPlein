@@ -10,6 +10,7 @@ import {
 import { useFilteredStations } from "@/hooks/useFilteredStations";
 import { useFilteredStats } from "@/hooks/useFilteredStats";
 import { useIsodistance } from "@/hooks/useIsodistance";
+import { useRouteGeometry } from "@/hooks/useRouteGeometry";
 import { reverseGeocode } from "@/lib/api-adresse";
 import { useAppStore } from "@/store/useAppStore";
 import { Loader2 } from "lucide-react";
@@ -25,6 +26,7 @@ import { toast } from "sonner";
 import useSupercluster from "use-supercluster";
 import { PriceMarker } from "./PriceMarker";
 import { PulseMarker } from "./PulseMarker";
+import { StationRoute } from "./StationRoute";
 
 const DEFAULT_CENTER: [number, number] = [2.3522, 48.8566]; // Paris [lon, lat]
 const DEFAULT_ZOOM = 13;
@@ -172,6 +174,8 @@ export default function InteractiveMap({
   const isodistanceGeometry = useAppStore((s) => s.isodistanceGeometry)
   useIsodistance()
 
+  const route = useRouteGeometry()
+
   const filteredStations = useFilteredStations();
   const allFilteredStats = useFilteredStats();
   const filteredStats = allFilteredStats[selectedFuel] ?? null;
@@ -305,6 +309,17 @@ export default function InteractiveMap({
     }
   }, [fitToListSignal]);
 
+  // Affiner le zoom quand la vraie géométrie de la route routière arrive
+  useEffect(() => {
+    if (!route?.isRoad || route.coordinates.length < 2 || !mapRef.current) return
+    const lons = route.coordinates.map(([lon]) => lon)
+    const lats = route.coordinates.map(([, lat]) => lat)
+    mapRef.current.fitBounds(
+      [[Math.min(...lons), Math.min(...lats)], [Math.max(...lons), Math.max(...lats)]],
+      { padding: 80, duration: 400, maxZoom: 16 },
+    )
+  }, [route])
+
   // Handle flyToLocation effect — si un rayon est actif, fitBounds sur le cercle plutôt que flyTo fixe
   useEffect(() => {
     if (flyToLocation && mapRef.current) {
@@ -335,18 +350,29 @@ export default function InteractiveMap({
   useEffect(() => {
     if (flyToStation && mapRef.current) {
       const timer = setTimeout(() => {
-        mapRef.current?.flyTo({
-          center: [flyToStation.lon, flyToStation.lat],
-          zoom: 15,
-          speed: 1.2, // Make the flying slow
-          curve: 1.42, // Change the speed at which it zooms out
-          essential: true, // This animation is considered essential with respect to prefers-reduced-motion
-        });
-        setFlyToStation(null); // Reset after flying
+        if (referenceLocation) {
+          const [originLon, originLat] = referenceLocation;
+          mapRef.current?.fitBounds(
+            [
+              [Math.min(originLon, flyToStation.lon), Math.min(originLat, flyToStation.lat)],
+              [Math.max(originLon, flyToStation.lon), Math.max(originLat, flyToStation.lat)],
+            ],
+            { padding: 80, duration: 800, maxZoom: 16 },
+          );
+        } else {
+          mapRef.current?.flyTo({
+            center: [flyToStation.lon, flyToStation.lat],
+            zoom: 15,
+            speed: 1.2,
+            curve: 1.42,
+            essential: true,
+          });
+        }
+        setFlyToStation(null);
       }, 0);
       return () => clearTimeout(timer);
     }
-  }, [flyToStation, setFlyToStation]);
+  }, [flyToStation, setFlyToStation, referenceLocation]);
 
   // Ensure bounds are updated when viewport stabilizes
   // We removed the timeout here to avoid conflict with handleViewportChange
@@ -516,6 +542,9 @@ export default function InteractiveMap({
           distanceMode={distanceMode}
         />
 
+        {/* Route vers la station sélectionnée */}
+        <StationRoute route={route} />
+
         {/* User Location Marker */}
         {userLocation && !searchLocation && (
           <MapMarker longitude={userLocation[0]} latitude={userLocation[1]}>
@@ -569,18 +598,28 @@ export default function InteractiveMap({
               longitude={longitude}
               onClick={(e) => {
                 e.stopPropagation();
-                // Find original station object
                 const station = stations.find(
                   (s) => s.id === cluster.properties.stationId,
                 );
                 if (station) {
                   setSelectedStation(station);
-                  setViewport((prev) => ({
-                    ...prev,
-                    center: [station.lon, station.lat],
-                    zoom: 15,
-                    duration: 800,
-                  }));
+                  if (referenceLocation && mapRef.current) {
+                    const [originLon, originLat] = referenceLocation;
+                    mapRef.current.fitBounds(
+                      [
+                        [Math.min(originLon, station.lon), Math.min(originLat, station.lat)],
+                        [Math.max(originLon, station.lon), Math.max(originLat, station.lat)],
+                      ],
+                      { padding: 80, duration: 800, maxZoom: 16 },
+                    );
+                  } else {
+                    setViewport((prev) => ({
+                      ...prev,
+                      center: [station.lon, station.lat],
+                      zoom: 15,
+                      duration: 800,
+                    }));
+                  }
                 }
               }}
             >

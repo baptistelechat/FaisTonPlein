@@ -171,7 +171,7 @@ export const useAppStore = create<AppStore>()(
         const { bestPriceStationIds, bestDistanceStationIds, bestRealCostStationIds } = computeBestStations(
           stations, selectedFuel, showHighwayStations, searchRadius, referenceLocation, consumption, tankCapacity, fillHabit,
         )
-        set({ searchLocation, bestPriceStationIds, bestDistanceStationIds, bestRealCostStationIds });
+        set({ searchLocation, bestPriceStationIds, bestDistanceStationIds, bestRealCostStationIds, selectedStation: null });
       },
 
       setStations: (stations) => {

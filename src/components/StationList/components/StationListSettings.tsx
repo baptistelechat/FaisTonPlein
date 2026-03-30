@@ -364,8 +364,8 @@ const StationListSettings = () => {
             <SettingsBody />
           </ScrollArea>
           <div className="flex justify-end pt-2">
-            <DialogClose>
-              <Button variant="outline">Fermer</Button>
+            <DialogClose render={<Button variant="outline" />}>
+              Fermer
             </DialogClose>
           </div>
         </DialogContent>

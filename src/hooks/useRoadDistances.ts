@@ -16,8 +16,6 @@ export function useRoadDistances() {
   const filteredStations = useFilteredStations()
   const referenceLocation = searchLocation ?? userLocation
 
-  // Cache des distances par position de référence — évite de rappeler OSRM quand
-  // l'isodistance IGN arrive et réduit le set de stations (elles sont déjà calculées)
   const distanceCacheRef = useRef<Map<string, number>>(new Map())
   const cachedLocationKeyRef = useRef<string | null>(null)
 
@@ -30,7 +28,6 @@ export function useRoadDistances() {
 
     const locationKey = `${referenceLocation[0]},${referenceLocation[1]}`
 
-    // Invalider le cache si la position de référence a changé
     if (cachedLocationKeyRef.current !== locationKey) {
       distanceCacheRef.current = new Map()
       cachedLocationKeyRef.current = locationKey
@@ -39,7 +36,6 @@ export function useRoadDistances() {
     const missing = filteredStations.filter((s) => !distanceCacheRef.current.has(s.id))
 
     if (missing.length === 0) {
-      // Toutes les distances sont déjà en cache — juste filtrer et publier
       const result: Record<string, number> = {}
       filteredStations.forEach((s) => {
         const d = distanceCacheRef.current.get(s.id)
@@ -54,13 +50,20 @@ export function useRoadDistances() {
     setIsLoadingRoadDistances(true)
     fetchRoadDistances(referenceLocation, filteredStations).then((map) => {
       if (cancelled) return
-      map.forEach((v, k) => distanceCacheRef.current.set(k, v))
-      const result: Record<string, number> = {}
-      filteredStations.forEach((s) => {
-        const d = distanceCacheRef.current.get(s.id)
-        if (d !== undefined) result[s.id] = d
-      })
-      setRoadDistances(result)
+
+      // Si OSRM a retourné des résultats, on met à jour le cache et le store
+      if (map.size > 0) {
+        map.forEach((v, k) => distanceCacheRef.current.set(k, v))
+        const result: Record<string, number> = {}
+        filteredStations.forEach((s) => {
+          const d = distanceCacheRef.current.get(s.id)
+          if (d !== undefined) result[s.id] = d
+        })
+        setRoadDistances(result)
+      }
+      // Si map est vide (OSRM indisponible après tous les retries), on ne touche pas
+      // aux distances existantes — les stations gardent leurs distances actuelles
+
       setIsLoadingRoadDistances(false)
     })
 

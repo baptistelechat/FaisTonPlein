@@ -3,7 +3,30 @@ import { Station } from '@/store/useAppStore'
 
 const OSRM_TABLE_URL = 'https://router.project-osrm.org/table/v1/driving'
 const MAX_STATIONS_PER_BATCH = 100
-const OSRM_TIMEOUT_MS = 5000
+const OSRM_TIMEOUT_MS = 10000
+const MAX_RETRIES = 2
+const RETRY_DELAY_MS = 1500
+
+async function fetchWithRetry(url: string): Promise<Response> {
+  let lastError: unknown
+  for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
+    if (attempt > 0) {
+      await new Promise((r) => setTimeout(r, RETRY_DELAY_MS * attempt))
+    }
+    const controller = new AbortController()
+    const timeout = setTimeout(() => controller.abort(), OSRM_TIMEOUT_MS)
+    try {
+      const res = await fetch(url, { signal: controller.signal })
+      clearTimeout(timeout)
+      if (res.ok) return res
+      lastError = new Error(`OSRM ${res.status}`)
+    } catch (err) {
+      clearTimeout(timeout)
+      lastError = err
+    }
+  }
+  throw lastError
+}
 
 export async function fetchRoadDistances(
   origin: [number, number], // [lon, lat]
@@ -24,12 +47,7 @@ export async function fetchRoadDistances(
   const url = `${OSRM_TABLE_URL}/${coords}?sources=0&destinations=all&annotations=distance`
 
   try {
-    const controller = new AbortController()
-    const timeout = setTimeout(() => controller.abort(), OSRM_TIMEOUT_MS)
-    const res = await fetch(url, { signal: controller.signal })
-    clearTimeout(timeout)
-    if (!res.ok) throw new Error(`OSRM ${res.status}`)
-
+    const res = await fetchWithRetry(url)
     const data = await res.json()
     const distances: (number | null)[] = data.distances[0]
 
