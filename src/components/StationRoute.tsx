@@ -175,12 +175,13 @@ export function StationRoute({ route }: { route: RouteGeometry | null }) {
 
   useEffect(() => {
     if (!route?.isRoad || route.durationSeconds === null) {
-      setShowBadge(false);
       return;
     }
-    setShowBadge(false);
     const timer = setTimeout(() => setShowBadge(true), ROAD_ANIMATION_MS);
-    return () => clearTimeout(timer);
+    return () => {
+      clearTimeout(timer);
+      setShowBadge(false);
+    };
   }, [route]);
 
   const midpoint =

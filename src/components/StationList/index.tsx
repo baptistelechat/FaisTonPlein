@@ -336,7 +336,6 @@ export function StationList({ mobileDrawerSnap }: StationListProps = {}) {
                   bestPriceStationIds={bestPriceStationIds}
                   bestDistanceStationIds={bestDistanceStationIds}
                   bestRealCostStationIds={bestRealCostStationIds}
-                  listSortBy={listSortBy}
                   onClick={() => handleStationClick(station)}
                 />
               ))}

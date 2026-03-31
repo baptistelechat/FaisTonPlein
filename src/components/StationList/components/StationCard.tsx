@@ -23,7 +23,6 @@ export interface StationCardProps {
   bestPriceStationIds: string[]
   bestDistanceStationIds: string[]
   bestRealCostStationIds: string[]
-  listSortBy: 'price' | 'distance' | 'real-cost'
   onClick: () => void
 }
 
@@ -35,7 +34,6 @@ export function StationCard({
   bestPriceStationIds,
   bestDistanceStationIds,
   bestRealCostStationIds,
-  listSortBy,
   onClick,
 }: StationCardProps) {
   const resolvedName = useAppStore((s) => s.resolvedNames[String(station.id)])
