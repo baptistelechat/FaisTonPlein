@@ -6,7 +6,6 @@
   "Carrefour": "carrefour.fr",
   "Auchan": "auchan.fr",
   "Casino": "groupe-casino.fr",
-  "Cora": "cora.fr",
   "Esso": "esso.fr",
   "Shell": "shell.fr",
   "BP": "bp.com",
@@ -18,14 +17,13 @@
   "Gulf": "gulf.com",
   "ENI": "eni.com",
   "Bi1": "bi1.fr",
-  "Elan": "elan.fr",
   "Dyneff": "dyneff.com",
   "AS24": "as24.com",
   "Leader Price": "leaderprice.fr",
   "Match": "supermarche-match.com",
   "Monoprix": "monoprix.fr",
-  "Spar": "spar-france.com",
-  "CocciMarket": "coccimarket.fr",
+  "Spar": "spar.casino.fr",
+  "CocciMarket": "coccinelle.fr",
   "Costco": "costco.fr",
   "Roady": "roady.fr",
   "G20": "g20.fr",
@@ -38,5 +36,6 @@
   "Igol": "igol.fr",
   "OIL!": "oil!.com",
   "PowerFuel": "powerfuel.fr",
-  "Fuel For Planet": "fuelforplanet.com"
+  "Fuel For Planet": "fuelforplanet.com",
+  "Proxi": "myproxi.fr"
 }

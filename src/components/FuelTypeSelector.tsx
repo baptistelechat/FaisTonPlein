@@ -44,7 +44,7 @@ export function FuelTypeSelector({ className }: FuelTypeSelectorProps) {
   return (
     <div
       className={cn(
-        "no-scrollbar pointer-events-auto flex max-w-full flex-wrap justify-center gap-2 overflow-x-auto px-2 pb-2",
+        "no-scrollbar pointer-events-auto flex max-w-full flex-wrap justify-center gap-2 px-2 py-1",
         className,
       )}
     >

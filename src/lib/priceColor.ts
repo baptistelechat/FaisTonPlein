@@ -1,20 +1,46 @@
 import { FuelStats } from '@/store/useAppStore'
 
+export type PriceLevel = 'good' | 'neutral' | 'bad'
+
+const PRICE_LEVEL_TEXT_COLORS: Record<PriceLevel, string> = {
+  good: 'text-emerald-600',
+  neutral: 'text-amber-600',
+  bad: 'text-rose-600',
+}
+
+const PRICE_LEVEL_MARKER_CLASSES: Record<PriceLevel, string> = {
+  good: 'text-emerald-600 border-emerald-500 bg-emerald-50',
+  neutral: 'text-amber-600 border-amber-500 bg-amber-50',
+  bad: 'text-rose-600 border-rose-500 bg-rose-50',
+}
+
+/**
+ * Retourne le niveau relatif d'un prix selon les quartiles des stations filtrées.
+ * - good    : prix <= p25 (bas du marché)
+ * - bad     : prix >= p75 (haut du marché)
+ * - neutral : entre les deux
+ */
+export const getPriceLevel = (
+  price: number,
+  stats: FuelStats | null,
+): PriceLevel | null => {
+  if (!stats) return null
+  if (price <= stats.p25) return 'good'
+  if (price >= stats.p75) return 'bad'
+  return 'neutral'
+}
+
 /**
  * Retourne la classe Tailwind de couleur de texte pour un prix
  * selon les quartiles des stations filtrées (rayon + autoroute).
- * - vert  : prix <= p25 (bas du marché)
- * - rouge : prix >= p75 (haut du marché)
- * - orange : entre les deux
  */
 export const getPriceTextColor = (
   price: number,
   stats: FuelStats | null,
 ): string => {
-  if (!stats) return 'text-foreground'
-  if (price <= stats.p25) return 'text-emerald-600'
-  if (price >= stats.p75) return 'text-rose-600'
-  return 'text-amber-600'
+  const level = getPriceLevel(price, stats)
+  if (!level) return 'text-foreground'
+  return PRICE_LEVEL_TEXT_COLORS[level]
 }
 
 /**
@@ -25,9 +51,8 @@ export const getPriceMarkerClasses = (
   price: number,
   stats: FuelStats | null,
 ): string => {
-  if (!stats) return 'text-amber-600 border-amber-500 bg-amber-50'
-  if (price <= stats.p25) return 'text-emerald-600 border-emerald-500 bg-emerald-50'
-  if (price >= stats.p75) return 'text-rose-600 border-rose-500 bg-rose-50'
-  return 'text-amber-600 border-amber-500 bg-amber-50'
+  const level = getPriceLevel(price, stats)
+  if (!level) return PRICE_LEVEL_MARKER_CLASSES.neutral
+  return PRICE_LEVEL_MARKER_CLASSES[level]
 }
 

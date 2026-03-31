@@ -4,10 +4,13 @@ import {
   Map,
   MapControls,
   MapMarker,
+  useMap,
   type MapViewport,
 } from "@/components/ui/map";
 import { useFilteredStations } from "@/hooks/useFilteredStations";
 import { useFilteredStats } from "@/hooks/useFilteredStats";
+import { useIsodistance } from "@/hooks/useIsodistance";
+import { useRouteGeometry } from "@/hooks/useRouteGeometry";
 import { reverseGeocode } from "@/lib/api-adresse";
 import { useAppStore } from "@/store/useAppStore";
 import { Loader2 } from "lucide-react";
@@ -23,9 +26,12 @@ import { toast } from "sonner";
 import useSupercluster from "use-supercluster";
 import { PriceMarker } from "./PriceMarker";
 import { PulseMarker } from "./PulseMarker";
+import { StationRoute } from "./StationRoute";
 
 const DEFAULT_CENTER: [number, number] = [2.3522, 48.8566]; // Paris [lon, lat]
 const DEFAULT_ZOOM = 13;
+const MAP_HEADER_HEIGHT = 100; // search bar + fuel selector flottants
+const MAP_DRAWER_CLEARANCE = 16; // marge au-dessus du drawer mobile
 
 const createCircleGeoJSON = (
   center: [number, number],
@@ -56,6 +62,87 @@ const createCircleGeoJSON = (
   };
 };
 
+const RADIUS_SOURCE_ID = 'radius-zone';
+const RADIUS_PRIMARY_COLOR = '#4f46e5';
+
+function RadiusZone({
+  referenceLocation,
+  searchRadius,
+  distanceMode,
+}: {
+  referenceLocation: [number, number] | null;
+  searchRadius: number;
+  distanceMode: 'road' | 'crow-fly';
+}) {
+  const { map, isLoaded } = useMap();
+  const isodistanceGeometry = useAppStore((s) => s.isodistanceGeometry);
+
+  // Créer la source et les layers une seule fois quand la carte est chargée
+  useEffect(() => {
+    if (!isLoaded || !map) return;
+    if (!map.getSource(RADIUS_SOURCE_ID)) {
+      map.addSource(RADIUS_SOURCE_ID, {
+        type: 'geojson',
+        data: { type: 'FeatureCollection', features: [] },
+      });
+      map.addLayer({
+        id: 'radius-fill',
+        type: 'fill',
+        source: RADIUS_SOURCE_ID,
+        paint: { 'fill-color': RADIUS_PRIMARY_COLOR, 'fill-opacity': 0.04 },
+      });
+      map.addLayer({
+        id: 'radius-border',
+        type: 'line',
+        source: RADIUS_SOURCE_ID,
+        paint: {
+          'line-color': RADIUS_PRIMARY_COLOR,
+          'line-width': 1.5,
+          'line-opacity': 0.5,
+        },
+      });
+    }
+    return () => {
+      try {
+        if (map.getLayer('radius-border')) map.removeLayer('radius-border');
+        if (map.getLayer('radius-fill')) map.removeLayer('radius-fill');
+        if (map.getSource(RADIUS_SOURCE_ID)) map.removeSource(RADIUS_SOURCE_ID);
+      } catch {
+        // la carte a déjà été détruite, rien à nettoyer
+      }
+    };
+  }, [isLoaded, map]);
+
+  // Mettre à jour les données et le style de la zone quand les paramètres changent
+  useEffect(() => {
+    if (!isLoaded || !map) return;
+    const source = map.getSource(RADIUS_SOURCE_ID) as GeoJSONSource;
+    if (!source) return;
+
+    if (map.getLayer('radius-border')) {
+      map.setPaintProperty(
+        'radius-border',
+        'line-dasharray',
+        distanceMode === 'crow-fly' ? [3, 3] : null,
+      );
+    }
+
+    if (!referenceLocation || searchRadius === 0) {
+      source.setData({ type: 'FeatureCollection', features: [] });
+    } else if (distanceMode === 'road') {
+      if (isodistanceGeometry) {
+        source.setData({ type: 'Feature', geometry: isodistanceGeometry, properties: {} });
+      } else {
+        source.setData({ type: 'FeatureCollection', features: [] });
+      }
+    } else {
+      source.setData(createCircleGeoJSON(referenceLocation, searchRadius));
+    }
+  }, [isLoaded, map, referenceLocation, searchRadius, distanceMode, isodistanceGeometry]);
+
+  return null;
+}
+
 export default function InteractiveMap({
   children,
   mobileDrawerSnap,
@@ -78,11 +165,26 @@ export default function InteractiveMap({
     searchLocation,
     setSelectedDepartment,
     setSearchLocation,
-    bestPriceStationId,
-    bestDistanceStationId,
+    bestPriceStationIds,
+    bestDistanceStationIds,
+    bestRealCostStationIds,
     searchRadius,
     fitToListSignal,
   } = useAppStore();
+
+  const distanceMode = useAppStore((s) => s.distanceMode)
+  const showRoute = useAppStore((s) => s.showRoute)
+  const isodistanceGeometry = useAppStore((s) => s.isodistanceGeometry)
+  useIsodistance()
+
+  const route = useRouteGeometry()
+
+  const getMapPadding = useCallback((base: number) => {
+    const drawerPx = typeof mobileDrawerSnap === 'number' && typeof window !== 'undefined'
+      ? Math.round(window.innerHeight * mobileDrawerSnap) + MAP_DRAWER_CLEARANCE
+      : base
+    return { top: base + MAP_HEADER_HEIGHT, right: base, bottom: drawerPx, left: base }
+  }, [mobileDrawerSnap])
 
   const filteredStations = useFilteredStations();
   const allFilteredStats = useFilteredStats();
@@ -156,56 +258,27 @@ export default function InteractiveMap({
     referenceLocationRef.current = referenceLocation;
   }, [searchRadius, referenceLocation]);
 
+  // Adapter le zoom quand l'isodistance routière arrive
   useEffect(() => {
-    if (!mapInstance) return;
+    if (!mapRef.current || !isodistanceGeometry || distanceMode !== 'road') return;
 
-    const updateCircle = () => {
-      if (!mapInstance.getSource("radius-circle")) {
-        const primaryColor = "#4f46e5"; // indigo-600
-        mapInstance.addSource("radius-circle", {
-          type: "geojson",
-          data: { type: "FeatureCollection", features: [] },
-        });
-        mapInstance.addLayer({
-          id: "radius-fill",
-          type: "fill",
-          source: "radius-circle",
-          paint: {
-            "fill-color": primaryColor,
-            "fill-opacity": 0.04,
-          },
-        });
-        mapInstance.addLayer({
-          id: "radius-border",
-          type: "line",
-          source: "radius-circle",
-          paint: {
-            "line-color": primaryColor,
-            "line-width": 1.5,
-            "line-opacity": 0.5,
-            "line-dasharray": [3, 3],
-          },
-        });
+    const coords: [number, number][] = [];
+    if (isodistanceGeometry.type === 'Polygon') {
+      coords.push(...(isodistanceGeometry.coordinates[0] as [number, number][]));
+    } else if (isodistanceGeometry.type === 'MultiPolygon') {
+      for (const polygon of isodistanceGeometry.coordinates) {
+        coords.push(...(polygon[0] as [number, number][]));
       }
-
-      const source = mapInstance.getSource("radius-circle") as GeoJSONSource;
-
-      if (!referenceLocation || searchRadius === 0) {
-        source.setData({ type: "FeatureCollection", features: [] });
-      } else {
-        source.setData(createCircleGeoJSON(referenceLocation, searchRadius));
-      }
-    };
-
-    if (!mapInstance.isStyleLoaded()) {
-      mapInstance.once("load", updateCircle);
-      return () => {
-        mapInstance.off("load", updateCircle);
-      };
     }
+    if (coords.length === 0) return;
 
-    updateCircle();
-  }, [mapInstance, referenceLocation, searchRadius]);
+    const lons = coords.map(([lon]) => lon);
+    const lats = coords.map(([, lat]) => lat);
+    mapRef.current.fitBounds(
+      [[Math.min(...lons), Math.min(...lats)], [Math.max(...lons), Math.max(...lats)]],
+      { padding: getMapPadding(60), duration: 800 },
+    );
+  }, [isodistanceGeometry, distanceMode, getMapPadding]);
 
   // Recentrer la carte quand le rayon de recherche change
   useEffect(() => {
@@ -222,9 +295,9 @@ export default function InteractiveMap({
         [lon - lonOffset, lat - latOffset],
         [lon + lonOffset, lat + latOffset],
       ],
-      { padding: 60, duration: 800 },
+      { padding: getMapPadding(60), duration: 800 },
     );
-  }, [searchRadius, referenceLocation]);
+  }, [searchRadius, referenceLocation, getMapPadding]);
 
   // Retour à la liste — recentre sur le cercle de rayon (même comportement que le changement de rayon)
   useEffect(() => {
@@ -241,10 +314,21 @@ export default function InteractiveMap({
           [lon - lonOffset, lat - latOffset],
           [lon + lonOffset, lat + latOffset],
         ],
-        { padding: 60, duration: 800 },
+        { padding: getMapPadding(60), duration: 800 },
       );
     }
-  }, [fitToListSignal]);
+  }, [fitToListSignal, getMapPadding]);
+
+  // Affiner le zoom quand la vraie géométrie de la route routière arrive
+  useEffect(() => {
+    if (!showRoute || !route?.isRoad || route.coordinates.length < 2 || !mapRef.current) return
+    const lons = route.coordinates.map(([lon]) => lon)
+    const lats = route.coordinates.map(([, lat]) => lat)
+    mapRef.current.fitBounds(
+      [[Math.min(...lons), Math.min(...lats)], [Math.max(...lons), Math.max(...lats)]],
+      { padding: getMapPadding(80), duration: 400, maxZoom: 16 },
+    )
+  }, [route, showRoute, getMapPadding])
 
   // Handle flyToLocation effect — si un rayon est actif, fitBounds sur le cercle plutôt que flyTo fixe
   useEffect(() => {
@@ -259,7 +343,7 @@ export default function InteractiveMap({
             [lon - lonOffset, lat - latOffset],
             [lon + lonOffset, lat + latOffset],
           ],
-          { padding: 60, duration: 800 },
+          { padding: getMapPadding(60), duration: 800 },
         );
       } else {
         mapRef.current.flyTo({
@@ -270,24 +354,43 @@ export default function InteractiveMap({
       }
       setFlyToLocation(null);
     }
-  }, [flyToLocation, setFlyToLocation, searchRadius]);
+  }, [flyToLocation, setFlyToLocation, searchRadius, getMapPadding]);
 
   // Handle flyToStation effect
   useEffect(() => {
     if (flyToStation && mapRef.current) {
       const timer = setTimeout(() => {
-        mapRef.current?.flyTo({
-          center: [flyToStation.lon, flyToStation.lat],
-          zoom: 15,
-          speed: 1.2, // Make the flying slow
-          curve: 1.42, // Change the speed at which it zooms out
-          essential: true, // This animation is considered essential with respect to prefers-reduced-motion
-        });
-        setFlyToStation(null); // Reset after flying
+        if (!showRoute) {
+          mapRef.current?.flyTo({
+            center: [flyToStation.lon, flyToStation.lat],
+            zoom: 15,
+            speed: 1.2,
+            curve: 1.42,
+            essential: true,
+          });
+        } else if (referenceLocation) {
+          const [originLon, originLat] = referenceLocation;
+          mapRef.current?.fitBounds(
+            [
+              [Math.min(originLon, flyToStation.lon), Math.min(originLat, flyToStation.lat)],
+              [Math.max(originLon, flyToStation.lon), Math.max(originLat, flyToStation.lat)],
+            ],
+            { padding: getMapPadding(80), duration: 800, maxZoom: 16 },
+          );
+        } else {
+          mapRef.current?.flyTo({
+            center: [flyToStation.lon, flyToStation.lat],
+            zoom: 15,
+            speed: 1.2,
+            curve: 1.42,
+            essential: true,
+          });
+        }
+        setFlyToStation(null);
       }, 0);
       return () => clearTimeout(timer);
     }
-  }, [flyToStation, setFlyToStation]);
+  }, [flyToStation, setFlyToStation, referenceLocation, showRoute, getMapPadding]);
 
   // Ensure bounds are updated when viewport stabilizes
   // We removed the timeout here to avoid conflict with handleViewportChange
@@ -307,6 +410,7 @@ export default function InteractiveMap({
           price: price.price,
           fuelType: selectedFuel,
           isSelected: selectedStation?.id === station.id,
+          updatedAt: price.updated_at ?? null,
         },
         geometry: {
           type: "Point",
@@ -389,6 +493,7 @@ export default function InteractiveMap({
         }
       } catch (error) {
         console.error("Failed to detect department", error);
+        useAppStore.getState().setIsApiAdresseUnavailable(true);
       }
     },
     [setUserLocation, setSearchLocation, setSelectedDepartment],
@@ -409,14 +514,9 @@ export default function InteractiveMap({
               "Géolocalisation bloquée (non-HTTPS). Utilisez la recherche manuelle.",
               { id: "geo-warning" },
             );
-          } else {
-            // toast.info(
-            //   "Impossible de vous localiser. Recherche manuelle conseillée.",
-            //   { id: "geo-info" },
-            // );
           }
         },
-        { enableHighAccuracy: true, timeout: 5000 },
+        { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 },
       );
     }
   }, [setUserLocation, userLocation, handleGeolocation]);
@@ -448,6 +548,16 @@ export default function InteractiveMap({
           }
         />
         {children}
+
+        {/* Zone de rayon — isodistance routière ou cercle à vol d'oiseau */}
+        <RadiusZone
+          referenceLocation={referenceLocation}
+          searchRadius={searchRadius}
+          distanceMode={distanceMode}
+        />
+
+        {/* Route vers la station sélectionnée */}
+        <StationRoute route={showRoute ? route : null} />
 
         {/* User Location Marker */}
         {userLocation && !searchLocation && (
@@ -502,18 +612,35 @@ export default function InteractiveMap({
               longitude={longitude}
               onClick={(e) => {
                 e.stopPropagation();
-                // Find original station object
                 const station = stations.find(
                   (s) => s.id === cluster.properties.stationId,
                 );
                 if (station) {
                   setSelectedStation(station);
-                  setViewport((prev) => ({
-                    ...prev,
-                    center: [station.lon, station.lat],
-                    zoom: 15,
-                    duration: 800,
-                  }));
+                  if (!showRoute) {
+                    setViewport((prev) => ({
+                      ...prev,
+                      center: [station.lon, station.lat],
+                      zoom: 15,
+                      duration: 800,
+                    }));
+                  } else if (referenceLocation && mapRef.current) {
+                    const [originLon, originLat] = referenceLocation;
+                    mapRef.current.fitBounds(
+                      [
+                        [Math.min(originLon, station.lon), Math.min(originLat, station.lat)],
+                        [Math.max(originLon, station.lon), Math.max(originLat, station.lat)],
+                      ],
+                      { padding: getMapPadding(80), duration: 800, maxZoom: 16 },
+                    );
+                  } else {
+                    setViewport((prev) => ({
+                      ...prev,
+                      center: [station.lon, station.lat],
+                      zoom: 15,
+                      duration: 800,
+                    }));
+                  }
                 }
               }}
             >
@@ -521,13 +648,11 @@ export default function InteractiveMap({
                 price={cluster.properties.price}
                 fuelType={cluster.properties.fuelType}
                 isSelected={cluster.properties.isSelected}
-                isBestPrice={
-                  cluster.properties.stationId === bestPriceStationId
-                }
-                isBestDistance={
-                  cluster.properties.stationId === bestDistanceStationId
-                }
+                isBestPrice={bestPriceStationIds.includes(cluster.properties.stationId)}
+                isBestDistance={bestDistanceStationIds.includes(cluster.properties.stationId)}
+                isBestRealCost={bestRealCostStationIds.includes(cluster.properties.stationId)}
                 filteredStats={filteredStats}
+                updatedAt={cluster.properties.updatedAt}
               />
             </MapMarker>
           );

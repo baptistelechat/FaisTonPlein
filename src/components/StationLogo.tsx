@@ -49,7 +49,7 @@ export const StationLogo = ({ name, size = 'sm', className }: StationLogoProps) 
   const sources: string[] = [localSrc, googleSrc].filter(Boolean) as string[]
   const currentSrc = sources[srcIndex] ?? null
 
-  const sizeClass = size === 'md' ? 'size-10' : 'size-6'
+  const sizeClass = size === 'md' ? 'size-10' : 'size-7'
   const textClass = size === 'md' ? 'text-sm' : 'text-[10px]'
 
   return (
@@ -74,6 +74,7 @@ export const StationLogo = ({ name, size = 'sm', className }: StationLogoProps) 
           src={currentSrc}
           alt={brand ?? name}
           fill
+          sizes={size === 'md' ? '40px' : '24px'}
           className={cn(
             'bg-white object-contain p-0.5 transition-opacity duration-200',
             imgLoaded ? 'opacity-100' : 'opacity-0',

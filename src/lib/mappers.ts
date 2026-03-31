@@ -1,4 +1,5 @@
-import { FUEL_TYPES, FuelType } from "@/lib/constants";
+import { FUEL_TYPES } from "@/lib/constants";
+import { capitalize } from "@/lib/utils";
 import { FuelPrice, Station } from "@/store/useAppStore";
 
 export interface RawStationData {
@@ -8,26 +9,23 @@ export interface RawStationData {
   "Code postal": string;
   Adresse: string;
   Ville: string;
-  prix: string; // JSON string "[{\"@nom\": \"Gazole\", \"@id\": \"1\", \"@maj\": \"2024-01-01 00:00:00\", \"@valeur\": \"1.750\"}]"
-  services: string | null; // JSON string or null
+  services: string | null;
   "Automate 24-24 (oui/non)": string | null;
   pop?: string | null; // 'A' = autoroute, 'R' = route nationale/départementale
+  // Colonnes prix par carburant (remplacent le champ JSON 'prix')
+  "Prix Gazole"?: number | null;
+  "Prix Gazole mis à jour le"?: string | null;
+  "Prix SP95"?: number | null;
+  "Prix SP95 mis à jour le"?: string | null;
+  "Prix E10"?: number | null;
+  "Prix E10 mis à jour le"?: string | null;
+  "Prix SP98"?: number | null;
+  "Prix SP98 mis à jour le"?: string | null;
+  "Prix E85"?: number | null;
+  "Prix E85 mis à jour le"?: string | null;
+  "Prix GPLc"?: number | null;
+  "Prix GPLc mis à jour le"?: string | null;
   [key: string]: unknown;
-}
-
-interface RawFuelPrice {
-  "@nom": string;
-  "@id": string;
-  "@maj": string;
-  "@valeur": string;
-}
-
-function mapFuelType(rawName: string): FuelType | "Unknown" {
-  const isKnownFuel = FUEL_TYPES.some((fuel) => fuel.type === rawName);
-  if (isKnownFuel) {
-    return rawName as FuelType;
-  }
-  return "Unknown";
 }
 
 export function mapRawDataToStation(raw: RawStationData): Station {
@@ -36,45 +34,29 @@ export function mapRawDataToStation(raw: RawStationData): Station {
   const lat = Number(raw.latitude) / 100000;
   const lon = Number(raw.longitude) / 100000;
 
-  // Parse prices
-  let prices: FuelPrice[] = [];
-  try {
-    if (raw.prix) {
-      const parsedPrices = JSON.parse(raw.prix);
-      const pricesArray: RawFuelPrice[] = Array.isArray(parsedPrices)
-        ? parsedPrices
-        : [parsedPrices];
-
-      prices = pricesArray
-        .map((p) => {
-          const type = mapFuelType(p["@nom"]);
-          if (type === "Unknown") return null;
-          return {
-            fuel_type: type,
-            price: parseFloat(p["@valeur"]),
-            updated_at: p["@maj"], // TODO: Convert to ISO string if needed?
-          };
-        })
-        .filter((p): p is FuelPrice => p !== null);
-    }
-  } catch (e) {
-    console.error(`Error parsing prices for station ${raw.id}`, e);
-  }
+  // Parse prices from dedicated columns
+  const prices: FuelPrice[] = FUEL_TYPES.map((fuel) => {
+    const price = raw[`Prix ${fuel.type}`] as number | null | undefined;
+    const updatedAt = raw[`Prix ${fuel.type} mis à jour le`] as string | number | Date | null | undefined;
+    if (price == null || isNaN(price)) return null;
+    return {
+      fuel_type: fuel.type,
+      price,
+      updated_at: updatedAt ?? '',
+    };
+  }).filter((p): p is FuelPrice => p !== null);
 
   // Parse services
   let services: string[] = [];
   try {
     if (raw.services) {
-      // Services might be a simple string array in JSON or a complex object depending on the source structure
-      // Based on the screenshot it was null, but let's handle array of strings if it comes as JSON
       const parsedServices = JSON.parse(raw.services);
       if (Array.isArray(parsedServices)) {
-        services = parsedServices; // Assuming it's already an array of strings
+        services = parsedServices;
       } else if (
         typeof parsedServices === "object" &&
         parsedServices !== null
       ) {
-        // Handle if it's { service: ["..."] } or similar
         services = Object.values(parsedServices).flat() as string[];
       }
     }
@@ -93,7 +75,7 @@ export function mapRawDataToStation(raw: RawStationData): Station {
     name: 'Station service',
     lat,
     lon,
-    address: `${raw.Adresse}, ${raw["Code postal"]} ${raw.Ville}`,
+    address: `${capitalize(raw.Adresse)}, ${raw["Code postal"]} ${raw.Ville}`,
     services,
     prices,
     is24h,

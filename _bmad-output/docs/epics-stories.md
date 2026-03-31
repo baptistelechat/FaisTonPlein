@@ -6,7 +6,7 @@
 **Version :** 1.0
 **Source :** [PRD](../planning/prd-faistonplein.md)
 
----
+***
 
 ## E00 - Fondations Techniques
 
@@ -66,7 +66,7 @@
 - [x] Conversion et intégration dans le pipeline existant (Parquet + HuggingFace).
 - [x] Gestion des cas limites (fichiers corrompus, jours manquants).
 
----
+***
 
 ## E01 - Exploration Géographique
 
@@ -122,7 +122,7 @@
 - [x] La carte et la liste se mettent à jour instantanément.
 - [x] Le choix est sauvegardé pour les prochaines sessions.
 
----
+***
 
 ## E02 - Comparaison Économique
 
@@ -136,8 +136,8 @@
 
 **Critères d'Acceptation :**
 
-- [ ] Affichage de la date de dernière mise à jour des données.
-- [ ] Code couleur (Vert = < 24h, Orange = < 3j, Rouge = > 3j).
+- [x] Affichage de la date de dernière mise à jour des données.
+- [x] Code couleur (Vert = < 24h, Orange = < 3j, Rouge = > 3j).
 
 ### US-02-02 : Calcul du Coût du Plein
 
@@ -147,22 +147,37 @@
 
 **Critères d'Acceptation :**
 
-- [ ] Input pour saisir la capacité (en Litres) dans les paramètres.
-- [ ] Affichage du coût total (ex: "85€") en évidence.
-- [ ] Le calcul se met à jour si le prix change.
+- [x] Input pour saisir la capacité (en Litres) dans les paramètres.
+- [x] Affichage du coût total (ex: "85€") en évidence.
+- [x] Le calcul se met à jour si le prix change.
 
 ### US-02-03 : Tri Intelligent (Prix + Distance)
 
 **En tant que** conducteur pragmatique,
-**Je veux** trier les stations par "coût réel" incluant le détour,
+**Je veux** trier les stations par "coût réel" incluant la distance pour y aller,
 **Afin de** savoir si l'économie vaut le déplacement.
 
 **Critères d'Acceptation :**
 
-- [ ] Algorithme prenant en compte la consommation moyenne (paramétrable ou défaut).
-- [ ] Affichage du surcoût lié au détour.
+- [x] Badge "Coût réel" visible uniquement si un véhicule est configuré et une position de référence est disponible.
+- [x] Formule : `effectiveCost = price × fillAmount + price × distance × (consumption / 100)`.
+- [x] Affichage du coût de trajet sous l'estimation de plein dans `StationCard` quand le tri est actif.
 
----
+### US-02-04 : Distances Routières Réelles (OSRM + Isodistance)
+
+**En tant que** conducteur,
+**Je veux** choisir entre des distances à vol d'oiseau ou des distances routières réelles,
+**Afin d'** avoir un affichage et des comparaisons adaptés à mes préférences.
+
+**Critères d'Acceptation :**
+
+- [x] Toggle `Route réelle` / `Vol d'oiseau` dans les settings (préférence persistée, défaut : route réelle).
+- [x] Mode route : distances OSRM `/table` dans la liste + polygone isodistance IGN sur la carte.
+- [x] Mode vol d'oiseau : Haversine dans la liste + cercle sur la carte (comportement actuel).
+- [x] Fallback silencieux vers Haversine/cercle si les APIs sont indisponibles.
+- [x] Indicateur discret `~` sur les distances Haversine temporaires en mode route.
+
+***
 
 ## E03 - Intelligence & Analyse
 
@@ -201,7 +216,7 @@
 - [ ] Graphique linéaire interactif (Recharts).
 - [ ] Affichage des points de données au survol.
 
----
+***
 
 ## E04 - Résilience (Offline)
 
@@ -230,3 +245,4 @@
 - [ ] L'application se lance sans réseau.
 - [ ] Accès complet à la carte et liste (données en cache).
 - [ ] Indicateur "Mode Hors Ligne".
+

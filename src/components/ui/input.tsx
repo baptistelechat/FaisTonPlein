@@ -1,4 +1,3 @@
-import { Input as InputPrimitive } from "@base-ui/react/input";
 import { cva, type VariantProps } from "class-variance-authority";
 import * as React from "react";
 
@@ -25,7 +24,7 @@ const Input = React.forwardRef<
   React.ComponentProps<"input"> & VariantProps<typeof inputVariants>
 >(({ className, variant, type, ...props }, ref) => {
   return (
-    <InputPrimitive
+    <input
       type={type}
       data-slot="input"
       className={cn(inputVariants({ variant, className }))}

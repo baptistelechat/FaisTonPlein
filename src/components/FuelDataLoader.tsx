@@ -114,9 +114,6 @@ export const FuelDataLoader = () => {
 
         if (isMounted) {
           const stations = Array.from(stationMap.values());
-          console.log(
-            `Loaded ${stations.length} stations from ${departmentsToLoad.length} département(s): ${deptKey}`,
-          );
           setStations(stations);
           setLoadedDeptsKey(deptKey);
           toast.success(
