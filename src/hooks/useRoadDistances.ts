@@ -75,7 +75,7 @@ export function useRoadDistances() {
         setRoadDistances(distResult)
         setRoadDurations(durResult)
       } else {
-        toast.warning('Service de distances routières indisponible — app en mode dégradé.', {
+        toast.warning("Service de distances routières indisponible - Utilisation des distance à vol d'oiseau", {
           id: 'osrm-fail',
         })
       }
