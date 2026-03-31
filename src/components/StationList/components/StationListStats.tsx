@@ -21,7 +21,7 @@ import {
 } from "@/components/ui/drawer";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
-import { useMediaQuery } from "@/hooks/use-media-query";
+import { useIsDesktop } from "@/hooks/useIsDesktop";
 import { DRAWER_SNAP_POINTS } from "@/lib/constants";
 import { FuelStats } from "@/store/useAppStore";
 import { formatPrice } from "@/lib/utils";
@@ -31,6 +31,21 @@ interface StationListStatsProps {
   statistics: FuelStats;
 }
 
+interface StatRowProps {
+  label: string;
+  value: string;
+  className?: string;
+}
+
+function StatRow({ label, value, className = 'text-slate-600' }: StatRowProps) {
+  return (
+    <div className="flex items-center justify-between">
+      <span className="text-sm font-bold">{label}</span>
+      <span className={`font-mono font-bold ${className}`}>{value}</span>
+    </div>
+  );
+}
+
 function StatsBody({ statistics }: { statistics: FuelStats }) {
   return (
     <div className="flex flex-col gap-4 pr-4 pb-4">
@@ -38,105 +53,48 @@ function StatsBody({ statistics }: { statistics: FuelStats }) {
         Échantillon
       </div>
       <div className="flex flex-col gap-4">
-        <div className="flex items-center justify-between">
-          <span className="text-sm font-bold">Nombre de stations</span>
-          <span className="font-mono font-bold text-slate-600">
-            {statistics.count}
-          </span>
-        </div>
+        <StatRow label="Nombre de stations" value={String(statistics.count)} />
       </div>
       <Separator />
       <div className="text-muted-foreground text-xs font-bold tracking-wider uppercase">
         Plage
       </div>
       <div className="flex flex-col gap-4">
-        <div className="flex items-center justify-between">
-          <span className="text-sm font-bold">Prix minimum</span>
-          <span className="font-mono font-bold text-emerald-600">
-            {formatPrice(statistics.min)}
-          </span>
-        </div>
-        <div className="flex items-center justify-between">
-          <span className="text-sm font-bold">Prix maximum</span>
-          <span className="font-mono font-bold text-rose-600">
-            {formatPrice(statistics.max)}
-          </span>
-        </div>
+        <StatRow label="Prix minimum" value={formatPrice(statistics.min)} className="text-emerald-600" />
+        <StatRow label="Prix maximum" value={formatPrice(statistics.max)} className="text-rose-600" />
       </div>
       <Separator />
       <div className="text-muted-foreground text-xs font-bold tracking-wider uppercase">
         Tendance
       </div>
       <div className="flex flex-col gap-4">
-        <div className="flex items-center justify-between">
-          <span className="text-sm font-bold">Médiane</span>
-          <span className="font-mono font-bold text-amber-600">
-            {formatPrice(statistics.median)}
-          </span>
-        </div>
-        <div className="flex items-center justify-between">
-          <span className="text-sm font-bold">Prix moyen</span>
-          <span className="font-mono font-bold text-slate-600">
-            {formatPrice(statistics.average)}
-          </span>
-        </div>
+        <StatRow label="Médiane" value={formatPrice(statistics.median)} className="text-amber-600" />
+        <StatRow label="Prix moyen" value={formatPrice(statistics.average)} />
       </div>
       <Separator />
       <div className="text-muted-foreground text-xs font-bold tracking-wider uppercase">
         Quartiles & percentiles
       </div>
       <div className="flex flex-col gap-4">
-        <div className="flex items-center justify-between">
-          <span className="text-sm font-bold">P10</span>
-          <span className="font-mono font-bold text-slate-600">
-            {formatPrice(statistics.p10)}
-          </span>
-        </div>
-        <div className="flex items-center justify-between">
-          <span className="text-sm font-bold">P25</span>
-          <span className="font-mono font-bold text-slate-600">
-            {formatPrice(statistics.p25)}
-          </span>
-        </div>
-        <div className="flex items-center justify-between">
-          <span className="text-sm font-bold">P75</span>
-          <span className="font-mono font-bold text-slate-600">
-            {formatPrice(statistics.p75)}
-          </span>
-        </div>
-        <div className="flex items-center justify-between">
-          <span className="text-sm font-bold">P90</span>
-          <span className="font-mono font-bold text-slate-600">
-            {formatPrice(statistics.p90)}
-          </span>
-        </div>
+        <StatRow label="P10" value={formatPrice(statistics.p10)} />
+        <StatRow label="P25" value={formatPrice(statistics.p25)} />
+        <StatRow label="P75" value={formatPrice(statistics.p75)} />
+        <StatRow label="P90" value={formatPrice(statistics.p90)} />
       </div>
       <Separator />
       <div className="text-muted-foreground text-xs font-bold tracking-wider uppercase">
         Dispersion
       </div>
       <div className="flex flex-col gap-4">
-        <div className="flex items-center justify-between">
-          <span className="text-sm font-bold">
-            Écart interquartile (P75 − P25)
-          </span>
-          <span className="font-mono font-bold text-slate-600">
-            {formatPrice(statistics.iqr)}
-          </span>
-        </div>
-        <div className="flex items-center justify-between">
-          <span className="text-sm font-bold">Écart-type</span>
-          <span className="font-mono font-bold text-slate-600">
-            {formatPrice(statistics.stdDev)}
-          </span>
-        </div>
+        <StatRow label="Écart interquartile (P75 − P25)" value={formatPrice(statistics.iqr)} />
+        <StatRow label="Écart-type" value={formatPrice(statistics.stdDev)} />
       </div>
     </div>
   );
 }
 
 const StationListStats = ({ statistics }: StationListStatsProps) => {
-  const isDesktop = useMediaQuery("(min-width: 768px)");
+  const isDesktop = useIsDesktop();
 
   if (isDesktop) {
     return (

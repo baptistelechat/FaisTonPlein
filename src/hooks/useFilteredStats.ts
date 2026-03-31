@@ -1,19 +1,22 @@
 import { FUEL_TYPES, FuelType } from '@/lib/constants'
-import { filterStationsByLocation } from '@/lib/utils'
+import { applyIsodistanceFilter, filterStationsByLocation } from '@/lib/utils'
 import { FuelStats, useAppStore } from '@/store/useAppStore'
 import { useMemo } from 'react'
+import { useReferenceLocation } from './useReferenceLocation'
 
 export function useFilteredStats(): Record<FuelType, FuelStats | null> {
-  const { stations, showHighwayStations, searchRadius, userLocation, searchLocation } = useAppStore()
+  const { stations, showHighwayStations, searchRadius, distanceMode, isodistanceGeometry } = useAppStore()
+
+  const referenceLocation = useReferenceLocation()
 
   return useMemo(() => {
-    const referenceLocation = searchLocation || userLocation
-
-    const filteredStations = filterStationsByLocation(stations, {
+    let filteredStations = filterStationsByLocation(stations, {
       showHighwayStations,
       searchRadius,
       referenceLocation,
     })
+
+    filteredStations = applyIsodistanceFilter(filteredStations, distanceMode, isodistanceGeometry)
 
     return FUEL_TYPES.reduce(
       (acc, fuel) => {
@@ -61,5 +64,5 @@ export function useFilteredStats(): Record<FuelType, FuelStats | null> {
       },
       {} as Record<FuelType, FuelStats | null>,
     )
-  }, [stations, showHighwayStations, searchRadius, userLocation, searchLocation])
+  }, [stations, showHighwayStations, searchRadius, referenceLocation, distanceMode, isodistanceGeometry])
 }

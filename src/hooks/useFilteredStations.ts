@@ -1,6 +1,7 @@
-import { filterStationsByLocation, isPointInGeometry } from '@/lib/utils';
+import { applyIsodistanceFilter, filterStationsByLocation } from '@/lib/utils';
 import { Station, useAppStore } from '@/store/useAppStore';
 import { useMemo } from 'react';
+import { useReferenceLocation } from './useReferenceLocation';
 
 export function useFilteredStations(): Station[] {
   const {
@@ -8,14 +9,13 @@ export function useFilteredStations(): Station[] {
     selectedFuel,
     showHighwayStations,
     searchRadius,
-    userLocation,
-    searchLocation,
     distanceMode,
     isodistanceGeometry,
   } = useAppStore();
 
+  const referenceLocation = useReferenceLocation();
+
   return useMemo(() => {
-    const referenceLocation = searchLocation || userLocation;
     const byLocation = filterStationsByLocation(stations, {
       showHighwayStations,
       searchRadius,
@@ -25,13 +25,6 @@ export function useFilteredStations(): Station[] {
       station.prices.some((p) => p.fuel_type === selectedFuel)
     );
 
-    // En mode routier avec isodistance disponible : filtre point-in-polygon (vérité terrain = polygone affiché)
-    if (distanceMode === 'road' && isodistanceGeometry) {
-      return withFuel.filter((station) =>
-        isPointInGeometry([station.lon, station.lat], isodistanceGeometry)
-      );
-    }
-
-    return withFuel;
-  }, [stations, selectedFuel, showHighwayStations, searchRadius, searchLocation, userLocation, distanceMode, isodistanceGeometry]);
+    return applyIsodistanceFilter(withFuel, distanceMode, isodistanceGeometry);
+  }, [stations, selectedFuel, showHighwayStations, searchRadius, referenceLocation, distanceMode, isodistanceGeometry]);
 }

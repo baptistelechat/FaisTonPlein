@@ -2,17 +2,18 @@
 
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { useMediaQuery } from "@/hooks/use-media-query";
 import { useFilteredStations } from "@/hooks/useFilteredStations";
 import { useFilteredStats } from "@/hooks/useFilteredStats";
+import { useIsDesktop } from "@/hooks/useIsDesktop";
+import { useReferenceLocation } from "@/hooks/useReferenceLocation";
 import { DRAWER_SNAP_POINTS, RADIUS_OPTIONS } from "@/lib/constants";
 import { getStationNamesDb } from "@/lib/stationName";
 import {
-  calculateDistance,
   calculateEffectiveCost,
   capitalize,
   cn,
   formatPrice,
+  getStationDistance,
 } from "@/lib/utils";
 import { Station, useAppStore } from "@/store/useAppStore";
 import { formatRelative } from "date-fns";
@@ -35,8 +36,6 @@ export function StationList({ mobileDrawerSnap }: StationListProps = {}) {
   const isExpanded =
     !mobileDrawerSnap || mobileDrawerSnap === DRAWER_SNAP_POINTS.EXPANDED;
   const {
-    userLocation,
-    searchLocation,
     selectedFuel,
     setSelectedStation,
     setFlyToStation,
@@ -68,14 +67,13 @@ export function StationList({ mobileDrawerSnap }: StationListProps = {}) {
   const filteredStations = useFilteredStations();
   const allFilteredStats = useFilteredStats();
 
-  const isDesktop = useMediaQuery("(min-width: 768px)");
+  const isDesktop = useIsDesktop();
 
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
   const sentinelRef = useRef<HTMLDivElement>(null);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
 
-  // Use search location if available, otherwise fallback to user location
-  const referenceLocation = searchLocation || userLocation;
+  const referenceLocation = useReferenceLocation();
 
   const canUseRealCost =
     consumption > 0 && tankCapacity > 0 && referenceLocation !== null;
@@ -85,19 +83,12 @@ export function StationList({ mobileDrawerSnap }: StationListProps = {}) {
 
     const fillAmount = tankCapacity * fillHabit;
 
-    const getEffectiveDistance = (station: Station): number => {
-      if (distanceMode === 'road' && roadDistances[station.id] !== undefined) {
-        return roadDistances[station.id]
-      }
-      return Math.round(calculateDistance(referenceLocation[1], referenceLocation[0], station.lat, station.lon) * 10) / 10
-    }
-
     return [...filteredStations].sort((a, b) => {
       const priceA = a.prices.find((p) => p.fuel_type === selectedFuel)?.price;
       const priceB = b.prices.find((p) => p.fuel_type === selectedFuel)?.price;
 
-      const distA = getEffectiveDistance(a)
-      const distB = getEffectiveDistance(b)
+      const distA = getStationDistance(a, referenceLocation, roadDistances)
+      const distB = getStationDistance(b, referenceLocation, roadDistances)
 
       if (listSortBy === "real-cost") {
         if (!priceA) return 1;
@@ -143,7 +134,6 @@ export function StationList({ mobileDrawerSnap }: StationListProps = {}) {
     tankCapacity,
     fillHabit,
     roadDistances,
-    distanceMode,
   ]);
 
   // Derived state pattern (React-recommended): reset pagination on filter change without extra effect

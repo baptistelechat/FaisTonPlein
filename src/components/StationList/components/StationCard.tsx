@@ -11,7 +11,7 @@ import {
   FRESHNESS_TEXT_COLORS,
   getPriceFreshness,
 } from '@/lib/priceFreshness'
-import { calculateDistance, cn } from '@/lib/utils'
+import { cn, getStationDistance } from '@/lib/utils'
 import { FuelStats, Station, useAppStore } from '@/store/useAppStore'
 import { Bird, Euro, Navigation, Road, Route, Scale } from 'lucide-react'
 
@@ -44,7 +44,7 @@ export function StationCard({
   const price = station.prices.find((p) => p.fuel_type === selectedFuel)
 
   const haversineDistance = referenceLocation
-    ? Math.round(calculateDistance(referenceLocation[1], referenceLocation[0], station.lat, station.lon) * 10) / 10
+    ? getStationDistance(station, referenceLocation)
     : null
 
   const roadDistance = roadDistances[station.id] ?? null

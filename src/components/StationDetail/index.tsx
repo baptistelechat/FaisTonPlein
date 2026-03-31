@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Skeleton } from '@/components/ui/skeleton'
 import { DRAWER_SNAP_POINTS } from '@/lib/constants'
-import { calculateDistance, cn, formatDuration } from '@/lib/utils'
+import { cn, formatDuration, getStationDistance } from '@/lib/utils'
 import { useFilteredStats } from '@/hooks/useFilteredStats'
 import { useStationName } from '@/hooks/useStationName'
 import { StationLogo } from '@/components/StationLogo'
@@ -44,7 +44,7 @@ export function StationDetail({ mobileDrawerSnap }: StationDetailProps) {
   const referenceLocation = searchLocation || userLocation
 
   const haversineDistance = referenceLocation
-    ? Math.round(calculateDistance(referenceLocation[1], referenceLocation[0], selectedStation.lat, selectedStation.lon) * 10) / 10
+    ? getStationDistance(selectedStation, referenceLocation)
     : null
   const roadDistance = roadDistances[selectedStation.id] ?? null
   const distanceKm = distanceMode === 'road' && roadDistance !== null ? roadDistance : haversineDistance
@@ -56,14 +56,7 @@ export function StationDetail({ mobileDrawerSnap }: StationDetailProps) {
     (a, b) => Number(b.fuel_type === selectedFuel) - Number(a.fuel_type === selectedFuel),
   )
 
-  const handleNavigateGoogleMaps = () => {
-    const url = `https://www.google.com/maps/dir/?api=1&destination=${selectedStation.lat},${selectedStation.lon}`
-    window.open(url, '_blank')
-    toast.info("Ouverture de l'itinéraire...")
-  }
-
-  const handleNavigateWaze = () => {
-    const url = `https://waze.com/ul?ll=${selectedStation.lat},${selectedStation.lon}&navigate=yes`
+  const handleNavigate = (url: string) => {
     window.open(url, '_blank')
     toast.info("Ouverture de l'itinéraire...")
   }
@@ -169,11 +162,11 @@ export function StationDetail({ mobileDrawerSnap }: StationDetailProps) {
             {/* Action Buttons */}
             <div className='grid grid-cols-1 gap-3 pt-2'>
               <div className='grid grid-cols-2 gap-2'>
-                <Button onClick={handleNavigateGoogleMaps} size='lg' className='flex w-full gap-2'>
+                <Button onClick={() => handleNavigate(`https://www.google.com/maps/dir/?api=1&destination=${selectedStation.lat},${selectedStation.lon}`)} size='lg' className='flex w-full gap-2'>
                   <Navigation className='size-4' />
                   Google Maps
                 </Button>
-                <Button onClick={handleNavigateWaze} size='lg' variant='outline' className='flex w-full gap-2'>
+                <Button onClick={() => handleNavigate(`https://waze.com/ul?ll=${selectedStation.lat},${selectedStation.lon}&navigate=yes`)} size='lg' variant='outline' className='flex w-full gap-2'>
                   <Navigation className='size-4' />
                   Waze
                 </Button>

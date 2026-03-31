@@ -1,7 +1,7 @@
 'use client'
 
 import { FillEstimate } from '@/components/FillEstimate'
-import { getPriceTextColor } from '@/lib/priceColor'
+import { getPriceLevel, getPriceTextColor } from '@/lib/priceColor'
 import {
   formatPriceAge,
   FRESHNESS_DOT_COLORS,
@@ -25,17 +25,17 @@ export const PriceCard = ({
   distanceKm?: number | null
 }) => {
   const priceColor = getPriceTextColor(price.price, filteredStats)
+  const priceLevel = getPriceLevel(price.price, filteredStats)
 
   let diffBadge = null
-  if (filteredStats) {
+  if (filteredStats && priceLevel) {
     const diff = price.price - filteredStats.median
-    const isGood = priceColor === 'text-emerald-600'
-    const isBad = priceColor === 'text-rose-600'
-    const colorClass = isGood
-      ? 'bg-emerald-500/10 text-emerald-500'
-      : isBad
-        ? 'bg-rose-500/10 text-rose-500'
-        : 'bg-amber-500/10 text-amber-500'
+    const colorClass =
+      priceLevel === 'good'
+        ? 'bg-emerald-500/10 text-emerald-500'
+        : priceLevel === 'bad'
+          ? 'bg-rose-500/10 text-rose-500'
+          : 'bg-amber-500/10 text-amber-500'
     diffBadge = (
       <span className={`rounded-sm px-1.5 py-0.5 text-[10px] font-bold ${colorClass}`}>
         {`${diff > 0 ? '+ ' : '- '}${formatPrice(Math.abs(diff))}`}

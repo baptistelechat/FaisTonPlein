@@ -493,6 +493,7 @@ export default function InteractiveMap({
         }
       } catch (error) {
         console.error("Failed to detect department", error);
+        useAppStore.getState().setIsApiAdresseUnavailable(true);
       }
     },
     [setUserLocation, setSearchLocation, setSelectedDepartment],
@@ -513,11 +514,6 @@ export default function InteractiveMap({
               "Géolocalisation bloquée (non-HTTPS). Utilisez la recherche manuelle.",
               { id: "geo-warning" },
             );
-          } else {
-            // toast.info(
-            //   "Impossible de vous localiser. Recherche manuelle conseillée.",
-            //   { id: "geo-info" },
-            // );
           }
         },
         { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 },

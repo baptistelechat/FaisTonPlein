@@ -11,20 +11,8 @@ interface FillEstimateProps {
 }
 
 const getFillLabel = (fillHabit: number, cost: string): string => {
-  switch (fillHabit) {
-    case 1.0:
-      return `Plein complet : ~${cost}€`;
-    case 0.9:
-      return `À la réserve : ~${cost}€`;
-    case 0.75:
-      return `Au 1/4 restant : ~${cost}€`;
-    case 0.5:
-      return `À mi-réservoir : ~${cost}€`;
-    case 0.25:
-      return `Dès 1/4 entamé : ~${cost}€`;
-    default:
-      return `~${cost}€ le plein`;
-  }
+  const option = FILL_HABIT_OPTIONS.find((o) => o.value === fillHabit)
+  return option ? `${option.label} : ~${cost}€` : `~${cost}€ le plein`
 };
 
 export const FillEstimate = ({
@@ -40,9 +28,7 @@ export const FillEstimate = ({
   if (tankCapacity <= 0) return null;
 
   const cost = (tankCapacity * fillHabit * pricePerLiter).toFixed(2);
-  const label = getFillLabel(fillHabit, cost);
-  const isKnownHabit = FILL_HABIT_OPTIONS.some((o) => o.value === fillHabit);
-  const displayText = isKnownHabit ? label : `~${cost}€ le plein`;
+  const displayText = getFillLabel(fillHabit, cost);
 
   const effectiveCostResult =
     listSortBy === "real-cost" && distanceKm != null && consumption > 0

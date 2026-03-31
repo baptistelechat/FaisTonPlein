@@ -70,7 +70,8 @@ export async function fetchRoadDistances(
       }
     })
     return { distances, durations }
-  } catch {
+  } catch (err) {
+    console.error('[OSRM] fetchRoadDistances failed:', err)
     return { distances: new Map(), durations: new Map() }
   }
 }

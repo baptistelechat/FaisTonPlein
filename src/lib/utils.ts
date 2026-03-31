@@ -71,6 +71,17 @@ function deg2rad(deg: number): number {
   return deg * (Math.PI / 180);
 }
 
+export function getStationDistance(
+  station: { id: string; lat: number; lon: number },
+  referenceLocation: [number, number],
+  roadDistances?: Record<string, number>,
+): number {
+  if (roadDistances !== undefined && roadDistances[station.id] !== undefined) {
+    return roadDistances[station.id]
+  }
+  return Math.round(calculateDistance(referenceLocation[1], referenceLocation[0], station.lat, station.lon) * 10) / 10
+}
+
 export function calculateEffectiveCost(params: {
   pricePerLiter: number
   distanceKm: number
@@ -99,13 +110,15 @@ export function getBestStationsForFuel({
   stations,
   selectedFuel,
   referenceLocation,
+  roadDistances,
 }: {
   stations: StationLike[];
   selectedFuel: string;
   referenceLocation: [number, number] | null;
+  roadDistances?: Record<string, number>;
 }) {
   let minPrice = Number.POSITIVE_INFINITY;
-  let minDistanceRounded = Number.POSITIVE_INFINITY;
+  let minDistance = Number.POSITIVE_INFINITY;
   let bestPriceStationIds: string[] = [];
   let bestDistanceStationIds: string[] = [];
 
@@ -122,17 +135,11 @@ export function getBestStationsForFuel({
     }
 
     if (referenceLocation) {
-      const dist = calculateDistance(
-        referenceLocation[1],
-        referenceLocation[0],
-        station.lat,
-        station.lon,
-      );
-      const distRounded = Math.round(dist * 10) / 10;
-      if (distRounded < minDistanceRounded) {
-        minDistanceRounded = distRounded;
+      const dist = getStationDistance(station, referenceLocation, roadDistances);
+      if (dist < minDistance) {
+        minDistance = dist;
         bestDistanceStationIds = [station.id];
-      } else if (distRounded === minDistanceRounded) {
+      } else if (dist === minDistance) {
         bestDistanceStationIds.push(station.id);
       }
     }
@@ -148,6 +155,7 @@ export function getBestRealCostStation({
   consumption,
   tankCapacity,
   fillHabit,
+  roadDistances,
 }: {
   stations: StationLike[]
   selectedFuel: string
@@ -155,6 +163,7 @@ export function getBestRealCostStation({
   consumption: number
   tankCapacity: number
   fillHabit: number
+  roadDistances?: Record<string, number>
 }): { bestRealCostStationIds: string[] } {
   if (!referenceLocation || consumption <= 0 || tankCapacity <= 0) {
     return { bestRealCostStationIds: [] }
@@ -168,16 +177,9 @@ export function getBestRealCostStation({
     const fuelPrice = station.prices.find((p) => p.fuel_type === selectedFuel)
     if (!fuelPrice) continue
 
-    const distKm = calculateDistance(
-      referenceLocation[1],
-      referenceLocation[0],
-      station.lat,
-      station.lon,
-    )
-
     const cost = calculateEffectiveCost({
       pricePerLiter: fuelPrice.price,
-      distanceKm: distKm,
+      distanceKm: getStationDistance(station, referenceLocation, roadDistances),
       fillAmount,
       consumption,
     }).total
@@ -229,4 +231,11 @@ export function isPointInGeometry(point: [number, number], geometry: GeoJSON.Geo
   return false
 }
 
-
+export function applyIsodistanceFilter<T extends { lon: number; lat: number }>(
+  stations: T[],
+  distanceMode: 'road' | 'crow-fly',
+  isodistanceGeometry: GeoJSON.Geometry | null,
+): T[] {
+  if (distanceMode !== 'road' || !isodistanceGeometry) return stations
+  return stations.filter((s) => isPointInGeometry([s.lon, s.lat], isodistanceGeometry))
+}

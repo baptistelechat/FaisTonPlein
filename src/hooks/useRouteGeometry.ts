@@ -1,5 +1,6 @@
 'use client'
 
+import { calculateDistance } from '@/lib/utils'
 import { useAppStore } from '@/store/useAppStore'
 import { useEffect, useMemo, useRef, useState } from 'react'
 
@@ -45,6 +46,7 @@ export type RouteGeometry = {
   coordinates: [number, number][]
   isRoad: boolean
   durationSeconds: number | null
+  distanceKm: number | null
 }
 
 export function useRouteGeometry(): RouteGeometry | null {
@@ -104,13 +106,23 @@ export function useRouteGeometry(): RouteGeometry | null {
     const routeKey = `${stationId}:${originLon},${originLat}`
 
     if (distanceMode === 'road' && cachedRoadRoute?.key === routeKey) {
-      return { coordinates: cachedRoadRoute.coords, isRoad: true, durationSeconds: cachedRoadRoute.durationSeconds }
+      return {
+        coordinates: cachedRoadRoute.coords,
+        isRoad: true,
+        durationSeconds: cachedRoadRoute.durationSeconds,
+        distanceKm: roadDistances[stationId] ?? null,
+      }
     }
 
     if (distanceMode === 'road') {
       // OSRM a fini de charger mais n'a pas de route pour cette station → fallback vol d'oiseau
       if (!isLoadingRoadDistances && roadDistances[stationId] === undefined) {
-        return { coordinates: [[originLon, originLat], [stationLon, stationLat]], isRoad: false, durationSeconds: null }
+        return {
+          coordinates: [[originLon, originLat], [stationLon, stationLat]],
+          isRoad: false,
+          durationSeconds: null,
+          distanceKm: Math.round(calculateDistance(originLat, originLon, stationLat, stationLon) * 10) / 10,
+        }
       }
       return null
     }
@@ -119,6 +131,7 @@ export function useRouteGeometry(): RouteGeometry | null {
       coordinates: [[originLon, originLat], [stationLon, stationLat]],
       isRoad: false,
       durationSeconds: null,
+      distanceKm: Math.round(calculateDistance(originLat, originLon, stationLat, stationLon) * 10) / 10,
     }
   }, [stationId, stationLon, stationLat, originLon, originLat, distanceMode, cachedRoadRoute, isLoadingRoadDistances, roadDistances])
 }

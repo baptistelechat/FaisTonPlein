@@ -171,31 +171,49 @@ function RouteLayer({ route }: { route: RouteGeometry | null }) {
 }
 
 export function StationRoute({ route }: { route: RouteGeometry | null }) {
-  const [showBadge, setShowBadge] = useState(false);
+  const [showRoadBadge, setShowRoadBadge] = useState(false);
 
   useEffect(() => {
     if (!route?.isRoad || route.durationSeconds === null) {
       return;
     }
-    const timer = setTimeout(() => setShowBadge(true), ROAD_ANIMATION_MS);
+    const timer = setTimeout(() => setShowRoadBadge(true), ROAD_ANIMATION_MS);
     return () => {
       clearTimeout(timer);
-      setShowBadge(false);
+      setShowRoadBadge(false);
     };
   }, [route]);
 
-  const midpoint =
-    showBadge && route?.isRoad && route.durationSeconds !== null
+  const roadMidpoint =
+    showRoadBadge && route?.isRoad && route.durationSeconds !== null
       ? getRouteMidpoint(route.coordinates)
+      : null;
+
+  const crowMidpoint: [number, number] | null =
+    route !== null &&
+    !route.isRoad &&
+    route.distanceKm !== null &&
+    route.coordinates.length >= 2
+      ? [
+          (route.coordinates[0][0] + route.coordinates[1][0]) / 2,
+          (route.coordinates[0][1] + route.coordinates[1][1]) / 2,
+        ]
       : null;
 
   return (
     <>
       <RouteLayer route={route} />
-      {midpoint && route?.durationSeconds !== null && (
-        <MapMarker longitude={midpoint[0]} latitude={midpoint[1]}>
+      {roadMidpoint && route?.durationSeconds !== null && (
+        <MapMarker longitude={roadMidpoint[0]} latitude={roadMidpoint[1]}>
           <div className="pointer-events-none rounded-full bg-indigo-600/90 px-2.5 py-1 text-xs font-semibold whitespace-nowrap text-white shadow-lg backdrop-blur-sm">
             ~{formatDuration(route!.durationSeconds!)}
+          </div>
+        </MapMarker>
+      )}
+      {crowMidpoint && route !== null && route.distanceKm !== null && (
+        <MapMarker longitude={crowMidpoint[0]} latitude={crowMidpoint[1]}>
+          <div className="pointer-events-none rounded-full bg-sky-600/90 px-2.5 py-1 text-xs font-semibold whitespace-nowrap text-white shadow-lg backdrop-blur-sm">
+            ~{route.distanceKm.toFixed(1)} km
           </div>
         </MapMarker>
       )}

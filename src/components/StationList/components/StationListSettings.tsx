@@ -25,7 +25,8 @@ import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
-import { useMediaQuery } from "@/hooks/use-media-query";
+import { useIsDesktop } from "@/hooks/useIsDesktop";
+import { useReferenceLocation } from "@/hooks/useReferenceLocation";
 import {
   DRAWER_SNAP_POINTS,
   FILL_HABIT_OPTIONS,
@@ -174,8 +175,6 @@ function SettingsBody() {
     showRoute,
     setShowRoute,
     stations,
-    userLocation,
-    searchLocation,
     vehicleType,
     setVehicleType,
     fillHabit,
@@ -185,7 +184,7 @@ function SettingsBody() {
     setDistanceMode,
   } = useAppStore();
 
-  const referenceLocation = searchLocation || userLocation;
+  const referenceLocation = useReferenceLocation();
 
   const hasHighwayInRadius = useMemo(() => {
     return stations.some((station) => {
@@ -356,7 +355,7 @@ function SettingsBody() {
 }
 
 const StationListSettings = () => {
-  const isDesktop = useMediaQuery("(min-width: 768px)");
+  const isDesktop = useIsDesktop();
 
   if (isDesktop) {
     return (

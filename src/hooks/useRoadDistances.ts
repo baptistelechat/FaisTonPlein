@@ -4,6 +4,7 @@ import { useFilteredStations } from '@/hooks/useFilteredStations'
 import { fetchRoadDistances } from '@/lib/roadDistances'
 import { useAppStore } from '@/store/useAppStore'
 import { useEffect, useRef } from 'react'
+import { toast } from 'sonner'
 
 export function useRoadDistances() {
   const {
@@ -73,6 +74,10 @@ export function useRoadDistances() {
         })
         setRoadDistances(distResult)
         setRoadDurations(durResult)
+      } else {
+        toast.warning('Service de distances routières indisponible — app en mode dégradé.', {
+          id: 'osrm-fail',
+        })
       }
 
       setIsLoadingRoadDistances(false)
