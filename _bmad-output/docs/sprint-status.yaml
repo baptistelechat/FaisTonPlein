@@ -56,7 +56,7 @@ development_status:
   us-02-02-calcul-du-cout-du-plein: done
   us-02-03-tri-intelligent-prix-distance: done
   us-02-04-distances-routieres-osrm: done
-  epic-2-retrospective: optional
+  epic-2-retrospective: done
 
   # Epic 3: Intelligence & Analyse
   epic-3-intelligence-analyse: backlog
