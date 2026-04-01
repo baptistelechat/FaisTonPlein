@@ -6,7 +6,7 @@ import { initDB } from "./db";
 import { ensureRepoExists, uploadDirectory } from "./hf";
 import { CSV_TEMP_PATH, processFuelData } from "./transform";
 
-function sendUptimeHeartbeat(status: "up" | "down", msg: string) {
+export function sendUptimeHeartbeat(status: "up" | "down", msg: string) {
   if (!UPTIME_PUSH_URL) return;
   try {
     const url = new URL(UPTIME_PUSH_URL);
