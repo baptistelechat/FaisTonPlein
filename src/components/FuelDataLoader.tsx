@@ -68,7 +68,10 @@ export const FuelDataLoader = () => {
     const loadData = async () => {
       if (!db || !deptKey || deptKey === loadedDeptsKey) return;
       if (locationAvailable === null && !searchLocation) return;
-      if (!canLoadData) return;
+      if (!canLoadData) {
+        setIsLoading(false);
+        return;
+      }
 
       setIsLoading(true);
 

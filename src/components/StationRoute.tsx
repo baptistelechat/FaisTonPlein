@@ -212,7 +212,7 @@ export function StationRoute({ route }: { route: RouteGeometry | null }) {
       )}
       {crowMidpoint && route !== null && route.distanceKm !== null && (
         <MapMarker longitude={crowMidpoint[0]} latitude={crowMidpoint[1]}>
-          <div className="bg-primary-600/90 pointer-events-none rounded-full px-2.5 py-1 text-xs font-semibold whitespace-nowrap text-white shadow-lg backdrop-blur-sm">
+          <div className="pointer-events-none rounded-full bg-indigo-600/90 px-2.5 py-1 text-xs font-semibold whitespace-nowrap text-white shadow-lg backdrop-blur-sm">
             ~{route.distanceKm.toFixed(1)} km
           </div>
         </MapMarker>

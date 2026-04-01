@@ -465,9 +465,14 @@ export default function InteractiveMap({
   const handleGeolocation = useCallback(
     async (coords: { latitude: number; longitude: number }) => {
       const { latitude, longitude } = coords;
+      // Always record user's real position (used as fallback reference)
       setUserLocation([longitude, latitude]);
 
-      // Clear search location when geolocation is used to show user marker
+      // If user has an active manual search, don't override anything else.
+      // This prevents a late-arriving automatic geolocation from disrupting
+      // the search-triggered data load.
+      if (useAppStore.getState().searchLocation) return;
+
       setSearchLocation(null);
 
       // Force viewport update
@@ -485,7 +490,6 @@ export default function InteractiveMap({
           const contextParts = result.properties.context.split(",");
           const deptCode = contextParts[0].trim();
 
-          // Always set the department to trigger reload if needed
           setSelectedDepartment(deptCode);
           toast.success(`Département détecté : ${deptCode}`, {
             id: "geo-dept",
@@ -536,6 +540,8 @@ export default function InteractiveMap({
           showCompass={true}
           showLocate={true}
           onLocate={(coords) => {
+            // Clear any active search so handleGeolocation proceeds fully
+            useAppStore.getState().setSearchLocation(null);
             handleGeolocation(coords);
           }}
           style={
