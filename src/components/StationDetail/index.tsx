@@ -141,6 +141,7 @@ export function StationDetail({ mobileDrawerSnap }: StationDetailProps) {
             filteredStats={filteredStats[selectedPrice.fuel_type] ?? null}
             inlineEstimate
             distanceKm={distanceKm}
+            stationId={selectedStation.id}
           />
         )}
 
@@ -155,6 +156,7 @@ export function StationDetail({ mobileDrawerSnap }: StationDetailProps) {
                   key={price.fuel_type}
                   filteredStats={filteredStats[price.fuel_type] ?? null}
                   distanceKm={distanceKm}
+                  stationId={selectedStation.id}
                 />
               ))}
             </div>

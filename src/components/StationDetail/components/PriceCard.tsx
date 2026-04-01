@@ -1,6 +1,8 @@
 'use client'
 
 import { FillEstimate } from '@/components/FillEstimate'
+import { TrendIndicator } from '@/components/TrendIndicator'
+import { FuelType } from '@/lib/constants'
 import { getPriceLevel, getPriceTextColor } from '@/lib/priceColor'
 import {
   formatPriceAge,
@@ -8,8 +10,9 @@ import {
   FRESHNESS_TEXT_COLORS,
   getPriceFreshness,
 } from '@/lib/priceFreshness'
+import { buildTrendKey } from '@/lib/priceTrends'
 import { cn, formatPrice } from '@/lib/utils'
-import { FuelPrice, FuelStats } from '@/store/useAppStore'
+import { FuelPrice, FuelStats, useAppStore } from '@/store/useAppStore'
 
 export const PriceCard = ({
   price,
@@ -17,13 +20,17 @@ export const PriceCard = ({
   filteredStats,
   inlineEstimate = false,
   distanceKm,
+  stationId,
 }: {
   price: FuelPrice
   selectedFuel: string
   filteredStats: FuelStats | null
   inlineEstimate?: boolean
   distanceKm?: number | null
+  stationId: string
 }) => {
+  const priceTrends = useAppStore((s) => s.priceTrends)
+  const trendDirection = priceTrends[buildTrendKey(stationId, price.fuel_type as FuelType)] ?? null
   const priceColor = getPriceTextColor(price.price, filteredStats)
   const priceLevel = getPriceLevel(price.price, filteredStats)
 
@@ -53,8 +60,9 @@ export const PriceCard = ({
       )}
     >
       <div className='mb-1 flex items-center justify-between'>
-        <span className='text-muted-foreground text-[10px] font-bold tracking-widest uppercase'>
+        <span className='text-muted-foreground flex items-center gap-1 text-[10px] font-bold tracking-widest uppercase'>
           {price.fuel_type}
+          <TrendIndicator direction={trendDirection} />
         </span>
         {diffBadge}
       </div>

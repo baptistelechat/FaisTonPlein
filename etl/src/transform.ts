@@ -4,13 +4,48 @@ import path from "path";
 import { CSV_URL, OUTPUT_DIR } from "./config";
 import { runSQL } from "./db";
 
+export const CSV_TEMP_PATH = path.join(process.cwd(), "temp_fuel_prices.csv");
+
+async function downloadCSV(): Promise<void> {
+  console.log("📥 Downloading CSV via fetch...");
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 60_000);
+
+  let response: Response;
+  try {
+    response = await fetch(CSV_URL, {
+      signal: controller.signal,
+      headers: { "User-Agent": "FaisTonPlein-ETL/1.0" },
+    });
+  } finally {
+    clearTimeout(timeout);
+  }
+
+  if (!response.ok) {
+    throw new Error(`HTTP ${response.status} ${response.statusText} — ${CSV_URL}`);
+  }
+
+  const contentType = response.headers.get("content-type") ?? "";
+  if (!contentType.includes("text") && !contentType.includes("csv") && !contentType.includes("octet")) {
+    throw new Error(`Unexpected content-type: ${contentType} (expected CSV)`);
+  }
+
+  const text = await response.text();
+  if (text.trim().length === 0) {
+    throw new Error("Empty response from CSV endpoint");
+  }
+
+  fs.writeFileSync(CSV_TEMP_PATH, text, "utf-8");
+  console.log(`✅ CSV downloaded (${(text.length / 1024).toFixed(0)} KB)`);
+}
+
 export async function processFuelData(db: Database) {
-  // Create table from CSV
-  // We select specific columns to ensure clean schema if needed, but SELECT * is fine for now
-  console.log("📥 Downloading and parsing CSV...");
+  await downloadCSV();
+
+  console.log("📊 Parsing CSV with DuckDB...");
   await runSQL(
     db,
-    `CREATE OR REPLACE TABLE fuel_prices AS SELECT * FROM read_csv_auto('${CSV_URL}');`,
+    `CREATE OR REPLACE TABLE fuel_prices AS SELECT * FROM read_csv('${CSV_TEMP_PATH}', delim=';', header=true, quote='"', escape='"');`,
   );
 
   // Clean output dir
@@ -78,4 +113,5 @@ export async function processFuelData(db: Database) {
     db,
     `COPY fuel_prices_partitioned TO '${path.join(OUTPUT_DIR, "history")}' (FORMAT PARQUET, PARTITION_BY (year, month, day, hour, code_departement), OVERWRITE_OR_IGNORE);`,
   );
+
 }

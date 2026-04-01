@@ -1,10 +1,10 @@
 import chalk from "chalk";
 import fs from "fs";
-import { HF_REPO, HF_TOKEN, OUTPUT_DIR } from "./config";
+import { HF_REPO, HF_TOKEN, OUTPUT_DIR, UPTIME_PUSH_URL } from "./config";
 import { runConsolidationService } from "./consolidate";
 import { initDB } from "./db";
 import { ensureRepoExists, uploadDirectory } from "./hf";
-import { processFuelData } from "./transform";
+import { CSV_TEMP_PATH, processFuelData } from "./transform";
 
 export async function runETL() {
   const now = new Date().toISOString();
@@ -38,9 +38,12 @@ export async function runETL() {
       ),
     );
 
-    // Start Consolidation (ONLY if specifically requested or scheduled - logic moved to index.ts)
-    // We removed automatic consolidation here to separate concerns and schedules.
-    // await consolidateData({...});
+    // Heartbeat Uptime Kuma
+    if (UPTIME_PUSH_URL) {
+      fetch(UPTIME_PUSH_URL).catch(() => {
+        console.warn(chalk.yellow("⚠️ Uptime Kuma heartbeat failed (non-blocking)"));
+      });
+    }
 
     // Cleanup: Remove local data directory after successful upload to save space
     console.log(chalk.gray("🧹 Cleaning up local data..."));
@@ -54,8 +57,14 @@ export async function runETL() {
     );
     throw error; // Rethrow to stop pipeline execution
   } finally {
-    // Close DB connection
+    // db.close() libère tous les handles de fichiers DuckDB
     db.close();
+    // Suppression du CSV temp après fermeture DB (handle libéré sur Windows)
+    try {
+      if (fs.existsSync(CSV_TEMP_PATH)) fs.rmSync(CSV_TEMP_PATH);
+    } catch {
+      // Non-bloquant
+    }
   }
 }
 

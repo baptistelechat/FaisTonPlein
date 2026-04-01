@@ -2,6 +2,7 @@
 
 import { FillEstimate } from '@/components/FillEstimate'
 import { StationLogo } from '@/components/StationLogo'
+import { TrendIndicator } from '@/components/TrendIndicator'
 import { Card } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { getPriceTextColor } from '@/lib/priceColor'
@@ -11,8 +12,10 @@ import {
   FRESHNESS_TEXT_COLORS,
   getPriceFreshness,
 } from '@/lib/priceFreshness'
+import { buildTrendKey } from '@/lib/priceTrends'
 import { cn, getStationDistance } from '@/lib/utils'
 import { FuelStats, Station, useAppStore } from '@/store/useAppStore'
+import { FuelType } from '@/lib/constants'
 import { Bird, Euro, Navigation, Road, Route, Scale } from 'lucide-react'
 
 export interface StationCardProps {
@@ -39,6 +42,8 @@ export function StationCard({
   const resolvedName = useAppStore((s) => s.resolvedNames[String(station.id)])
   const roadDistances = useAppStore((s) => s.roadDistances)
   const distanceMode = useAppStore((s) => s.distanceMode)
+  const priceTrends = useAppStore((s) => s.priceTrends)
+  const trendDirection = priceTrends[buildTrendKey(station.id, selectedFuel as FuelType)] ?? null
   const displayName = resolvedName ?? station.name
   const isNameLoading = resolvedName === undefined
   const price = station.prices.find((p) => p.fuel_type === selectedFuel)
@@ -113,6 +118,7 @@ export function StationCard({
           ) : (
             <span className='text-muted-foreground text-xs'>-</span>
           )}
+          {price && <TrendIndicator direction={trendDirection} />}
           {price && <FillEstimate pricePerLiter={price.price} distanceKm={distance} />}
           {price?.updated_at &&
             (() => {

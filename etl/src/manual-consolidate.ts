@@ -1,4 +1,5 @@
 import chalk from "chalk";
+import fs from "fs";
 import { HF_REPO, HF_TOKEN, OUTPUT_DIR } from "./config";
 import { consolidateData } from "./consolidate";
 import { initDB } from "./db";
@@ -56,9 +57,21 @@ async function runManualConsolidation() {
     try {
       db.close();
     } catch (e) {
-      // ignore close errors
       console.error(chalk.red("❌ Database close failed:"), e);
     }
+
+    if (fs.existsSync(OUTPUT_DIR)) {
+      try {
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+        fs.rmSync(OUTPUT_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 1000 });
+        console.log(chalk.green(`✅ Local data directory cleaned up.`));
+      } catch (err: unknown) {
+        console.warn(
+          chalk.yellow(`⚠️ Cleanup failed: ${err instanceof Error ? err.message : String(err)}`),
+        );
+      }
+    }
+
     process.exit(0);
   }
 }

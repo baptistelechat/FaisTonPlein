@@ -1,4 +1,5 @@
 import { DEFAULT_SEARCH_RADIUS, FILL_HABIT_OPTIONS, FillHabit, FUEL_TYPES, FuelType, RADIUS_OPTIONS, VEHICLE_PRESETS, VehicleType } from '@/lib/constants';
+import { TrendDirection } from '@/lib/priceTrends';
 import type { Geometry } from 'geojson';
 import { filterStationsByLocation, getBestRealCostStation, getBestStationsForFuel } from '@/lib/utils';
 import { create } from "zustand";
@@ -100,6 +101,9 @@ type AppStore = {
 
   isApiAdresseUnavailable: boolean;
   setIsApiAdresseUnavailable: (v: boolean) => void;
+
+  priceTrends: Record<string, TrendDirection>;
+  setPriceTrends: (trends: Record<string, TrendDirection>) => void;
 
 };
 
@@ -272,6 +276,9 @@ export const useAppStore = create<AppStore>()(
 
       isApiAdresseUnavailable: false,
       setIsApiAdresseUnavailable: (isApiAdresseUnavailable) => set({ isApiAdresseUnavailable }),
+
+      priceTrends: {},
+      setPriceTrends: (priceTrends) => set({ priceTrends }),
 
       vehicleType: null,
       tankCapacity: 0,
