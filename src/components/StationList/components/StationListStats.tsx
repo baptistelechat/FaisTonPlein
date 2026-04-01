@@ -116,9 +116,7 @@ const StationListStats = ({ statistics }: StationListStatsProps) => {
             <StatsBody statistics={statistics} />
           </ScrollArea>
           <div className="flex justify-end pt-2">
-            <DialogClose>
-              <Button variant="outline">Fermer</Button>
-            </DialogClose>
+            <DialogClose render={<Button variant="outline" />}>Fermer</DialogClose>
           </div>
         </DialogContent>
       </Dialog>

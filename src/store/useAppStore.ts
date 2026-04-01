@@ -207,12 +207,20 @@ export const useAppStore = create<AppStore>()(
         set({ userLocation, bestPriceStationIds, bestDistanceStationIds, bestRealCostStationIds });
       },
       setSelectedFuel: (selectedFuel) => {
-        const { stations, userLocation, searchLocation, showHighwayStations, searchRadius, consumption, tankCapacity, fillHabit, roadDistances } = get();
+        const { stations, userLocation, searchLocation, showHighwayStations, searchRadius, consumption, tankCapacity, fillHabit, roadDistances, selectedStation } = get();
         const referenceLocation = searchLocation || userLocation;
         const { bestPriceStationIds, bestDistanceStationIds, bestRealCostStationIds } = computeBestStations(
           stations, selectedFuel, showHighwayStations, searchRadius, referenceLocation, consumption, tankCapacity, fillHabit, roadDistances,
         )
-        set({ selectedFuel, bestPriceStationIds, bestDistanceStationIds, bestRealCostStationIds });
+        const stationHasFuel = selectedStation?.prices.some((p) => p.fuel_type === selectedFuel) ?? true;
+        set((state) => ({
+          selectedFuel,
+          bestPriceStationIds,
+          bestDistanceStationIds,
+          bestRealCostStationIds,
+          selectedStation: stationHasFuel ? selectedStation : null,
+          fitToListSignal: stationHasFuel ? state.fitToListSignal : state.fitToListSignal + 1,
+        }));
       },
       setSelectedDepartment: (selectedDepartment) =>
         set({ selectedDepartment }),
