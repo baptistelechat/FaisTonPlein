@@ -6,6 +6,20 @@ import { initDB } from "./db";
 import { ensureRepoExists, uploadDirectory } from "./hf";
 import { CSV_TEMP_PATH, processFuelData } from "./transform";
 
+function sendUptimeHeartbeat(status: "up" | "down", msg: string) {
+  if (!UPTIME_PUSH_URL) return;
+  try {
+    const url = new URL(UPTIME_PUSH_URL);
+    url.searchParams.set("status", status);
+    url.searchParams.set("msg", msg);
+    fetch(url.toString()).catch(() => {
+      console.warn(chalk.yellow("⚠️ Uptime Kuma heartbeat failed (non-blocking)"));
+    });
+  } catch {
+    // URL invalide, non-bloquant
+  }
+}
+
 export async function runETL() {
   const now = new Date().toISOString();
   console.log(chalk.blue(`🚀 [${now}] Starting ETL job...`));
@@ -37,13 +51,6 @@ export async function runETL() {
         `🎉 [${new Date().toISOString()}] ETL job completed successfully.`,
       ),
     );
-
-    // Heartbeat Uptime Kuma
-    if (UPTIME_PUSH_URL) {
-      fetch(UPTIME_PUSH_URL).catch(() => {
-        console.warn(chalk.yellow("⚠️ Uptime Kuma heartbeat failed (non-blocking)"));
-      });
-    }
 
     // Cleanup: Remove local data directory after successful upload to save space
     console.log(chalk.gray("🧹 Cleaning up local data..."));
@@ -87,7 +94,10 @@ export async function runPipeline() {
     }
 
     console.log(chalk.green("🎉 Pipeline completed successfully."));
+    sendUptimeHeartbeat("up", "OK");
   } catch (error) {
     console.error(chalk.red("❌ Pipeline failed:"), error);
+    const msg = error instanceof Error ? error.message.slice(0, 100) : "Pipeline failed";
+    sendUptimeHeartbeat("down", msg);
   }
 }
