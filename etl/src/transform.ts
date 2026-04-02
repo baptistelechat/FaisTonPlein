@@ -63,18 +63,21 @@ export async function processFuelData(db: Database) {
   await runSQL(
     db,
     `
-      CREATE OR REPLACE TABLE fuel_prices_partitioned AS 
-      SELECT 
+      CREATE OR REPLACE TABLE fuel_prices_partitioned AS
+      SELECT
           *,
           strftime(now(), '%Y') as year,
           strftime(now(), '%m') as month,
           strftime(now(), '%d') as day,
           strftime(now(), '%H') as hour,
           now() as extraction_date
-      FROM fuel_prices 
+      FROM fuel_prices
       WHERE code_departement IS NOT NULL;
   `,
   );
+
+  // Free memory: drop the raw table now that fuel_prices_partitioned is ready
+  await runSQL(db, "DROP TABLE fuel_prices;");
 
   // 1. LATEST (For App Client)
   // Overwrites the file for each department, so the URL is stable.
