@@ -64,6 +64,10 @@ export function StationList({ mobileDrawerSnap }: StationListProps = {}) {
       )
     : null;
 
+  const isDataStale =
+    lastUpdate !== null &&
+    Date.now() - new Date(lastUpdate).getTime() > 2 * 60 * 60 * 1000;
+
   const filteredStations = useFilteredStations();
   const allFilteredStats = useFilteredStats();
 
@@ -211,7 +215,7 @@ export function StationList({ mobileDrawerSnap }: StationListProps = {}) {
                 : "Autour de moi"}
           </h2>
           {majLabel && (
-            <span className="text-muted-foreground flex items-center gap-1 text-[11px]">
+            <span className={cn("flex items-center gap-1 text-[11px]", isDataStale ? "text-red-700" : "text-muted-foreground")}>
               <Clock className="size-3" />
               {`Mise à jour : ${majLabel}`}
             </span>
