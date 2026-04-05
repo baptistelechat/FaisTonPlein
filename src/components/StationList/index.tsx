@@ -18,7 +18,7 @@ import {
 import { Station, useAppStore } from "@/store/useAppStore";
 import { formatRelative } from "date-fns";
 import { fr } from "date-fns/locale";
-import { Clock, Euro, Route, Scale } from "lucide-react";
+import { Calculator, Clock, Euro, Route } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { StationCard } from "./components/StationCard";
 import { StationCardSkeleton } from "./components/StationCardSkeleton";
@@ -242,7 +242,7 @@ export function StationList({ mobileDrawerSnap }: StationListProps = {}) {
                   className="cursor-pointer"
                   onClick={() => setListSortBy("real-cost")}
                 >
-                  <Scale className="size-4" />
+                  <Calculator className="size-4" />
                   Coût/trajet
                 </Badge>
               )}

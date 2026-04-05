@@ -4,7 +4,8 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev --turbo -p 3000 --experimental-https",
+    "dev": "next dev --turbo -p 3000",
+    "dev:https": "next dev --turbo -p 3000 --experimental-https",
     "build": "next build",
     "start": "next start",
     "test": "vitest run",

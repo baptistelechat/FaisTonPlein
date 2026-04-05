@@ -10,7 +10,7 @@ import { useFilteredStats } from '@/hooks/useFilteredStats'
 import { useStationName } from '@/hooks/useStationName'
 import { StationLogo } from '@/components/StationLogo'
 import { useAppStore } from '@/store/useAppStore'
-import { Bird, CreditCard, Euro, History, MapPin, Navigation, Road, Route, Scale } from 'lucide-react'
+import { Bird, Calculator, CreditCard, Euro, History, MapPin, Navigation, Road, Route } from 'lucide-react'
 import { toast } from 'sonner'
 import { PriceCard } from './components/PriceCard'
 
@@ -120,7 +120,7 @@ export function StationDetail({ mobileDrawerSnap }: StationDetailProps) {
               )}
               {isBestRealCost && (
                 <Badge variant='outline' className='border-yellow-500/30 bg-yellow-500/10 text-yellow-600'>
-                  <Scale className='size-3.5' />
+                  <Calculator className='size-3.5' />
                   Meilleur coût/trajet
                 </Badge>
               )}

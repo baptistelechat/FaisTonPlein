@@ -3,7 +3,7 @@ import { getPriceMarkerClasses } from "@/lib/priceColor";
 import { FRESHNESS_DOT_COLORS, getPriceFreshness } from "@/lib/priceFreshness";
 import { cn, formatPrice } from "@/lib/utils";
 import { FuelStats } from "@/store/useAppStore";
-import { Euro, Fuel, Route, Scale } from "lucide-react";
+import { Calculator, Euro, Fuel, Route } from "lucide-react";
 
 type PriceMarkerProps = {
   price: number;
@@ -70,7 +70,7 @@ export function PriceMarker({
         <div className="flex items-center gap-1 px-2 py-1">
           {isBestPrice && <Euro className="size-3.5" />}
           {isBestDistance && <Route className="size-3.5" />}
-          {isBestRealCost && <Scale className="size-3.5" />}
+          {isBestRealCost && <Calculator className="size-3.5" />}
           {!isBestPrice && !isBestDistance && !isBestRealCost && (
             <Fuel className="size-3.5" />
           )}

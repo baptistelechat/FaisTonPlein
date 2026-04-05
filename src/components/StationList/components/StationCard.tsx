@@ -16,7 +16,7 @@ import { buildTrendKey } from '@/lib/priceTrends'
 import { cn, getStationDistance } from '@/lib/utils'
 import { FuelStats, Station, useAppStore } from '@/store/useAppStore'
 import { FuelType } from '@/lib/constants'
-import { Bird, Euro, Navigation, Road, Route, Scale } from 'lucide-react'
+import { Bird, Calculator, Euro, Navigation, Road, Route } from 'lucide-react'
 
 export interface StationCardProps {
   station: Station
@@ -84,7 +84,7 @@ export function StationCard({
               <Route className='size-4 shrink-0 text-yellow-500' />
             )}
             {bestRealCostStationIds.includes(station.id) && (
-              <Scale className='size-4 shrink-0 text-yellow-500' />
+              <Calculator className='size-4 shrink-0 text-yellow-500' />
             )}
             {station.isHighway && (
               <Road className='size-4 shrink-0 text-blue-500' />
@@ -104,21 +104,23 @@ export function StationCard({
         {/* Colonne 2 : prix + estimation + fraîcheur */}
         <div className='flex flex-col items-end gap-0.5'>
           {price ? (
-            <span
-              className={cn(
-                'font-mono text-lg leading-none font-bold',
-                priceColor,
-              )}
-            >
-              {price.price.toFixed(3)}
-              <span className='text-muted-foreground ml-0.5 text-xs font-normal'>
-                €/L
+            <div className='flex items-center gap-1'>
+              <span
+                className={cn(
+                  'font-mono text-lg leading-none font-bold',
+                  priceColor,
+                )}
+              >
+                {price.price.toFixed(3)}
+                <span className='text-muted-foreground ml-0.5 text-xs font-normal'>
+                  €/L
+                </span>
               </span>
-            </span>
+              <TrendIndicator direction={trendDirection} />
+            </div>
           ) : (
             <span className='text-muted-foreground text-xs'>-</span>
           )}
-          {price && <TrendIndicator direction={trendDirection} />}
           {price && <FillEstimate pricePerLiter={price.price} distanceKm={distance} />}
           {price?.updated_at &&
             (() => {

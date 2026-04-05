@@ -75,13 +75,18 @@ export const fetchPriceTrends = async (
 
   const avgMap = new Map<string, Record<string, number | null>>()
   for (const row of rows) {
+    const toNum = (v: unknown): number | null => {
+      if (v == null) return null
+      const n = Number(v)
+      return isNaN(n) ? null : n
+    }
     avgMap.set(String(row.id), {
-      Gazole: typeof row.avg_gazole === 'number' ? row.avg_gazole : null,
-      E10: typeof row.avg_e10 === 'number' ? row.avg_e10 : null,
-      SP95: typeof row.avg_sp95 === 'number' ? row.avg_sp95 : null,
-      SP98: typeof row.avg_sp98 === 'number' ? row.avg_sp98 : null,
-      E85: typeof row.avg_e85 === 'number' ? row.avg_e85 : null,
-      GPLc: typeof row.avg_gplc === 'number' ? row.avg_gplc : null,
+      Gazole: toNum(row.avg_gazole),
+      E10: toNum(row.avg_e10),
+      SP95: toNum(row.avg_sp95),
+      SP98: toNum(row.avg_sp98),
+      E85: toNum(row.avg_e85),
+      GPLc: toNum(row.avg_gplc),
     })
   }
 
@@ -89,7 +94,7 @@ export const fetchPriceTrends = async (
   const fuelTypes = Object.keys(FUEL_COLUMN_MAP) as FuelType[]
 
   for (const station of stations) {
-    const historicEntry = avgMap.get(station.id)
+    const historicEntry = avgMap.get(String(station.id))
     if (!historicEntry) continue
 
     for (const fuelType of fuelTypes) {

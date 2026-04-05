@@ -61,7 +61,7 @@ development_status:
 
   # Epic 3: Intelligence & Analyse
   epic-3-intelligence-analyse: in-progress
-  us-03-01-indicateur-de-tendance: review
+  us-03-01-indicateur-de-tendance: in-progress
   us-03-02-mode-analyste: backlog
   us-03-03-graphique-historique: backlog
   epic-3-retrospective: optional
