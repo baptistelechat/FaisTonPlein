@@ -30,6 +30,7 @@ export const PriceCard = ({
   stationId: string
 }) => {
   const priceTrends = useAppStore((s) => s.priceTrends)
+  const arePriceTrendsLoading = useAppStore((s) => s.arePriceTrendsLoading)
   const trendDirection = priceTrends[buildTrendKey(stationId, price.fuel_type as FuelType)] ?? null
   const priceColor = getPriceTextColor(price.price, filteredStats)
   const priceLevel = getPriceLevel(price.price, filteredStats)
@@ -62,7 +63,7 @@ export const PriceCard = ({
       <div className='mb-1 flex items-center justify-between'>
         <span className='text-muted-foreground flex items-center gap-1 text-[10px] font-bold tracking-widest uppercase'>
           {price.fuel_type}
-          <TrendIndicator direction={trendDirection} />
+          <TrendIndicator direction={trendDirection} isLoading={arePriceTrendsLoading} />
         </span>
         {diffBadge}
       </div>

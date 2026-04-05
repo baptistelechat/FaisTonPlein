@@ -104,6 +104,8 @@ type AppStore = {
 
   priceTrends: Record<string, TrendDirection>;
   setPriceTrends: (trends: Record<string, TrendDirection>) => void;
+  arePriceTrendsLoading: boolean;
+  setArePriceTrendsLoading: (loading: boolean) => void;
 
 };
 
@@ -279,6 +281,8 @@ export const useAppStore = create<AppStore>()(
 
       priceTrends: {},
       setPriceTrends: (priceTrends) => set({ priceTrends }),
+      arePriceTrendsLoading: false,
+      setArePriceTrendsLoading: (arePriceTrendsLoading) => set({ arePriceTrendsLoading }),
 
       vehicleType: null,
       tankCapacity: 0,

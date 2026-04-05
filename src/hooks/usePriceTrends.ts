@@ -10,17 +10,23 @@ export function usePriceTrends() {
   const selectedDepartment = useAppStore((s) => s.selectedDepartment)
   const stations = useAppStore((s) => s.stations)
   const setPriceTrends = useAppStore((s) => s.setPriceTrends)
+  const setArePriceTrendsLoading = useAppStore((s) => s.setArePriceTrendsLoading)
 
   useEffect(() => {
     if (!db || !selectedDepartment || stations.length === 0) return
 
     let isMounted = true
+    setArePriceTrendsLoading(true)
 
     fetchPriceTrends(db, stations, selectedDepartment)
       .then((trends) => {
-        if (isMounted) setPriceTrends(trends)
+        if (isMounted) {
+          setPriceTrends(trends)
+          setArePriceTrendsLoading(false)
+        }
       })
       .catch(() => {
+        if (isMounted) setArePriceTrendsLoading(false)
         // Fallback silencieux — aucune erreur visible
       })
 

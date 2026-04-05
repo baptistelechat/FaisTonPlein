@@ -43,6 +43,7 @@ export function StationCard({
   const roadDistances = useAppStore((s) => s.roadDistances)
   const distanceMode = useAppStore((s) => s.distanceMode)
   const priceTrends = useAppStore((s) => s.priceTrends)
+  const arePriceTrendsLoading = useAppStore((s) => s.arePriceTrendsLoading)
   const trendDirection = priceTrends[buildTrendKey(station.id, selectedFuel as FuelType)] ?? null
   const displayName = resolvedName ?? station.name
   const isNameLoading = resolvedName === undefined
@@ -116,7 +117,7 @@ export function StationCard({
                   €/L
                 </span>
               </span>
-              <TrendIndicator direction={trendDirection} />
+              <TrendIndicator direction={trendDirection} isLoading={arePriceTrendsLoading} />
             </div>
           ) : (
             <span className='text-muted-foreground text-xs'>-</span>
