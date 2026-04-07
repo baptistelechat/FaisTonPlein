@@ -191,8 +191,8 @@
 
 **Critères d'Acceptation :**
 
-- [ ] Flèche (Hausse/Baisse/Stable) à côté du prix.
-- [ ] Basé sur la moyenne locale des 7 derniers jours.
+- [x] Flèche (Hausse/Baisse/Stable) à côté du prix.
+- [x] Basé sur la moyenne locale des 7 derniers jours.
 
 ### US-03-02 : Mode Analyste
 

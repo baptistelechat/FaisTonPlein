@@ -1,4 +1,5 @@
 import type { AsyncDuckDB } from '@duckdb/duckdb-wasm'
+import { FUEL_TYPES } from '@/lib/constants'
 import type { FuelType } from '@/lib/constants'
 import type { Station } from '@/store/useAppStore'
 
@@ -15,7 +16,8 @@ export const buildTrendKey = (stationId: string, fuelType: FuelType): string =>
 const getDeptFromStationId = (stationId: string): string => {
   const s = String(stationId)
   if (/^97[1-6]/.test(s)) return s.slice(0, 3) // DOM-TOM: 971–976
-  return s.slice(0, 2) // Métropole + Corse (2A, 2B)
+  if (/^2[AB]/i.test(s)) return s.slice(0, 2)  // Corse : "2A..." → "2A", "2B..." → "2B"
+  return s.slice(0, 2)                           // Métropole
 }
 
 export const getLast7DayUrls = (dept: string): string[] => {
@@ -32,15 +34,6 @@ export const getLast7DayUrls = (dept: string): string[] => {
     )
   }
   return urls
-}
-
-const FUEL_COLUMN_MAP: Record<FuelType, string> = {
-  Gazole: '"Prix Gazole"',
-  E10: '"Prix E10"',
-  SP95: '"Prix SP95"',
-  SP98: '"Prix SP98"',
-  E85: '"Prix E85"',
-  GPLc: '"Prix GPLc"',
 }
 
 export const fetchPriceTrends = async (
@@ -104,7 +97,7 @@ export const fetchPriceTrends = async (
   }
 
   const trends: Record<string, TrendDirection> = {}
-  const fuelTypes = Object.keys(FUEL_COLUMN_MAP) as FuelType[]
+  const fuelTypes = FUEL_TYPES.map((f) => f.type)
 
   for (const station of stations) {
     const historicEntry = avgMap.get(String(station.id))

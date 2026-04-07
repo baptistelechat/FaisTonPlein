@@ -1,6 +1,6 @@
 # Story 3.1 : Indicateur de Tendance
 
-**Status:** review
+**Status:** done
 
 ## Story
 
@@ -290,6 +290,28 @@ _Aucun blocage rencontré._
 - `src/components/StationDetail/index.tsx` (modifié — passage prop `stationId` à `PriceCard`)
 - `src/components/DesktopLayout.tsx` (modifié — montage `usePriceTrends()`)
 - `src/components/MobileLayout.tsx` (modifié — montage `usePriceTrends()`)
+
+## Review Findings
+
+> Revue du 2026-04-07 — 3 couches (Blind Hunter, Edge Case Hunter, Acceptance Auditor)
+
+### Décisions requises
+
+- [x] [Review][Decision] TrendIndicator `stable` : icône `Scale` + couleur `text-amber-500` — divergence intentionnelle assumée, gardé tel quel [`src/components/TrendIndicator.tsx:32-40`]
+- [x] [Review][Decision] `usePriceTrends` monté dans les deux layouts — rendu JS conditionnel confirmé, un seul layout monté à la fois, pas de bug [`src/components/DesktopLayout.tsx:11`, `src/components/MobileLayout.tsx:15`]
+
+### Patches à appliquer
+
+- [x] [Review][Patch] `arePriceTrendsLoading` peut rester `true` indéfiniment si composant démonté — `setArePriceTrendsLoading(false)` ajouté dans le cleanup du useEffect [`src/hooks/usePriceTrends.ts:32`]
+- [x] [Review][Patch] `priceTrends` périmées — non applicable : IDs stations embarquent le code dept (ex: "44190001"), pas de collision cross-dept ; comportement existant correct [`src/hooks/usePriceTrends.ts`]
+- [x] [Review][Patch] `useEffect` déclenché sur `stations.length` au lieu de `selectedDepartment` — `selectedDepartment` ajouté aux deps + guard condition ; `stations.length` conservé pour capter les depts limitrophes [`src/hooks/usePriceTrends.ts:37`]
+- [x] [Review][Patch] `getDeptFromStationId` : Corse rendue explicite avec check `/^2[AB]/i` (IDs alphanumériques "2A…"/"2B…" déjà correctement gérés, défense renforcée) [`src/lib/priceTrends.ts:16-18`]
+- [x] [Review][Patch] `FUEL_COLUMN_MAP` supprimé — remplacé par `FUEL_TYPES.map((f) => f.type)` depuis constants.ts [`src/lib/priceTrends.ts`]
+
+### Différé
+
+- [x] [Review][Defer] `filterAvailableUrls` : N×7 requêtes HEAD simultanées sans rate limiting ni timeout — peut saturer le réseau sur multiples départements [`src/lib/priceTrends.ts:136-145`] — deferred, pré-existant / optimisation future
+- [x] [Review][Defer] Injection SQL théorique via concaténation d'URLs dans query DuckDB — risque très faible (IDs issus de data.gouv) [`src/lib/priceTrends.ts:65`] — deferred, pré-existant / risque théorique
 
 ## Change Log
 

@@ -8,11 +8,12 @@ import { fetchPriceTrends } from '@/lib/priceTrends'
 export function usePriceTrends() {
   const { db } = useDuckDB()
   const stations = useAppStore((s) => s.stations)
+  const selectedDepartment = useAppStore((s) => s.selectedDepartment)
   const setPriceTrends = useAppStore((s) => s.setPriceTrends)
   const setArePriceTrendsLoading = useAppStore((s) => s.setArePriceTrendsLoading)
 
   useEffect(() => {
-    if (!db || stations.length === 0) return
+    if (!db || !selectedDepartment || stations.length === 0) return
 
     let isMounted = true
     setArePriceTrendsLoading(true)
@@ -31,7 +32,8 @@ export function usePriceTrends() {
 
     return () => {
       isMounted = false
+      setArePriceTrendsLoading(false) // reset loading si le composant est démonté avant résolution
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [db, stations.length]) // stations.length pour éviter les re-renders infinis
+  }, [db, selectedDepartment, stations.length]) // selectedDepartment pour AC #5 ; stations.length pour capter les depts limitrophes
 }
