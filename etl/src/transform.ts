@@ -90,24 +90,46 @@ export async function processFuelData(db: Database) {
   // Generate metadata.json for each department in "latest"
   console.log("   -> Generating metadata.json for each department...");
   const latestDir = path.join(OUTPUT_DIR, "latest");
+  const now = new Date().toISOString();
+
+  // Count total distinct stations before writing metadata
+  const countRows = await new Promise<{ total: number }[]>((resolve, reject) => {
+    db.all("SELECT COUNT(DISTINCT id) AS total FROM fuel_prices_partitioned", (err, rows) => {
+      if (err) reject(err);
+      else resolve(rows as { total: number }[]);
+    });
+  });
+  const totalStations = Number(countRows[0]?.total ?? 0);
+
   if (fs.existsSync(latestDir)) {
     const deptDirs = fs.readdirSync(latestDir, { withFileTypes: true });
-    const now = new Date().toISOString();
     for (const entry of deptDirs) {
       if (entry.isDirectory() && entry.name.startsWith("code_departement=")) {
         const deptPath = path.join(latestDir, entry.name);
-        const metadata = {
-          last_updated: now,
-          source: "data.economie.gouv.fr",
-          // We could add more stats here by querying DuckDB if needed
-        };
         fs.writeFileSync(
           path.join(deptPath, "metadata.json"),
-          JSON.stringify(metadata, null, 2),
+          JSON.stringify({ last_updated: now, source: "data.economie.gouv.fr" }, null, 2),
         );
       }
     }
   }
+
+  // Global metadata.json à la racine de latest/ (stats France entière)
+  console.log("   -> Generating global metadata.json...");
+  fs.writeFileSync(
+    path.join(latestDir, "metadata.json"),
+    JSON.stringify(
+      {
+        total_stations: totalStations,
+        france_area_km2: 551695,
+        last_updated: now,
+        source: "data.economie.gouv.fr",
+      },
+      null,
+      2,
+    ),
+  );
+  console.log(`   -> Total stations (France) : ${totalStations}`);
 
   // 2. HISTORY (For Analytics/Backup)
   // Creates new folders for each hour, preserving history in the repo.

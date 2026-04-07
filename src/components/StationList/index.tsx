@@ -58,6 +58,8 @@ export function StationList({ mobileDrawerSnap }: StationListProps = {}) {
     distanceMode,
   } = useAppStore();
 
+  const analystMode = useAppStore((s) => s.analystMode)
+
   const majLabel = lastUpdate
     ? capitalize(
         formatRelative(new Date(lastUpdate), new Date(), { locale: fr }),
@@ -295,7 +297,14 @@ export function StationList({ mobileDrawerSnap }: StationListProps = {}) {
                 {formatPrice(currentStats.max)}
               </span>
             </div>
-            <StationListStats statistics={currentStats} />
+            {analystMode ? (
+              <StationListStats statistics={currentStats} />
+            ) : (
+              <div className="flex flex-col items-center">
+                <span className="text-xs font-bold">{currentStats.count}</span>
+                <span className="text-muted-foreground text-[10px]">stations</span>
+              </div>
+            )}
           </div>
         )}
       </div>

@@ -43,6 +43,7 @@ import {
   Bus,
   Car,
   CarFront,
+  FlaskConical,
   Fuel,
   Gauge,
   Navigation,
@@ -182,6 +183,8 @@ function SettingsBody() {
     tankCapacity,
     distanceMode,
     setDistanceMode,
+    analystMode,
+    setAnalystMode,
   } = useAppStore();
 
   const referenceLocation = useReferenceLocation();
@@ -350,6 +353,27 @@ function SettingsBody() {
           </div>
         </>
       )}
+      <Separator />
+      <div className="text-muted-foreground text-xs font-bold tracking-wider uppercase">
+        Mode Analyste
+      </div>
+      <div className="flex items-center gap-2">
+        <Label
+          htmlFor="analyst-mode-switch"
+          className="flex cursor-pointer items-center gap-1.5"
+        >
+          <FlaskConical className="size-3.5" />
+          Activer le mode analyste
+        </Label>
+        <Switch
+          id="analyst-mode-switch"
+          checked={analystMode}
+          onCheckedChange={setAnalystMode}
+        />
+      </div>
+      <p className="text-muted-foreground -mt-2 text-xs">
+        Affiche les statistiques avancées et l&apos;historique des prix.
+      </p>
     </div>
   );
 }

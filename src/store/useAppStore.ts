@@ -107,6 +107,12 @@ type AppStore = {
   arePriceTrendsLoading: boolean;
   setArePriceTrendsLoading: (loading: boolean) => void;
 
+  analystMode: boolean;
+  setAnalystMode: (enabled: boolean) => void;
+
+  nationalStationsCount: number | null;
+  setNationalStationsCount: (count: number) => void;
+
 };
 
 function getFilteredStations(
@@ -284,6 +290,12 @@ export const useAppStore = create<AppStore>()(
       arePriceTrendsLoading: false,
       setArePriceTrendsLoading: (arePriceTrendsLoading) => set({ arePriceTrendsLoading }),
 
+      analystMode: false,
+      setAnalystMode: (analystMode) => set({ analystMode }),
+
+      nationalStationsCount: null,
+      setNationalStationsCount: (nationalStationsCount) => set({ nationalStationsCount }),
+
       vehicleType: null,
       tankCapacity: 0,
       consumption: 0,
@@ -365,6 +377,7 @@ export const useAppStore = create<AppStore>()(
         fillHabit: state.fillHabit,
         listSortBy: state.listSortBy,
         distanceMode: state.distanceMode,
+        analystMode: state.analystMode,
       }),
       merge: (persistedState, currentState) => {
         const ps = persistedState as Partial<AppStore>;
@@ -389,6 +402,7 @@ export const useAppStore = create<AppStore>()(
           fillHabit: FILL_HABIT_OPTIONS.some((o) => o.value === ps.fillHabit) ? (ps.fillHabit as FillHabit) : 1.0,
           listSortBy: restoredSort,
           distanceMode: ps.distanceMode === 'crow-fly' ? 'crow-fly' : 'road',
+          analystMode: ps.analystMode ?? false,
         };
       },
     },

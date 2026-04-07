@@ -4,7 +4,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev --turbo -p 3000",
+    "dev": "concurrently --kill-others-on-fail false -n \"NEXT,GREP\" -c \"cyan.dim,magenta.dim\" \"next dev --turbo -p 3000\" \"grepai watch || echo GrepAI unavailable: start Ollama first\"",
     "dev:https": "next dev --turbo -p 3000 --experimental-https",
     "build": "next build",
     "start": "next start",
@@ -30,6 +30,7 @@
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "react-map-gl": "^8.1.0",
+    "recharts": "^3.8.1",
     "shadcn": "^4.0.2",
     "sonner": "^2.0.7",
     "supercluster": "^8.0.1",

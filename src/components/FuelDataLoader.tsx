@@ -14,6 +14,7 @@ export const FuelDataLoader = () => {
     setIsLoading,
     selectedDepartment,
     setLastUpdate,
+    setNationalStationsCount,
     searchLocation,
     searchRadius,
     userLocation,
@@ -78,6 +79,15 @@ export const FuelDataLoader = () => {
       try {
         const BASE =
           "https://huggingface.co/datasets/baptistelechat/fais-ton-plein_dataset/resolve/main/data/latest";
+
+        // Métadonnées globales France (total stations)
+        fetch(`${BASE}/metadata.json`)
+          .then((res) => res.json())
+          .then((meta) => {
+            if (isMounted && typeof meta.total_stations === 'number')
+              setNationalStationsCount(meta.total_stations);
+          })
+          .catch(() => {});
 
         // Charger tous les départements en parallèle
         const results = await Promise.allSettled(
