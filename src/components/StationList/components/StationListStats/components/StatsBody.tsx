@@ -50,9 +50,9 @@ export function StatsBody({
   const densityStr = `${densityPer100 < 1 ? densityPer100.toFixed(2) : densityPer100.toFixed(1)} station${densityPer100 >= 2 ? 's' : ''} / 100 km²`
   const typicalSpacingKm = Math.sqrt(area / statistics.count)
 
-  // Références nationales France (depuis HF metadata.json, fallback 11 600)
+  // Références nationales France (depuis HF metadata.json, fallbacks si non chargé)
   const nationalStationsCount = useAppStore((s) => s.nationalStationsCount) ?? 11600
-  const FR_AREA = 543000 //Source : https://formation-civique.interieur.gouv.fr/fiches-par-thematiques/histoire-geographie-et-culture/atlas-de-la-france/le-territoire-de-la-france/#:~:text=La%20France%20en%20quelques%20chiffres,(au%201er%20janvier%202025).
+  const FR_AREA = useAppStore((s) => s.nationalFranceAreaKm2) ?? 543000
   const FR_DENSITY = (nationalStationsCount / FR_AREA) * 100
   const FR_SPACING = Math.sqrt(FR_AREA / nationalStationsCount)
 

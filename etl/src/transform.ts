@@ -121,7 +121,7 @@ export async function processFuelData(db: Database) {
     JSON.stringify(
       {
         total_stations: totalStations,
-        france_area_km2: 551695,
+        france_area_km2: 543000,
         last_updated: now,
         source: "data.economie.gouv.fr",
       },

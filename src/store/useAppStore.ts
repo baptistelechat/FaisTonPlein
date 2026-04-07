@@ -110,6 +110,9 @@ type AppStore = {
   nationalStationsCount: number | null;
   setNationalStationsCount: (count: number) => void;
 
+  nationalFranceAreaKm2: number | null;
+  setNationalFranceAreaKm2: (area: number) => void;
+
 };
 
 function getFilteredStations(
@@ -289,6 +292,9 @@ export const useAppStore = create<AppStore>()(
 
       nationalStationsCount: null,
       setNationalStationsCount: (nationalStationsCount) => set({ nationalStationsCount }),
+
+      nationalFranceAreaKm2: null,
+      setNationalFranceAreaKm2: (nationalFranceAreaKm2) => set({ nationalFranceAreaKm2 }),
 
       vehicleType: null,
       tankCapacity: 0,

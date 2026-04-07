@@ -15,6 +15,7 @@ export const FuelDataLoader = () => {
     selectedDepartment,
     setLastUpdate,
     setNationalStationsCount,
+    setNationalFranceAreaKm2,
     searchLocation,
     searchRadius,
     userLocation,
@@ -86,6 +87,8 @@ export const FuelDataLoader = () => {
           .then((meta) => {
             if (isMounted && typeof meta.total_stations === 'number')
               setNationalStationsCount(meta.total_stations);
+            if (isMounted && typeof meta.france_area_km2 === 'number')
+              setNationalFranceAreaKm2(meta.france_area_km2);
           })
           .catch(() => {});
 
