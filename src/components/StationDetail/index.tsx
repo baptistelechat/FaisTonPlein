@@ -32,8 +32,6 @@ export function StationDetail({ mobileDrawerSnap }: StationDetailProps) {
     distanceMode,
   } = useAppStore()
 
-  const analystMode = useAppStore((s) => s.analystMode)
-
   const filteredStats = useFilteredStats()
   const selectedStationId = selectedStation?.id ?? null
   const isBestPrice = selectedStationId !== null && bestPriceStationIds.includes(selectedStationId)
@@ -175,12 +173,6 @@ export function StationDetail({ mobileDrawerSnap }: StationDetailProps) {
                   Waze
                 </Button>
               </div>
-              {analystMode && (
-                <Button variant='outline' size='lg' disabled={true} className='w-full'>
-                  <History className='size-4' />
-                  Historique
-                </Button>
-              )}
             </div>
 
             {/* Services */}
