@@ -64,9 +64,13 @@ export function StationList({ mobileDrawerSnap }: StationListProps = {}) {
       )
     : null;
 
-  const isDataStale =
-    lastUpdate !== null &&
-    Date.now() - new Date(lastUpdate).getTime() > 2 * 60 * 60 * 1000;
+  const isDataStale = useMemo(
+    () =>
+      lastUpdate !== null &&
+      // eslint-disable-next-line react-hooks/purity
+      Date.now() - new Date(lastUpdate).getTime() > 2 * 60 * 60 * 1000,
+    [lastUpdate],
+  );
 
   const filteredStations = useFilteredStations();
   const allFilteredStats = useFilteredStats();

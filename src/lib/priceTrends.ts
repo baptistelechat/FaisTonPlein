@@ -12,6 +12,12 @@ const BASE_URL =
 export const buildTrendKey = (stationId: string, fuelType: FuelType): string =>
   `${stationId}_${fuelType}`
 
+const getDeptFromStationId = (stationId: string): string => {
+  const s = String(stationId)
+  if (/^97[1-6]/.test(s)) return s.slice(0, 3) // DOM-TOM: 971–976
+  return s.slice(0, 2) // Métropole + Corse (2A, 2B)
+}
+
 export const getLast7DayUrls = (dept: string): string[] => {
   const urls: string[] = []
   const now = new Date()
@@ -40,13 +46,20 @@ const FUEL_COLUMN_MAP: Record<FuelType, string> = {
 export const fetchPriceTrends = async (
   db: AsyncDuckDB,
   stations: Station[],
-  dept: string,
 ): Promise<Record<string, TrendDirection>> => {
-  const urls = getLast7DayUrls(dept)
+  // Dériver les départements uniques depuis les IDs des stations
+  // (ex: "44190001" → "44", "85690001" → "85")
+  const depts = [...new Set(stations.map((s) => getDeptFromStationId(s.id)))]
 
-  // Filtrer les URLs inaccessibles pour éviter les erreurs DuckDB
-  const availableUrls = await filterAvailableUrls(urls)
+  // Récupérer les URLs disponibles pour tous les départements en parallèle
+  const urlsPerDept = await Promise.all(
+    depts.map(async (dept) => {
+      const urls = getLast7DayUrls(dept)
+      return filterAvailableUrls(urls)
+    }),
+  )
 
+  const availableUrls = urlsPerDept.flat()
   if (availableUrls.length === 0) return {}
 
   const urlList = availableUrls.map((u) => `'${u}'`).join(', ')

@@ -7,18 +7,17 @@ import { fetchPriceTrends } from '@/lib/priceTrends'
 
 export function usePriceTrends() {
   const { db } = useDuckDB()
-  const selectedDepartment = useAppStore((s) => s.selectedDepartment)
   const stations = useAppStore((s) => s.stations)
   const setPriceTrends = useAppStore((s) => s.setPriceTrends)
   const setArePriceTrendsLoading = useAppStore((s) => s.setArePriceTrendsLoading)
 
   useEffect(() => {
-    if (!db || !selectedDepartment || stations.length === 0) return
+    if (!db || stations.length === 0) return
 
     let isMounted = true
     setArePriceTrendsLoading(true)
 
-    fetchPriceTrends(db, stations, selectedDepartment)
+    fetchPriceTrends(db, stations)
       .then((trends) => {
         if (isMounted) {
           setPriceTrends(trends)
@@ -34,5 +33,5 @@ export function usePriceTrends() {
       isMounted = false
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [db, selectedDepartment, stations.length]) // stations.length pour éviter les re-renders infinis
+  }, [db, stations.length]) // stations.length pour éviter les re-renders infinis
 }
