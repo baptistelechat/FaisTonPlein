@@ -28,6 +28,7 @@ export async function generateRolling30Days({
   console.log(chalk.blue("🔄 Generating Rolling 30-Day Files (1 file per dept)..."));
 
   // Lister les fichiers daily consolidés des 30 derniers jours
+  // listParquetFiles lève une HubApiError (404) si le dossier n'existe pas encore → ignorer silencieusement
   const allFiles: string[] = [];
   for (let i = 1; i <= 30; i++) {
     const d = new Date(now);
@@ -36,8 +37,12 @@ export async function generateRolling30Days({
     const month = String(d.getMonth() + 1).padStart(2, "0");
     const day = String(d.getDate()).padStart(2, "0");
     const prefix = `data/consolidated/daily/year=${year}/month=${month}/day=${day}`;
-    const files = await listParquetFiles(hfRepo, hfToken, prefix);
-    allFiles.push(...files);
+    try {
+      const files = await listParquetFiles(hfRepo, hfToken, prefix);
+      allFiles.push(...files);
+    } catch {
+      // Jour non consolidé (pas encore généré ou trop ancien) — on saute
+    }
   }
 
   if (allFiles.length === 0) {
