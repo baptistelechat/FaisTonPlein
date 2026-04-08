@@ -2,6 +2,7 @@ import chalk from "chalk";
 import fs from "fs";
 import { HF_REPO, HF_TOKEN, OUTPUT_DIR, UPTIME_PUSH_URL } from "./config";
 import { runConsolidationService } from "./consolidate";
+import { runRollingService } from "./rolling";
 import { initDB } from "./db";
 import { ensureRepoExists, uploadDirectory } from "./hf";
 import { CSV_TEMP_PATH, processFuelData } from "./transform";
@@ -85,6 +86,14 @@ export async function runPipeline() {
     if (currentHour >= 22) {
       console.log(chalk.blue("✅ ETL finished, starting Consolidation..."));
       await runConsolidationService();
+      // Rolling 30j : après la consolidation daily (fichier du jour déjà sur HF)
+      // Non-bloquant : un échec du rolling ne doit pas marquer le pipeline DOWN
+      console.log(chalk.blue("✅ Consolidation done, generating Rolling 30-day files..."));
+      try {
+        await runRollingService();
+      } catch (rollingError) {
+        console.error(chalk.red("⚠️ Rolling 30d failed (non-blocking):"), rollingError);
+      }
     } else {
       console.log(
         chalk.gray(

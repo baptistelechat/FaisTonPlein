@@ -87,8 +87,8 @@ export async function processFuelData(db: Database) {
     `COPY fuel_prices_partitioned TO '${path.join(OUTPUT_DIR, "latest")}' (FORMAT PARQUET, PARTITION_BY (code_departement), OVERWRITE_OR_IGNORE);`,
   );
 
-  // Generate metadata.json for each department in "latest"
-  console.log("   -> Generating metadata.json for each department...");
+  // Global metadata.json à la racine de latest/ (stats France entière + last_updated)
+  console.log("   -> Generating global metadata.json...");
   const latestDir = path.join(OUTPUT_DIR, "latest");
   const now = new Date().toISOString();
 
@@ -101,21 +101,6 @@ export async function processFuelData(db: Database) {
   });
   const totalStations = Number(countRows[0]?.total ?? 0);
 
-  if (fs.existsSync(latestDir)) {
-    const deptDirs = fs.readdirSync(latestDir, { withFileTypes: true });
-    for (const entry of deptDirs) {
-      if (entry.isDirectory() && entry.name.startsWith("code_departement=")) {
-        const deptPath = path.join(latestDir, entry.name);
-        fs.writeFileSync(
-          path.join(deptPath, "metadata.json"),
-          JSON.stringify({ last_updated: now, source: "data.economie.gouv.fr" }, null, 2),
-        );
-      }
-    }
-  }
-
-  // Global metadata.json à la racine de latest/ (stats France entière)
-  console.log("   -> Generating global metadata.json...");
   fs.writeFileSync(
     path.join(latestDir, "metadata.json"),
     JSON.stringify(

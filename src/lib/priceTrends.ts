@@ -7,66 +7,41 @@ export type TrendDirection = 'up' | 'down' | 'stable'
 
 const TREND_THRESHOLD = 0.01
 
-const BASE_URL =
-  'https://huggingface.co/datasets/baptistelechat/fais-ton-plein_dataset/resolve/main/data/consolidated/daily'
+const ROLLING_BASE_URL =
+  'https://huggingface.co/datasets/baptistelechat/fais-ton-plein_dataset/resolve/main/data/rolling/30days'
 
 export const buildTrendKey = (stationId: string, fuelType: FuelType): string =>
   `${stationId}_${fuelType}`
 
-const getDeptFromStationId = (stationId: string): string => {
+export const getDeptFromStationId = (stationId: string): string => {
   const s = String(stationId)
   if (/^97[1-6]/.test(s)) return s.slice(0, 3) // DOM-TOM: 971–976
   if (/^2[AB]/i.test(s)) return s.slice(0, 2)  // Corse : "2A..." → "2A", "2B..." → "2B"
   return s.slice(0, 2)                           // Métropole
 }
 
-export const getLast7DayUrls = (dept: string): string[] => {
-  const urls: string[] = []
-  const now = new Date()
-  for (let i = 1; i <= 7; i++) {
-    const d = new Date(now)
-    d.setDate(d.getDate() - i)
-    const year = d.getFullYear()
-    const month = String(d.getMonth() + 1).padStart(2, '0')
-    const day = String(d.getDate()).padStart(2, '0')
-    urls.push(
-      `${BASE_URL}/year=${year}/month=${month}/day=${day}/code_departement=${dept}/data_0.parquet`,
-    )
-  }
-  return urls
-}
-
 export const fetchPriceTrends = async (
   db: AsyncDuckDB,
   stations: Station[],
 ): Promise<Record<string, TrendDirection>> => {
-  // Dériver les départements uniques depuis les IDs des stations
-  // (ex: "44190001" → "44", "85690001" → "85")
   const depts = [...new Set(stations.map((s) => getDeptFromStationId(s.id)))]
 
-  // Récupérer les URLs disponibles pour tous les départements en parallèle
-  const urlsPerDept = await Promise.all(
-    depts.map(async (dept) => {
-      const urls = getLast7DayUrls(dept)
-      return filterAvailableUrls(urls)
-    }),
-  )
-
-  const availableUrls = urlsPerDept.flat()
-  if (availableUrls.length === 0) return {}
-
-  const urlList = availableUrls.map((u) => `'${u}'`).join(', ')
+  // 1 fichier rolling par département — filtre les 7 derniers jours
+  const urlList = depts
+    .map((dept) => `'${ROLLING_BASE_URL}/code_departement=${dept}/data_0.parquet'`)
+    .join(', ')
 
   const query = `
     SELECT
       id,
       AVG("Prix Gazole") AS avg_gazole,
-      AVG("Prix E10") AS avg_e10,
-      AVG("Prix SP95") AS avg_sp95,
-      AVG("Prix SP98") AS avg_sp98,
-      AVG("Prix E85") AS avg_e85,
-      AVG("Prix GPLc") AS avg_gplc
+      AVG("Prix E10")    AS avg_e10,
+      AVG("Prix SP95")   AS avg_sp95,
+      AVG("Prix SP98")   AS avg_sp98,
+      AVG("Prix E85")    AS avg_e85,
+      AVG("Prix GPLc")   AS avg_gplc
     FROM read_parquet([${urlList}])
+    WHERE CAST(date AS DATE) >= CURRENT_DATE - INTERVAL 7 DAYS
     GROUP BY id
   `
 
@@ -124,15 +99,4 @@ export const fetchPriceTrends = async (
   }
 
   return trends
-}
-
-async function filterAvailableUrls(urls: string[]): Promise<string[]> {
-  const results = await Promise.allSettled(
-    urls.map((url) =>
-      fetch(url, { method: 'HEAD' }).then((r) => (r.ok ? url : null)),
-    ),
-  )
-  return results
-    .filter((r): r is PromiseFulfilledResult<string> => r.status === 'fulfilled' && r.value !== null)
-    .map((r) => r.value)
 }

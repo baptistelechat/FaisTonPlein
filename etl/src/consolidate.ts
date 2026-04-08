@@ -52,10 +52,13 @@ export async function consolidateData({
     );
   }
 
+  // mode 'daily'   : source = fichiers hourly (hive_partitioning) → AVG par (id, dept, year, month, day)
+  // mode 'monthly' : source = fichiers daily  (filename=true)     → AVG par (id, dept, year, month)
   async function processFilesLocally(
     files: string[],
     destPath: string,
     label: string,
+    mode: "daily" | "monthly",
     tempDirName = "temp_consolidation",
   ) {
     const tempDir = path.join(outputDir, tempDirName);
@@ -99,17 +102,49 @@ export async function consolidateData({
       fs.mkdirSync(path.dirname(destPath), { recursive: true });
 
       const globPattern = path.join(tempDir, "**/*.parquet").replace(/\\/g, "/");
-      console.log(chalk.gray(`      Running DuckDB COPY from '${globPattern}'...`));
+      console.log(chalk.gray(`      Running DuckDB COPY (${mode}) from '${globPattern}'...`));
 
-      await runSQL(
-        db,
-        `
-        COPY (
-            SELECT * FROM read_parquet('${globPattern}', hive_partitioning=true)
-        ) TO '${destPath}'
-        (FORMAT PARQUET, PARTITION_BY (code_departement), OVERWRITE_OR_IGNORE);
-        `,
-      );
+      const sql =
+        mode === "daily"
+          ? // Source : fichiers hourly — hive_partitioning ajoute year/month/day/hour/code_departement
+            `
+            COPY (
+              SELECT
+                id,
+                code_departement,
+                year, month, day,
+                AVG(TRY_CAST("Prix Gazole" AS DOUBLE)) AS "Prix Gazole",
+                AVG(TRY_CAST("Prix E10"    AS DOUBLE)) AS "Prix E10",
+                AVG(TRY_CAST("Prix SP95"   AS DOUBLE)) AS "Prix SP95",
+                AVG(TRY_CAST("Prix SP98"   AS DOUBLE)) AS "Prix SP98",
+                AVG(TRY_CAST("Prix E85"    AS DOUBLE)) AS "Prix E85",
+                AVG(TRY_CAST("Prix GPLc"   AS DOUBLE)) AS "Prix GPLc"
+              FROM read_parquet('${globPattern}', hive_partitioning=true)
+              GROUP BY id, code_departement, year, month, day
+            ) TO '${destPath}'
+            (FORMAT PARQUET, PARTITION_BY (code_departement), OVERWRITE_OR_IGNORE);
+            `
+          : // Source : fichiers daily — year/month/day déjà en colonnes, code_departement dans le path
+            `
+            COPY (
+              SELECT
+                id,
+                regexp_extract(filename, 'code_departement=([^/]+)', 1) AS code_departement,
+                year, month,
+                AVG(TRY_CAST("Prix Gazole" AS DOUBLE)) AS "Prix Gazole",
+                AVG(TRY_CAST("Prix E10"    AS DOUBLE)) AS "Prix E10",
+                AVG(TRY_CAST("Prix SP95"   AS DOUBLE)) AS "Prix SP95",
+                AVG(TRY_CAST("Prix SP98"   AS DOUBLE)) AS "Prix SP98",
+                AVG(TRY_CAST("Prix E85"    AS DOUBLE)) AS "Prix E85",
+                AVG(TRY_CAST("Prix GPLc"   AS DOUBLE)) AS "Prix GPLc"
+              FROM read_parquet('${globPattern}', filename=true)
+              WHERE regexp_extract(filename, 'code_departement=([^/]+)', 1) <> ''
+              GROUP BY id, regexp_extract(filename, 'code_departement=([^/]+)', 1), year, month
+            ) TO '${destPath}'
+            (FORMAT PARQUET, PARTITION_BY (code_departement), OVERWRITE_OR_IGNORE);
+            `;
+
+      await runSQL(db, sql);
       console.log(chalk.green(`   ✅ ${label} consolidation complete`));
     } catch (err: unknown) {
       console.error(
@@ -155,7 +190,7 @@ export async function consolidateData({
       `day=${day}`,
     );
     try {
-      await processFilesLocally(dailyFiles, dailyDestPath, "Daily");
+      await processFilesLocally(dailyFiles, dailyDestPath, "Daily", "daily");
     } catch (e) {
       console.error(chalk.red("Failed to consolidate daily data"), e);
     }
@@ -195,6 +230,7 @@ export async function consolidateData({
           monthlyFiles,
           monthlyDestPath,
           "Monthly",
+          "monthly",
           "temp_consolidation_monthly",
         );
       } catch (e) {

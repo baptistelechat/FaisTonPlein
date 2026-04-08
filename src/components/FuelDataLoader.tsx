@@ -81,7 +81,7 @@ export const FuelDataLoader = () => {
         const BASE =
           "https://huggingface.co/datasets/baptistelechat/fais-ton-plein_dataset/resolve/main/data/latest";
 
-        // Métadonnées globales France (total stations)
+        // Métadonnées globales France (total stations + last_updated)
         fetch(`${BASE}/metadata.json`)
           .then((res) => res.json())
           .then((meta) => {
@@ -89,6 +89,8 @@ export const FuelDataLoader = () => {
               setNationalStationsCount(meta.total_stations);
             if (isMounted && typeof meta.france_area_km2 === 'number')
               setNationalFranceAreaKm2(meta.france_area_km2);
+            if (isMounted && meta.last_updated)
+              setLastUpdate(meta.last_updated);
           })
           .catch(() => {});
 
@@ -97,16 +99,6 @@ export const FuelDataLoader = () => {
           departmentsToLoad.map(async (dept) => {
             const conn = await db.connect();
             const url = `${BASE}/code_departement=${dept}/data_0.parquet`;
-            // Charger aussi les métadonnées du département principal
-            if (dept === selectedDepartment) {
-              fetch(`${BASE}/code_departement=${dept}/metadata.json`)
-                .then((res) => res.json())
-                .then((meta) => {
-                  if (isMounted && meta.last_updated)
-                    setLastUpdate(meta.last_updated);
-                })
-                .catch(() => {});
-            }
             const res = await conn.query(
               `SELECT * FROM read_parquet('${url}')`,
             );
