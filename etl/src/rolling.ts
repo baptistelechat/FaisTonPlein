@@ -30,7 +30,7 @@ export async function generateRolling30Days({
   // Lister les fichiers daily consolidés des 30 derniers jours
   // listParquetFiles lève une HubApiError (404) si le dossier n'existe pas encore → ignorer silencieusement
   const allFiles: string[] = [];
-  for (let i = 1; i <= 30; i++) {
+  for (let i = 0; i <= 29; i++) {
     const d = new Date(now);
     d.setDate(d.getDate() - i);
     const year = String(d.getFullYear());
