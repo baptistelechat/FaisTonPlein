@@ -12,15 +12,19 @@ export const fetchStationPriceHistory = async (
   dept: string,
   fuelType: FuelType,
 ): Promise<PriceHistoryPoint[]> => {
-  const url = `${ROLLING_BASE_URL}/code_departement=${dept}/data_0.parquet`
+  const today = new Date().toISOString().slice(0, 10)
+  const url = `${ROLLING_BASE_URL}/code_departement=${dept}/data_0.parquet?v=${today}`
   const fuelCol = `"Prix ${fuelType}"`
 
-  // 1 fichier par dept, 1 ligne par (id, date) — pas de GROUP BY nécessaire
+  // GROUP BY date calendrier pour éliminer les doublons intra-journaliers (plusieurs relevés/jour)
   const query = `
-    SELECT date, ${fuelCol} AS price
+    SELECT
+      CAST(date AS DATE)::VARCHAR AS date,
+      ARG_MAX(${fuelCol}, date) AS price
     FROM read_parquet('${url}')
     WHERE CAST(id AS VARCHAR) = '${stationId}'
-    ORDER BY date
+    GROUP BY CAST(date AS DATE)
+    ORDER BY CAST(date AS DATE)
   `
 
   const conn = await db.connect()

@@ -1,57 +1,60 @@
-'use client'
+"use client";
 
-import { useMemo } from 'react'
 import {
-  ResponsiveContainer,
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  Tooltip,
-  CartesianGrid,
-} from 'recharts'
-import type { FuelType } from '@/lib/constants'
-import type { PriceHistoryPoint } from '@/lib/priceHistory'
-import { Skeleton } from '@/components/ui/skeleton'
+  ChartContainer,
+  ChartTooltip,
+  type ChartConfig,
+} from "@/components/ui/chart";
+import { Skeleton } from "@/components/ui/skeleton";
+import type { FuelType } from "@/lib/constants";
+import type { PriceHistoryPoint } from "@/lib/priceHistory";
+import { CartesianGrid, Line, LineChart, XAxis, YAxis } from "recharts";
 
 interface PriceHistoryChartProps {
-  data: PriceHistoryPoint[]
-  isLoading: boolean
-  selectedFuel: FuelType
+  data: PriceHistoryPoint[];
+  isLoading: boolean;
+  selectedFuel: FuelType;
 }
 
-export function PriceHistoryChart({ data, isLoading, selectedFuel }: PriceHistoryChartProps) {
-  // Recharts SVG n'accepte pas les CSS custom properties — résolution au runtime
-  const strokeColor = useMemo(() => {
-    if (typeof window === 'undefined') return '#4F46E5'
-    return getComputedStyle(document.documentElement).getPropertyValue('--primary').trim() || '#4F46E5'
-  }, [])
+const chartConfig = {
+  price: {
+    label: "Prix",
+    color: "var(--primary)",
+  },
+} satisfies ChartConfig;
 
-  if (isLoading) return <Skeleton className='h-40 w-full rounded-md' />
+export function PriceHistoryChart({
+  data,
+  isLoading,
+  selectedFuel,
+}: PriceHistoryChartProps) {
+  if (isLoading) return <Skeleton className="h-40 w-full rounded-md" />;
 
   if (data.length === 0) {
     return (
-      <p className='text-muted-foreground py-4 text-center text-sm'>
+      <p className="text-muted-foreground py-4 text-center text-sm">
         Aucune donnée historique disponible
       </p>
-    )
+    );
   }
 
-  const prices = data.map((d) => d.price).filter((p): p is number => p !== null)
-  const minPrice = Math.min(...prices) - 0.05
-  const maxPrice = Math.max(...prices) + 0.05
+  const prices = data
+    .map((d) => d.price)
+    .filter((p): p is number => p !== null);
+  const minPrice = Math.min(...prices) - 0.05;
+  const maxPrice = Math.max(...prices) + 0.05;
 
   return (
-    <ResponsiveContainer width='100%' height={160}>
+    <ChartContainer config={chartConfig} className="h-40 w-full">
       <LineChart data={data} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
-        <CartesianGrid strokeDasharray='3 3' stroke='currentColor' strokeOpacity={0.1} />
+        <CartesianGrid strokeDasharray="3 3" vertical={false} />
         <XAxis
-          dataKey='date'
+          dataKey="date"
           tick={{ fontSize: 10 }}
           tickLine={false}
           axisLine={false}
-          tickFormatter={(val: string) => val.slice(5)} // 'YYYY-MM-DD' → 'MM-DD'
-          interval='preserveStartEnd'
+          tickFormatter={(val: string) => val.slice(5)}
+          interval="preserveStartEnd"
         />
         <YAxis
           domain={[minPrice, maxPrice]}
@@ -61,24 +64,35 @@ export function PriceHistoryChart({ data, isLoading, selectedFuel }: PriceHistor
           tickFormatter={(v: number) => `${v.toFixed(2)}€`}
           width={42}
         />
-        <Tooltip
-          formatter={(value: unknown) => [`${Number(value).toFixed(3)} €/L`, selectedFuel]}
-          labelFormatter={(label: string) => {
-            const [y, m, d] = label.split('-')
-            return `${d}/${m}/${y}`
+        <ChartTooltip
+          content={({ active, payload, label }) => {
+            if (!active || !payload?.length) return null;
+            const [y, m, d] = (label as string).split("-");
+            const price = payload[0]?.value;
+            return (
+              <div className="border-border/50 bg-background rounded-lg border px-2.5 py-1.5 text-xs shadow-xl">
+                <p className="mb-1 font-medium">{`${d}/${m}/${y}`}</p>
+                <div className="flex items-center gap-1.5">
+                  <div className="size-2 shrink-0 rounded-xs bg-(--color-price)" />
+                  <span className="text-muted-foreground">{selectedFuel}</span>
+                  <span className="text-foreground ml-auto font-mono font-medium tabular-nums">
+                    {Number(price).toFixed(3)} €/L
+                  </span>
+                </div>
+              </div>
+            );
           }}
-          contentStyle={{ fontSize: 12 }}
         />
         <Line
-          type='monotone'
-          dataKey='price'
-          stroke={strokeColor}
+          type="monotone"
+          dataKey="price"
+          stroke="var(--color-price)"
           strokeWidth={2}
           dot={false}
           activeDot={{ r: 4 }}
           connectNulls={false}
         />
       </LineChart>
-    </ResponsiveContainer>
-  )
+    </ChartContainer>
+  );
 }

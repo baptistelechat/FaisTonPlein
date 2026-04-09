@@ -69,13 +69,15 @@ export async function generateRolling30Days({
   // Les fichiers daily ont déjà 1 ligne/station/jour (AVG fait dans la consolidation daily)
   // year/month/day sont des colonnes data, code_departement est dans le path
   // → filename=true + regexp_extract pour récupérer code_departement sans conflit
-  const destPath = path.join(outputDir, "rolling", "30days");
+  // Toujours des forward slashes pour DuckDB (robuste Windows/Linux)
+  const destPath = path.join(outputDir, "rolling", "30days").replace(/\\/g, "/");
   fs.mkdirSync(destPath, { recursive: true });
 
   const globPattern = path.join(tempDir, "**/*.parquet").replace(/\\/g, "/");
 
   // Les fichiers daily ont déjà 1 ligne/station/jour (AVG fait dans la consolidation daily)
   // → simple SELECT * + construction de la colonne date depuis year/month/day
+  // chr(92) = backslash — normalise le filename avant regexp pour être robuste sur Windows
   console.log(chalk.gray("   Running DuckDB consolidation..."));
   await runSQL(
     db,
@@ -84,7 +86,7 @@ export async function generateRolling30Days({
       SELECT
         id,
         year || '-' || month || '-' || day AS date,
-        regexp_extract(filename, 'code_departement=([^/]+)', 1) AS code_departement,
+        regexp_extract(replace(filename, chr(92), '/'), 'code_departement=([^/]+)', 1) AS code_departement,
         "Prix Gazole",
         "Prix E10",
         "Prix SP95",
@@ -92,7 +94,7 @@ export async function generateRolling30Days({
         "Prix E85",
         "Prix GPLc"
       FROM read_parquet('${globPattern}', filename=true)
-      WHERE regexp_extract(filename, 'code_departement=([^/]+)', 1) <> ''
+      WHERE regexp_extract(replace(filename, chr(92), '/'), 'code_departement=([^/]+)', 1) <> ''
       ORDER BY date
     ) TO '${destPath}'
     (FORMAT PARQUET, PARTITION_BY (code_departement), OVERWRITE_OR_IGNORE);

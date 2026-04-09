@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect } from 'react'
 import { useDuckDB } from '@/components/DuckDBProvider'
 import { useAppStore } from '@/store/useAppStore'
 import { fetchStationPriceHistory, type PriceHistoryPoint } from '@/lib/priceHistory'
@@ -16,20 +16,12 @@ export function usePriceHistory() {
 
   const [data, setData] = useState<PriceHistoryPoint[]>([])
   const [isLoading, setIsLoading] = useState(false)
-  const [isVisible, setIsVisible] = useState(false)
 
-  // Reset visibilité + data quand on change de station
   useEffect(() => {
-    setIsVisible(false)
-    setData([])
-    setIsLoading(false)
-  }, [selectedStation?.id])
+    if (!db || !selectedStation) return
 
-  // Re-fetch quand le carburant change pendant que le graphique est visible
-  useEffect(() => {
-    if (!isVisible || !db || !selectedStation) return
-
-    const cacheKey = `${selectedStation.id}_${selectedFuel}`
+    const today = new Date().toISOString().slice(0, 10)
+    const cacheKey = `${selectedStation.id}_${selectedFuel}_${today}`
     const cached = historyCache.get(cacheKey)
 
     if (cached) {
@@ -58,39 +50,12 @@ export function usePriceHistory() {
     return () => {
       cancelled = true
     }
-  }, [selectedFuel]) // eslint-disable-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [db, selectedStation?.id, selectedFuel])
 
-  const toggleVisibility = useCallback(async () => {
-    if (isVisible) {
-      setIsVisible(false)
-      return
-    }
+  if (!db || !selectedStation) {
+    return { data: [], isLoading: false }
+  }
 
-    if (!db || !selectedStation) return
-
-    const cacheKey = `${selectedStation.id}_${selectedFuel}`
-    const cached = historyCache.get(cacheKey)
-
-    if (cached) {
-      setData(cached)
-      setIsVisible(true)
-      return
-    }
-
-    setIsVisible(true)
-    setIsLoading(true)
-
-    const dept = getDeptFromStationId(selectedStation.id)
-    try {
-      const history = await fetchStationPriceHistory(db, selectedStation.id, dept, selectedFuel)
-      historyCache.set(cacheKey, history)
-      setData(history)
-    } catch {
-      setData([])
-    } finally {
-      setIsLoading(false)
-    }
-  }, [db, selectedStation, selectedFuel, isVisible])
-
-  return { data, isLoading, isVisible, toggleVisibility }
+  return { data, isLoading }
 }

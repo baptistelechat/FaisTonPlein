@@ -16,7 +16,6 @@ import {
   Calculator,
   CreditCard,
   Euro,
-  History,
   MapPin,
   Navigation,
   Road,
@@ -58,12 +57,7 @@ export function StationDetail({ mobileDrawerSnap }: StationDetailProps) {
     bestRealCostStationIds.includes(selectedStationId);
   const { name: stationName, isLoading: nameIsLoading } =
     useStationName(selectedStation);
-  const {
-    data: priceHistory,
-    isLoading: isPriceHistoryLoading,
-    isVisible: isHistoryVisible,
-    toggleVisibility: toggleHistory,
-  } = usePriceHistory();
+  const { data: priceHistory, isLoading: isPriceHistoryLoading } = usePriceHistory();
 
   if (!selectedStation) return null;
 
@@ -225,7 +219,7 @@ export function StationDetail({ mobileDrawerSnap }: StationDetailProps) {
             </div>
 
             {/* Action Buttons */}
-            <div className="grid grid-cols-1 gap-3 pt-2">
+            <div className="grid grid-cols-1 gap-6 pt-2">
               <div className="grid grid-cols-2 gap-2">
                 <Button
                   onClick={() =>
@@ -253,28 +247,17 @@ export function StationDetail({ mobileDrawerSnap }: StationDetailProps) {
                   Waze
                 </Button>
               </div>
-              <Button
-                variant="outline"
-                size="lg"
-                className="flex w-full gap-2"
-                onClick={toggleHistory}
-              >
-                <History className="size-4" />
-                {isHistoryVisible ? "Masquer l'historique" : "Historique"}
-              </Button>
-              {isHistoryVisible && (
-                <div className="space-y-2">
-                  <p className="text-muted-foreground flex items-center gap-1.5 text-xs font-bold tracking-wider uppercase">
-                    <TrendingUp className="size-3.5" />
-                    Évolution du prix — 30 jours
-                  </p>
-                  <PriceHistoryChart
-                    data={priceHistory}
-                    isLoading={isPriceHistoryLoading}
-                    selectedFuel={selectedFuel}
-                  />
-                </div>
-              )}
+              <div className="space-y-2">
+                <p className="text-muted-foreground flex items-center gap-1.5 text-xs font-bold tracking-wider uppercase">
+                  <TrendingUp className="size-3.5" />
+                  Évolution du prix — 30 jours
+                </p>
+                <PriceHistoryChart
+                  data={priceHistory}
+                  isLoading={isPriceHistoryLoading}
+                  selectedFuel={selectedFuel}
+                />
+              </div>
             </div>
 
             {/* Services */}
