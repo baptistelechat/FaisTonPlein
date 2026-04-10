@@ -145,19 +145,7 @@ export const FuelDataLoader = () => {
     return () => {
       isMounted = false;
     };
-  }, [
-    db,
-    deptKey,
-    loadedDeptsKey,
-    canLoadData,
-    locationAvailable,
-    searchLocation,
-    selectedDepartment,
-    setIsLoading,
-    setLastUpdate,
-    setStations,
-    departmentsToLoad,
-  ]);
+  }, [db, deptKey, loadedDeptsKey, canLoadData, locationAvailable, searchLocation, selectedDepartment, setIsLoading, setLastUpdate, setStations, departmentsToLoad, setNationalStationsCount, setNationalFranceAreaKm2]);
 
   if (dbError) {
     return null; // Or show a global error banner

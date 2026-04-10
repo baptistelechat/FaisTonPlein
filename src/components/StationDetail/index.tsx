@@ -20,7 +20,6 @@ import {
   Navigation,
   Road,
   Route,
-  TrendingUp,
 } from "lucide-react";
 import { toast } from "sonner";
 import { PriceCard } from "./components/PriceCard";
@@ -57,7 +56,8 @@ export function StationDetail({ mobileDrawerSnap }: StationDetailProps) {
     bestRealCostStationIds.includes(selectedStationId);
   const { name: stationName, isLoading: nameIsLoading } =
     useStationName(selectedStation);
-  const { data: priceHistory, isLoading: isPriceHistoryLoading } = usePriceHistory();
+  const { data: priceHistory, isLoading: isPriceHistoryLoading } =
+    usePriceHistory();
 
   if (!selectedStation) return null;
 
@@ -247,17 +247,11 @@ export function StationDetail({ mobileDrawerSnap }: StationDetailProps) {
                   Waze
                 </Button>
               </div>
-              <div className="space-y-2">
-                <p className="text-muted-foreground flex items-center gap-1.5 text-xs font-bold tracking-wider uppercase">
-                  <TrendingUp className="size-3.5" />
-                  Évolution du prix — 30 jours
-                </p>
-                <PriceHistoryChart
-                  data={priceHistory}
-                  isLoading={isPriceHistoryLoading}
-                  selectedFuel={selectedFuel}
-                />
-              </div>
+              <PriceHistoryChart
+                data={priceHistory}
+                isLoading={isPriceHistoryLoading}
+                selectedFuel={selectedFuel}
+              />
             </div>
 
             {/* Services */}

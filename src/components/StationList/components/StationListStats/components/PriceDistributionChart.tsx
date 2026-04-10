@@ -37,23 +37,23 @@ export function PriceDistributionChart({ stats }: PriceDistributionChartProps) {
 
         {/* Moustache gauche : min → P25 */}
         <div
-          className="absolute top-1/2 h-px -translate-y-1/2 bg-muted-foreground/40"
+          className="bg-muted-foreground/40 absolute top-1/2 h-px -translate-y-1/2"
           style={{ left: `${p(min)}%`, width: `${p(p25) - p(min)}%` }}
         />
         {/* Moustache droite : P75 → max */}
         <div
-          className="absolute top-1/2 h-px -translate-y-1/2 bg-muted-foreground/40"
+          className="bg-muted-foreground/40 absolute top-1/2 h-px -translate-y-1/2"
           style={{ left: `${p(p75)}%`, width: `${p(max) - p(p75)}%` }}
         />
 
         {/* Tick P10 */}
-        <div className="absolute top-[15%] h-[70%] w-px bg-muted-foreground/25" style={{ left: `${p(p10)}%` }} />
+        <div className="bg-muted-foreground/25 absolute top-[15%] h-[70%] w-px" style={{ left: `${p(p10)}%` }} />
         {/* Tick P90 */}
-        <div className="absolute top-[15%] h-[70%] w-px bg-muted-foreground/25" style={{ left: `${p(p90)}%` }} />
+        <div className="bg-muted-foreground/25 absolute top-[15%] h-[70%] w-px" style={{ left: `${p(p90)}%` }} />
 
         {/* Extrêmes min / max */}
-        <div className="absolute top-[15%] h-[70%] w-px bg-muted-foreground/60" style={{ left: `${p(min)}%` }} />
-        <div className="absolute top-[15%] h-[70%] w-px bg-muted-foreground/60" style={{ left: `${p(max)}%` }} />
+        <div className="bg-muted-foreground/60 absolute top-[15%] h-[70%] w-px" style={{ left: `${p(min)}%` }} />
+        <div className="bg-muted-foreground/60 absolute top-[15%] h-[70%] w-px" style={{ left: `${p(max)}%` }} />
 
         {/* Boîte IQR */}
         <div
@@ -75,7 +75,7 @@ export function PriceDistributionChart({ stats }: PriceDistributionChartProps) {
 
         {/* Label min (au-dessus) */}
         <div
-          className="absolute bottom-full mb-0.5 -translate-x-1/2 whitespace-nowrap text-[9px] tabular-nums text-muted-foreground"
+          className="text-muted-foreground absolute bottom-full mb-0.5 -translate-x-1/2 text-[9px] whitespace-nowrap tabular-nums"
           style={{ left: `${p(min)}%` }}
         >
           {formatPrice(min)}
@@ -83,7 +83,7 @@ export function PriceDistributionChart({ stats }: PriceDistributionChartProps) {
 
         {/* Label max (au-dessus) */}
         <div
-          className="absolute bottom-full mb-0.5 -translate-x-1/2 whitespace-nowrap text-[9px] tabular-nums text-muted-foreground"
+          className="text-muted-foreground absolute bottom-full mb-0.5 -translate-x-1/2 text-[9px] whitespace-nowrap tabular-nums"
           style={{ left: `${p(max)}%` }}
         >
           {formatPrice(max)}
@@ -91,7 +91,7 @@ export function PriceDistributionChart({ stats }: PriceDistributionChartProps) {
 
         {/* Label médiane (en-dessous) */}
         <div
-          className="absolute top-full mt-0.5 -translate-x-1/2 whitespace-nowrap text-[9px] font-semibold tabular-nums text-indigo-600"
+          className="absolute top-full mt-0.5 -translate-x-1/2 text-[9px] font-semibold whitespace-nowrap text-indigo-600 tabular-nums"
           style={{ left: `${p(median)}%` }}
         >
           {formatPrice(median)}
@@ -99,7 +99,7 @@ export function PriceDistributionChart({ stats }: PriceDistributionChartProps) {
       </div>
 
       {/* Légende */}
-      <div className="mt-4 flex flex-wrap gap-x-3 gap-y-1 text-[10px] text-muted-foreground">
+      <div className="text-muted-foreground mt-4 flex flex-wrap gap-x-3 gap-y-1 text-[10px]">
         <span className="flex items-center gap-1">
           <span className="inline-block h-0.5 w-4 rounded-full bg-indigo-600" />
           Médiane
