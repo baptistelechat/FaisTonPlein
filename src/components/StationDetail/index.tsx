@@ -276,6 +276,7 @@ export function StationDetail({ mobileDrawerSnap }: StationDetailProps) {
                 data={priceHistory}
                 isLoading={isPriceHistoryLoading}
                 selectedFuel={selectedFuel}
+                isRupture={isSelectedFuelRupture}
               />
             </div>
 

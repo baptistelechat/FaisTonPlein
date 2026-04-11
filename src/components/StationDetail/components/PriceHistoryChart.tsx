@@ -32,6 +32,7 @@ interface PriceHistoryChartProps {
   data: PriceHistoryPoint[];
   isLoading: boolean;
   selectedFuel: FuelType;
+  isRupture?: boolean;
 }
 
 function resolveHex(colorName: FuelColor, shade: number): string {
@@ -82,7 +83,6 @@ function augmentWithOutageBridge(data: PriceHistoryPoint[]): AugmentedPoint[] {
         result[j].outagePrice =
           startVal + ((j - gapStart + 1) / steps) * (endVal - startVal);
       }
-      if (i < data.length) result[i].outagePrice = priceAfter;
     } else {
       i++;
     }
@@ -94,6 +94,7 @@ export function PriceHistoryChart({
   data,
   isLoading,
   selectedFuel,
+  isRupture = false,
 }: PriceHistoryChartProps) {
   const [timeRange, setTimeRange] = useState<TimeRange>("30");
 
@@ -107,7 +108,7 @@ export function PriceHistoryChart({
     );
   }
 
-  const days = parseInt(timeRange);
+  const days = parseInt(timeRange, 10);
   const filteredData =
     data.length > days ? data.slice(data.length - days) : data;
   const fuelColor = FUEL_COLORS[selectedFuel];
@@ -115,6 +116,13 @@ export function PriceHistoryChart({
   const prices = filteredData
     .map((d) => d.price)
     .filter((p): p is number => p !== null);
+  if (prices.length === 0) {
+    return (
+      <p className="text-muted-foreground py-4 text-center text-sm">
+        Aucune donnée de prix disponible
+      </p>
+    );
+  }
   const minPrice = Math.min(...prices) - 0.05;
   const maxPrice = Math.max(...prices) + 0.05;
   const avgPrice = prices.reduce((a, b) => a + b, 0) / prices.length;
@@ -122,7 +130,7 @@ export function PriceHistoryChart({
   const deltaEuros =
     prices.length >= 2 ? prices[prices.length - 1] - prices[0] : null;
   const deltaPct =
-    prices.length >= 2
+    prices.length >= 2 && prices[0] !== 0
       ? ((prices[prices.length - 1] - prices[0]) / prices[0]) * 100
       : null;
 
@@ -147,7 +155,7 @@ export function PriceHistoryChart({
         <p className="text-muted-foreground flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-xs font-bold tracking-wider uppercase">
           <ChartLine className="size-3.5 shrink-0" />
           Évolution du prix
-          {deltaEuros !== null && deltaPct !== null && (
+          {!isRupture && deltaEuros !== null && deltaPct !== null && (
             <span
               className={`flex items-center gap-0.5 font-medium tracking-normal normal-case ${
                 deltaPct < 0 ? "text-green-600" : "text-red-500"
@@ -190,7 +198,6 @@ export function PriceHistoryChart({
       <ChartContainer
         config={chartConfig}
         className="mt-4 h-56 w-full [&_*:focus]:[outline:none]"
-        onFocus={(e) => (e.target as HTMLElement).blur()}
       >
         <AreaChart
           key={`${selectedFuel}-${timeRange}`}
@@ -257,7 +264,9 @@ export function PriceHistoryChart({
               const [y, m, d] = (label as string).split("-");
               const point = chartData.find((p) => p.date === label);
               const isOutage = point?.price === null;
-              const price = payload.find((p) => p.dataKey === "price")?.value;
+              const priceEntry = payload.find((p) => p.dataKey === "price");
+              const price = priceEntry?.value;
+              if (!isOutage && price === undefined) return null;
               return (
                 <div className="border-border/50 bg-background rounded-lg border px-2.5 py-1.5 text-xs shadow-xl">
                   <p className="mb-1 font-medium">{`${d}/${m}/${y}`}</p>

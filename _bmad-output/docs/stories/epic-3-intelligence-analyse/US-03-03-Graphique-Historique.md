@@ -1,6 +1,6 @@
 # Story 3.3 : Graphique Historique
 
-**Status:** review
+D1 - **Status:** done
 
 ## Story
 
@@ -82,28 +82,32 @@ Ces fonctions sont déjà présentes et correctes — **uniquement ajouter `expo
 ### Task 2 — `src/lib/priceHistory.ts`
 
 **URL pattern :** identique à `priceTrends.ts`, même `BASE_URL` :
+
 ```
 https://huggingface.co/.../data/consolidated/daily/year={YYYY}/month={MM}/day={DD}/code_departement={dept}/data_0.parquet
 ```
 
 **`getLast30DayPaths(dept)`** :
+
 ```ts
-export const getLast30DayPaths = (dept: string): Array<{ url: string; date: string }> => {
-  const result: Array<{ url: string; date: string }> = []
-  const now = new Date()
+export const getLast30DayPaths = (
+  dept: string,
+): Array<{ url: string; date: string }> => {
+  const result: Array<{ url: string; date: string }> = [];
+  const now = new Date();
   for (let i = 1; i <= 30; i++) {
-    const d = new Date(now)
-    d.setDate(d.getDate() - i)
-    const year = d.getFullYear()
-    const month = String(d.getMonth() + 1).padStart(2, '0')
-    const day = String(d.getDate()).padStart(2, '0')
+    const d = new Date(now);
+    d.setDate(d.getDate() - i);
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
     result.push({
       url: `${BASE_URL}/year=${year}/month=${month}/day=${day}/code_departement=${dept}/data_0.parquet`,
       date: `${year}-${month}-${day}`,
-    })
+    });
   }
-  return result.reverse() // ordre chronologique ascendant
-}
+  return result.reverse(); // ordre chronologique ascendant
+};
 ```
 
 **`fetchStationPriceHistory`** — **1 seule connexion DuckDB**, `filename=true` pour extraire les dates depuis le path HuggingFace :
@@ -115,12 +119,12 @@ export const fetchStationPriceHistory = async (
   dept: string,
   fuelType: FuelType,
 ): Promise<PriceHistoryPoint[]> => {
-  const paths = getLast30DayPaths(dept)
-  const availableUrls = await filterAvailableUrls(paths.map((p) => p.url))
-  if (availableUrls.length === 0) return []
+  const paths = getLast30DayPaths(dept);
+  const availableUrls = await filterAvailableUrls(paths.map((p) => p.url));
+  if (availableUrls.length === 0) return [];
 
-  const urlList = availableUrls.map((u) => `'${u}'`).join(', ')
-  const fuelCol = `"Prix ${fuelType}"`
+  const urlList = availableUrls.map((u) => `'${u}'`).join(", ");
+  const fuelCol = `"Prix ${fuelType}"`;
 
   // filename=true : DuckDB expose le path de chaque fichier lu
   // regexp_extract : extrait year/month/day depuis l'URL HuggingFace
@@ -134,22 +138,25 @@ export const fetchStationPriceHistory = async (
     WHERE CAST(id AS VARCHAR) = '${stationId}'
     GROUP BY date
     ORDER BY date
-  `
+  `;
 
-  const conn = await db.connect()
-  let rows: PriceHistoryPoint[] = []
+  const conn = await db.connect();
+  let rows: PriceHistoryPoint[] = [];
   try {
-    const result = await conn.query(query)
+    const result = await conn.query(query);
     rows = result.toArray().map((r) => {
-      const row = r.toJSON() as Record<string, unknown>
-      const price = row.price != null ? Number(row.price) : null
-      return { date: String(row.date), price: Number.isNaN(price ?? NaN) ? null : price }
-    })
+      const row = r.toJSON() as Record<string, unknown>;
+      const price = row.price != null ? Number(row.price) : null;
+      return {
+        date: String(row.date),
+        price: Number.isNaN(price ?? NaN) ? null : price,
+      };
+    });
   } finally {
-    await conn.close()
+    await conn.close();
   }
-  return rows
-}
+  return rows;
+};
 ```
 
 ⚠️ `filename=true` est supporté dans DuckDB-WASM (même version que le projet).
@@ -165,66 +172,74 @@ export const fetchStationPriceHistory = async (
 - Quand `selectedStation.id` change → `isVisible` reset à `false`, data reset à `[]` (le cache est conservé)
 
 ```ts
-'use client'
+"use client";
 
-import { useState, useRef, useEffect, useCallback } from 'react'
-import { useDuckDB } from '@/components/DuckDBProvider'
-import { useAppStore } from '@/store/useAppStore'
-import { fetchStationPriceHistory, type PriceHistoryPoint } from '@/lib/priceHistory'
-import { getDeptFromStationId } from '@/lib/priceTrends'
+import { useState, useRef, useEffect, useCallback } from "react";
+import { useDuckDB } from "@/components/DuckDBProvider";
+import { useAppStore } from "@/store/useAppStore";
+import {
+  fetchStationPriceHistory,
+  type PriceHistoryPoint,
+} from "@/lib/priceHistory";
+import { getDeptFromStationId } from "@/lib/priceTrends";
 
 export function usePriceHistory() {
-  const { db } = useDuckDB()
-  const selectedStation = useAppStore((s) => s.selectedStation)
-  const selectedFuel = useAppStore((s) => s.selectedFuel)
+  const { db } = useDuckDB();
+  const selectedStation = useAppStore((s) => s.selectedStation);
+  const selectedFuel = useAppStore((s) => s.selectedFuel);
 
-  const [data, setData] = useState<PriceHistoryPoint[]>([])
-  const [isLoading, setIsLoading] = useState(false)
-  const [isVisible, setIsVisible] = useState(false)
+  const [data, setData] = useState<PriceHistoryPoint[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isVisible, setIsVisible] = useState(false);
 
   // Cache session : Map<`${stationId}_${fuelType}`, PriceHistoryPoint[]>
-  const cache = useRef(new Map<string, PriceHistoryPoint[]>())
+  const cache = useRef(new Map<string, PriceHistoryPoint[]>());
 
   // Reset visibilité + data quand on change de station
   useEffect(() => {
-    setIsVisible(false)
-    setData([])
-    setIsLoading(false)
-  }, [selectedStation?.id])
+    setIsVisible(false);
+    setData([]);
+    setIsLoading(false);
+  }, [selectedStation?.id]);
 
   const toggleVisibility = useCallback(async () => {
     if (isVisible) {
-      setIsVisible(false)
-      return
+      setIsVisible(false);
+      return;
     }
 
-    if (!db || !selectedStation) return
+    if (!db || !selectedStation) return;
 
-    const cacheKey = `${selectedStation.id}_${selectedFuel}`
-    const cached = cache.current.get(cacheKey)
+    const cacheKey = `${selectedStation.id}_${selectedFuel}`;
+    const cached = cache.current.get(cacheKey);
 
     if (cached) {
-      setData(cached)
-      setIsVisible(true)
-      return
+      setData(cached);
+      setIsVisible(true);
+      return;
     }
 
-    setIsVisible(true)
-    setIsLoading(true)
+    setIsVisible(true);
+    setIsLoading(true);
 
-    const dept = getDeptFromStationId(selectedStation.id)
+    const dept = getDeptFromStationId(selectedStation.id);
     try {
-      const history = await fetchStationPriceHistory(db, selectedStation.id, dept, selectedFuel)
-      cache.current.set(cacheKey, history)
-      setData(history)
+      const history = await fetchStationPriceHistory(
+        db,
+        selectedStation.id,
+        dept,
+        selectedFuel,
+      );
+      cache.current.set(cacheKey, history);
+      setData(history);
     } catch {
-      setData([])
+      setData([]);
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }, [db, selectedStation, selectedFuel, isVisible])
+  }, [db, selectedStation, selectedFuel, isVisible]);
 
-  return { data, isLoading, isVisible, toggleVisibility }
+  return { data, isLoading, isVisible, toggleVisibility };
 }
 ```
 
@@ -236,66 +251,84 @@ export function usePriceHistory() {
 
 ```ts
 const FUEL_COLOR_MAP: Record<FuelType, string> = {
-  Gazole: '#EAB308',  // yellow-500
-  E10:    '#22C55E',  // green-500
-  SP95:   '#10B981',  // emerald-500
-  SP98:   '#059669',  // emerald-600
-  E85:    '#0EA5E9',  // sky-500
-  GPLc:   '#64748B',  // slate-500
-}
+  Gazole: "#EAB308", // yellow-500
+  E10: "#22C55E", // green-500
+  SP95: "#10B981", // emerald-500
+  SP98: "#059669", // emerald-600
+  E85: "#0EA5E9", // sky-500
+  GPLc: "#64748B", // slate-500
+};
 ```
 
 **Composant :**
 
 ```tsx
-'use client'
+"use client";
 
-import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts'
-import type { FuelType } from '@/lib/constants'
-import type { PriceHistoryPoint } from '@/lib/priceHistory'
-import { Skeleton } from '@/components/ui/skeleton'
+import {
+  ResponsiveContainer,
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  Tooltip,
+  CartesianGrid,
+} from "recharts";
+import type { FuelType } from "@/lib/constants";
+import type { PriceHistoryPoint } from "@/lib/priceHistory";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const FUEL_COLOR_MAP: Record<FuelType, string> = {
-  Gazole: '#EAB308',
-  E10:    '#22C55E',
-  SP95:   '#10B981',
-  SP98:   '#059669',
-  E85:    '#0EA5E9',
-  GPLc:   '#64748B',
-}
+  Gazole: "#EAB308",
+  E10: "#22C55E",
+  SP95: "#10B981",
+  SP98: "#059669",
+  E85: "#0EA5E9",
+  GPLc: "#64748B",
+};
 
 interface PriceHistoryChartProps {
-  data: PriceHistoryPoint[]
-  isLoading: boolean
-  selectedFuel: FuelType
+  data: PriceHistoryPoint[];
+  isLoading: boolean;
+  selectedFuel: FuelType;
 }
 
-export function PriceHistoryChart({ data, isLoading, selectedFuel }: PriceHistoryChartProps) {
-  if (isLoading) return <Skeleton className='h-40 w-full rounded-md' />
+export function PriceHistoryChart({
+  data,
+  isLoading,
+  selectedFuel,
+}: PriceHistoryChartProps) {
+  if (isLoading) return <Skeleton className="h-40 w-full rounded-md" />;
 
   if (data.length === 0) {
     return (
-      <p className='text-muted-foreground py-4 text-center text-sm'>
+      <p className="text-muted-foreground py-4 text-center text-sm">
         Aucune donnée historique disponible
       </p>
-    )
+    );
   }
 
-  const prices = data.map((d) => d.price).filter((p): p is number => p !== null)
-  const minPrice = Math.min(...prices) - 0.05
-  const maxPrice = Math.max(...prices) + 0.05
+  const prices = data
+    .map((d) => d.price)
+    .filter((p): p is number => p !== null);
+  const minPrice = Math.min(...prices) - 0.05;
+  const maxPrice = Math.max(...prices) + 0.05;
 
   return (
-    <ResponsiveContainer width='100%' height={160}>
+    <ResponsiveContainer width="100%" height={160}>
       <LineChart data={data} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
-        <CartesianGrid strokeDasharray='3 3' stroke='currentColor' strokeOpacity={0.1} />
+        <CartesianGrid
+          strokeDasharray="3 3"
+          stroke="currentColor"
+          strokeOpacity={0.1}
+        />
         <XAxis
-          dataKey='date'
+          dataKey="date"
           tick={{ fontSize: 10 }}
           tickLine={false}
           axisLine={false}
           tickFormatter={(val: string) => val.slice(5)} // 'YYYY-MM-DD' → 'MM-DD'
-          interval='preserveStartEnd'
+          interval="preserveStartEnd"
         />
         <YAxis
           domain={[minPrice, maxPrice]}
@@ -306,16 +339,19 @@ export function PriceHistoryChart({ data, isLoading, selectedFuel }: PriceHistor
           width={42}
         />
         <Tooltip
-          formatter={(value: unknown) => [`${Number(value).toFixed(3)} €/L`, selectedFuel]}
+          formatter={(value: unknown) => [
+            `${Number(value).toFixed(3)} €/L`,
+            selectedFuel,
+          ]}
           labelFormatter={(label: string) => {
-            const [y, m, d] = label.split('-')
-            return `${d}/${m}/${y}`
+            const [y, m, d] = label.split("-");
+            return `${d}/${m}/${y}`;
           }}
           contentStyle={{ fontSize: 12 }}
         />
         <Line
-          type='monotone'
-          dataKey='price'
+          type="monotone"
+          dataKey="price"
           stroke={FUEL_COLOR_MAP[selectedFuel]}
           strokeWidth={2}
           dot={false}
@@ -324,7 +360,7 @@ export function PriceHistoryChart({ data, isLoading, selectedFuel }: PriceHistor
         />
       </LineChart>
     </ResponsiveContainer>
-  )
+  );
 }
 ```
 
@@ -333,19 +369,27 @@ export function PriceHistoryChart({ data, isLoading, selectedFuel }: PriceHistor
 ### Task 5 — Intégration dans `StationDetail/index.tsx`
 
 **Imports à ajouter :**
+
 ```tsx
-import { usePriceHistory } from '@/hooks/usePriceHistory'
-import { PriceHistoryChart } from './components/PriceHistoryChart'
+import { usePriceHistory } from "@/hooks/usePriceHistory";
+import { PriceHistoryChart } from "./components/PriceHistoryChart";
 // Ajouter History et TrendingUp dans l'import lucide existant (ligne 13) :
 // import { Bird, Calculator, CreditCard, Euro, History, MapPin, Navigation, Road, Route, TrendingUp } from 'lucide-react'
 ```
 
 **Hook (après `useStationName` ligne 40) :**
+
 ```tsx
-const { data: priceHistory, isLoading: isPriceHistoryLoading, isVisible: isHistoryVisible, toggleVisibility: toggleHistory } = usePriceHistory()
+const {
+  data: priceHistory,
+  isLoading: isPriceHistoryLoading,
+  isVisible: isHistoryVisible,
+  toggleVisibility: toggleHistory,
+} = usePriceHistory();
 ```
 
 **Section Actions — bouton + graphique conditionnel** (remplacer le `<div className='grid grid-cols-1 ...'>` existant lignes 165-176) :
+
 ```tsx
 {/* Action Buttons */}
 <div className='grid grid-cols-1 gap-3 pt-2'>
@@ -383,10 +427,12 @@ const { data: priceHistory, isLoading: isPriceHistoryLoading, isVisible: isHisto
 ### Structure de fichiers
 
 **À modifier :**
+
 - `src/lib/priceTrends.ts` — ajouter `export` sur `getDeptFromStationId` (l.16) et `filterAvailableUrls` (l.129)
 - `src/components/StationDetail/index.tsx` — import hook + composant, hook call, bouton + graphique dans Actions
 
 **À créer :**
+
 - `src/lib/priceHistory.ts`
 - `src/hooks/usePriceHistory.ts`
 - `src/components/StationDetail/components/PriceHistoryChart.tsx`
@@ -411,6 +457,20 @@ const { data: priceHistory, isLoading: isPriceHistoryLoading, isVisible: isHisto
 - Section Actions existante (à modifier) : `src/components/StationDetail/index.tsx:164-176`
 - Section Services (pattern `border-t`) : `src/components/StationDetail/index.tsx:179-197`
 
+## Review Findings
+
+- [ ] [Review][Decision] Modèle d'interaction et approche données divergent complètement de la spec — La spec exige un bouton "Historique" toggle (AC #1), un fetch déclenché au premier clic uniquement (AC #2), `isVisible`/`toggleVisibility` dans le hook (AC #3 dev notes), un reset visuel au changement de station (AC #7), et `filterAvailableUrls` exportée de `priceTrends.ts` (AC #8). L'implémentation a opté pour un chargement automatique au montage via `useEffect`, un graphique toujours visible, un cache module-level avec clé `${id}_${fuel}_${date}`, et une approche données entièrement différente (1 Parquet rolling vs 30 fichiers journaliers). Confirmer si ce changement de design est intentionnel ou si la spec doit être respectée.
+- [ ] [Review][Patch] `isLoading` retourné `false` depuis l'early-return guard malgré state=true → flash d'état vide [`src/hooks/usePriceHistory.ts:55-57`]
+- [ ] [Review][Patch] `prices` vide (tous `null`) → `Math.min/max(…[])` = ±Infinity, `avgPrice` = NaN → graphique Recharts cassé [`src/components/StationDetail/components/PriceHistoryChart.tsx:118-120`]
+- [ ] [Review][Patch] `deltaPct` division par zéro si `prices[0] === 0` → "Infinity%" affiché en en-tête [`src/components/StationDetail/components/PriceHistoryChart.tsx:126`]
+- [ ] [Review][Patch] Tooltip: `price` peut être `undefined` si le payload "price" est absent → `Number(undefined).toFixed(3)` = "NaN €/L" [`src/components/StationDetail/components/PriceHistoryChart.tsx:279-282`]
+- [ ] [Review][Patch] `augmentWithOutageBridge` off-by-one : le jour réel post-gap reçoit `outagePrice = priceAfter` → série rouge déborde d'un jour après la fin de rupture [`src/components/StationDetail/components/PriceHistoryChart.tsx:85`]
+- [ ] [Review][Patch] `augmentWithOutageBridge` trailing nulls : interpolation vers `endVal = priceBefore` au lieu de rester plat → fausse descente vers 0 sur une rupture en fin de période [`src/components/StationDetail/components/PriceHistoryChart.tsx:82-84`]
+- [ ] [Review][Patch] `onFocus → blur()` dans `ChartContainer` supprime tout focus clavier sur le graphique → violation a11y (navigation clavier impossible) [`src/components/StationDetail/components/PriceHistoryChart.tsx:193`]
+- [x] [Review][Defer] SQL injection théorique : `stationId` et `dept` interpolés dans la requête DuckDB sans sanitization [`src/lib/priceHistory.ts:24-26`] — deferred, données internes (data.gouv.fr), sandbox WASM, risque pratique nul
+- [x] [Review][Defer] Cache module-level `historyCache` non borné : croissance illimitée en session longue [`src/hooks/usePriceHistory.ts:10`] — deferred, entrées de ~2 KB chacune, impact pratique très faible
+- [x] [Review][Defer] `parseInt(timeRange)` sans radix (base 10 implicite) [`src/components/StationDetail/components/PriceHistoryChart.tsx:110`] — deferred, valeur contrainte par le type `"7"|"14"|"30"`, aucun impact fonctionnel
+
 ## Dev Agent Record
 
 ### Agent Model Used
@@ -431,11 +491,13 @@ claude-sonnet-4-6
 ### File List
 
 **Modifiés :**
+
 - `src/lib/priceTrends.ts` — export ajouté sur `getDeptFromStationId` et `filterAvailableUrls`
 - `src/components/StationDetail/index.tsx` — import hook + composant, appel `usePriceHistory`, bouton + graphique historique
 - `_bmad-output/docs/sprint-status.yaml` — statut mis à jour
 
 **Créés :**
+
 - `src/lib/priceHistory.ts`
 - `src/hooks/usePriceHistory.ts`
 - `src/components/StationDetail/components/PriceHistoryChart.tsx`
