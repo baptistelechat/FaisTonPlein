@@ -11,21 +11,17 @@ import { useFilteredStations } from "@/hooks/useFilteredStations";
 import { useFilteredStats } from "@/hooks/useFilteredStats";
 import { useIsodistance } from "@/hooks/useIsodistance";
 import { useRouteGeometry } from "@/hooks/useRouteGeometry";
+import { useRuptureStations } from "@/hooks/useRuptureStations";
 import { reverseGeocode } from "@/lib/api-adresse";
 import { useAppStore } from "@/store/useAppStore";
 import { Loader2 } from "lucide-react";
 import type { GeoJSONSource, Map as MapLibreMap } from "maplibre-gl";
-import {
-  ReactNode,
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
+import { ReactNode, useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import useSupercluster from "use-supercluster";
 import { PriceMarker } from "./PriceMarker";
 import { PulseMarker } from "./PulseMarker";
+import { RuptureMarker } from "./RuptureMarker";
 import { StationRoute } from "./StationRoute";
 
 const DEFAULT_CENTER: [number, number] = [2.3522, 48.8566]; // Paris [lon, lat]
@@ -62,8 +58,8 @@ const createCircleGeoJSON = (
   };
 };
 
-const RADIUS_SOURCE_ID = 'radius-zone';
-const RADIUS_PRIMARY_COLOR = '#4f46e5';
+const RADIUS_SOURCE_ID = "radius-zone";
+const RADIUS_PRIMARY_COLOR = "#4f46e5";
 
 function RadiusZone({
   referenceLocation,
@@ -72,7 +68,7 @@ function RadiusZone({
 }: {
   referenceLocation: [number, number] | null;
   searchRadius: number;
-  distanceMode: 'road' | 'crow-fly';
+  distanceMode: "road" | "crow-fly";
 }) {
   const { map, isLoaded } = useMap();
   const isodistanceGeometry = useAppStore((s) => s.isodistanceGeometry);
@@ -82,30 +78,30 @@ function RadiusZone({
     if (!isLoaded || !map) return;
     if (!map.getSource(RADIUS_SOURCE_ID)) {
       map.addSource(RADIUS_SOURCE_ID, {
-        type: 'geojson',
-        data: { type: 'FeatureCollection', features: [] },
+        type: "geojson",
+        data: { type: "FeatureCollection", features: [] },
       });
       map.addLayer({
-        id: 'radius-fill',
-        type: 'fill',
+        id: "radius-fill",
+        type: "fill",
         source: RADIUS_SOURCE_ID,
-        paint: { 'fill-color': RADIUS_PRIMARY_COLOR, 'fill-opacity': 0.04 },
+        paint: { "fill-color": RADIUS_PRIMARY_COLOR, "fill-opacity": 0.04 },
       });
       map.addLayer({
-        id: 'radius-border',
-        type: 'line',
+        id: "radius-border",
+        type: "line",
         source: RADIUS_SOURCE_ID,
         paint: {
-          'line-color': RADIUS_PRIMARY_COLOR,
-          'line-width': 1.5,
-          'line-opacity': 0.5,
+          "line-color": RADIUS_PRIMARY_COLOR,
+          "line-width": 1.5,
+          "line-opacity": 0.5,
         },
       });
     }
     return () => {
       try {
-        if (map.getLayer('radius-border')) map.removeLayer('radius-border');
-        if (map.getLayer('radius-fill')) map.removeLayer('radius-fill');
+        if (map.getLayer("radius-border")) map.removeLayer("radius-border");
+        if (map.getLayer("radius-fill")) map.removeLayer("radius-fill");
         if (map.getSource(RADIUS_SOURCE_ID)) map.removeSource(RADIUS_SOURCE_ID);
       } catch {
         // la carte a déjà été détruite, rien à nettoyer
@@ -119,26 +115,37 @@ function RadiusZone({
     const source = map.getSource(RADIUS_SOURCE_ID) as GeoJSONSource;
     if (!source) return;
 
-    if (map.getLayer('radius-border')) {
+    if (map.getLayer("radius-border")) {
       map.setPaintProperty(
-        'radius-border',
-        'line-dasharray',
-        distanceMode === 'crow-fly' ? [3, 3] : null,
+        "radius-border",
+        "line-dasharray",
+        distanceMode === "crow-fly" ? [3, 3] : null,
       );
     }
 
     if (!referenceLocation || searchRadius === 0) {
-      source.setData({ type: 'FeatureCollection', features: [] });
-    } else if (distanceMode === 'road') {
+      source.setData({ type: "FeatureCollection", features: [] });
+    } else if (distanceMode === "road") {
       if (isodistanceGeometry) {
-        source.setData({ type: 'Feature', geometry: isodistanceGeometry, properties: {} });
+        source.setData({
+          type: "Feature",
+          geometry: isodistanceGeometry,
+          properties: {},
+        });
       } else {
-        source.setData({ type: 'FeatureCollection', features: [] });
+        source.setData({ type: "FeatureCollection", features: [] });
       }
     } else {
       source.setData(createCircleGeoJSON(referenceLocation, searchRadius));
     }
-  }, [isLoaded, map, referenceLocation, searchRadius, distanceMode, isodistanceGeometry]);
+  }, [
+    isLoaded,
+    map,
+    referenceLocation,
+    searchRadius,
+    distanceMode,
+    isodistanceGeometry,
+  ]);
 
   return null;
 }
@@ -172,21 +179,33 @@ export default function InteractiveMap({
     fitToListSignal,
   } = useAppStore();
 
-  const distanceMode = useAppStore((s) => s.distanceMode)
-  const showRoute = useAppStore((s) => s.showRoute)
-  const isodistanceGeometry = useAppStore((s) => s.isodistanceGeometry)
-  useIsodistance()
+  const distanceMode = useAppStore((s) => s.distanceMode);
+  const showRoute = useAppStore((s) => s.showRoute);
+  const showRuptureStations = useAppStore((s) => s.showRuptureStations);
+  const isodistanceGeometry = useAppStore((s) => s.isodistanceGeometry);
+  useIsodistance();
 
-  const route = useRouteGeometry()
+  const route = useRouteGeometry();
 
-  const getMapPadding = useCallback((base: number) => {
-    const drawerPx = typeof mobileDrawerSnap === 'number' && typeof window !== 'undefined'
-      ? Math.round(window.innerHeight * mobileDrawerSnap) + MAP_DRAWER_CLEARANCE
-      : base
-    return { top: base + MAP_HEADER_HEIGHT, right: base, bottom: drawerPx, left: base }
-  }, [mobileDrawerSnap])
+  const getMapPadding = useCallback(
+    (base: number) => {
+      const drawerPx =
+        typeof mobileDrawerSnap === "number" && typeof window !== "undefined"
+          ? Math.round(window.innerHeight * mobileDrawerSnap) +
+            MAP_DRAWER_CLEARANCE
+          : base;
+      return {
+        top: base + MAP_HEADER_HEIGHT,
+        right: base,
+        bottom: drawerPx,
+        left: base,
+      };
+    },
+    [mobileDrawerSnap],
+  );
 
   const filteredStations = useFilteredStations();
+  const ruptureStations = useRuptureStations();
   const allFilteredStats = useFilteredStats();
   const filteredStats = allFilteredStats[selectedFuel] ?? null;
   const filteredStationsRef = useRef(filteredStations);
@@ -260,12 +279,15 @@ export default function InteractiveMap({
 
   // Adapter le zoom quand l'isodistance routière arrive
   useEffect(() => {
-    if (!mapRef.current || !isodistanceGeometry || distanceMode !== 'road') return;
+    if (!mapRef.current || !isodistanceGeometry || distanceMode !== "road")
+      return;
 
     const coords: [number, number][] = [];
-    if (isodistanceGeometry.type === 'Polygon') {
-      coords.push(...(isodistanceGeometry.coordinates[0] as [number, number][]));
-    } else if (isodistanceGeometry.type === 'MultiPolygon') {
+    if (isodistanceGeometry.type === "Polygon") {
+      coords.push(
+        ...(isodistanceGeometry.coordinates[0] as [number, number][]),
+      );
+    } else if (isodistanceGeometry.type === "MultiPolygon") {
       for (const polygon of isodistanceGeometry.coordinates) {
         coords.push(...(polygon[0] as [number, number][]));
       }
@@ -275,7 +297,10 @@ export default function InteractiveMap({
     const lons = coords.map(([lon]) => lon);
     const lats = coords.map(([, lat]) => lat);
     mapRef.current.fitBounds(
-      [[Math.min(...lons), Math.min(...lats)], [Math.max(...lons), Math.max(...lats)]],
+      [
+        [Math.min(...lons), Math.min(...lats)],
+        [Math.max(...lons), Math.max(...lats)],
+      ],
       { padding: getMapPadding(60), duration: 800 },
     );
   }, [isodistanceGeometry, distanceMode, getMapPadding]);
@@ -321,14 +346,23 @@ export default function InteractiveMap({
 
   // Affiner le zoom quand la vraie géométrie de la route routière arrive
   useEffect(() => {
-    if (!showRoute || !route?.isRoad || route.coordinates.length < 2 || !mapRef.current) return
-    const lons = route.coordinates.map(([lon]) => lon)
-    const lats = route.coordinates.map(([, lat]) => lat)
-    mapRef.current.fitBounds(
-      [[Math.min(...lons), Math.min(...lats)], [Math.max(...lons), Math.max(...lats)]],
-      { padding: getMapPadding(80), duration: 400, maxZoom: 16 },
+    if (
+      !showRoute ||
+      !route?.isRoad ||
+      route.coordinates.length < 2 ||
+      !mapRef.current
     )
-  }, [route, showRoute, getMapPadding])
+      return;
+    const lons = route.coordinates.map(([lon]) => lon);
+    const lats = route.coordinates.map(([, lat]) => lat);
+    mapRef.current.fitBounds(
+      [
+        [Math.min(...lons), Math.min(...lats)],
+        [Math.max(...lons), Math.max(...lats)],
+      ],
+      { padding: getMapPadding(80), duration: 400, maxZoom: 16 },
+    );
+  }, [route, showRoute, getMapPadding]);
 
   // Handle flyToLocation effect — si un rayon est actif, fitBounds sur le cercle plutôt que flyTo fixe
   useEffect(() => {
@@ -372,8 +406,14 @@ export default function InteractiveMap({
           const [originLon, originLat] = referenceLocation;
           mapRef.current?.fitBounds(
             [
-              [Math.min(originLon, flyToStation.lon), Math.min(originLat, flyToStation.lat)],
-              [Math.max(originLon, flyToStation.lon), Math.max(originLat, flyToStation.lat)],
+              [
+                Math.min(originLon, flyToStation.lon),
+                Math.min(originLat, flyToStation.lat),
+              ],
+              [
+                Math.max(originLon, flyToStation.lon),
+                Math.max(originLat, flyToStation.lat),
+              ],
             ],
             { padding: getMapPadding(80), duration: 800, maxZoom: 16 },
           );
@@ -390,36 +430,60 @@ export default function InteractiveMap({
       }, 0);
       return () => clearTimeout(timer);
     }
-  }, [flyToStation, setFlyToStation, referenceLocation, showRoute, getMapPadding]);
+  }, [
+    flyToStation,
+    setFlyToStation,
+    referenceLocation,
+    showRoute,
+    getMapPadding,
+  ]);
 
   // Ensure bounds are updated when viewport stabilizes
   // We removed the timeout here to avoid conflict with handleViewportChange
   // But if we notice missing clusters after flyTo, we might need to trigger a bounds update manually.
   // The handleViewportChange is called during flyTo so it should be fine.
 
-  // Prepare points for supercluster
-  const points = filteredStations
-    .map((station) => {
-      const price = station.prices.find((p) => p.fuel_type === selectedFuel);
-      if (!price) return null;
-      return {
-        type: "Feature",
-        properties: {
-          cluster: false,
-          stationId: station.id,
-          price: price.price,
-          fuelType: selectedFuel,
-          isSelected: selectedStation?.id === station.id,
-          updatedAt: price.updated_at ?? null,
-        },
-        geometry: {
-          type: "Point",
-          coordinates: [station.lon, station.lat],
-        },
-      };
-    })
-    .filter((p) => p !== null);
-
+  // Prepare points for supercluster (stations actives + stations en rupture)
+  const points = [
+    ...filteredStations
+      .map((station) => {
+        const price = station.prices.find((p) => p.fuel_type === selectedFuel);
+        if (!price) return null;
+        return {
+          type: "Feature",
+          properties: {
+            cluster: false,
+            stationId: station.id,
+            price: price.price,
+            fuelType: selectedFuel,
+            isSelected: selectedStation?.id === station.id,
+            updatedAt: price.updated_at ?? null,
+            isRupture: false,
+          },
+          geometry: {
+            type: "Point",
+            coordinates: [station.lon, station.lat],
+          },
+        };
+      })
+      .filter((p) => p !== null),
+    ...(showRuptureStations ? ruptureStations : []).map((station) => ({
+      type: "Feature",
+      properties: {
+        cluster: false,
+        stationId: station.id,
+        price: null as number | null,
+        fuelType: selectedFuel,
+        isSelected: selectedStation?.id === station.id,
+        updatedAt: null,
+        isRupture: true,
+      },
+      geometry: {
+        type: "Point",
+        coordinates: [station.lon, station.lat],
+      },
+    })),
+  ];
 
   // Get clusters
   const { clusters, supercluster } = useSupercluster({
@@ -610,53 +674,79 @@ export default function InteractiveMap({
             );
           }
 
-          // Render individual station marker
+          // Render individual station marker (prix ou rupture)
+          const onClickStation = (e: MouseEvent) => {
+            e.stopPropagation();
+            const station = stations.find(
+              (s) => s.id === cluster.properties.stationId,
+            );
+            if (!station) return;
+            setSelectedStation(station);
+            if (!showRoute || cluster.properties.isRupture) {
+              setViewport((prev) => ({
+                ...prev,
+                center: [station.lon, station.lat],
+                zoom: 15,
+                duration: 800,
+              }));
+            } else if (referenceLocation && mapRef.current) {
+              const [originLon, originLat] = referenceLocation;
+              mapRef.current.fitBounds(
+                [
+                  [
+                    Math.min(originLon, station.lon),
+                    Math.min(originLat, station.lat),
+                  ],
+                  [
+                    Math.max(originLon, station.lon),
+                    Math.max(originLat, station.lat),
+                  ],
+                ],
+                { padding: getMapPadding(80), duration: 800, maxZoom: 16 },
+              );
+            } else {
+              setViewport((prev) => ({
+                ...prev,
+                center: [station.lon, station.lat],
+                zoom: 15,
+                duration: 800,
+              }));
+            }
+          };
+
+          if (cluster.properties.isRupture) {
+            return (
+              <MapMarker
+                key={`station-${cluster.properties.stationId}`}
+                latitude={latitude}
+                longitude={longitude}
+                onClick={onClickStation}
+              >
+                <RuptureMarker isSelected={cluster.properties.isSelected} />
+              </MapMarker>
+            );
+          }
+
           return (
             <MapMarker
               key={`station-${cluster.properties.stationId}`}
               latitude={latitude}
               longitude={longitude}
-              onClick={(e) => {
-                e.stopPropagation();
-                const station = stations.find(
-                  (s) => s.id === cluster.properties.stationId,
-                );
-                if (station) {
-                  setSelectedStation(station);
-                  if (!showRoute) {
-                    setViewport((prev) => ({
-                      ...prev,
-                      center: [station.lon, station.lat],
-                      zoom: 15,
-                      duration: 800,
-                    }));
-                  } else if (referenceLocation && mapRef.current) {
-                    const [originLon, originLat] = referenceLocation;
-                    mapRef.current.fitBounds(
-                      [
-                        [Math.min(originLon, station.lon), Math.min(originLat, station.lat)],
-                        [Math.max(originLon, station.lon), Math.max(originLat, station.lat)],
-                      ],
-                      { padding: getMapPadding(80), duration: 800, maxZoom: 16 },
-                    );
-                  } else {
-                    setViewport((prev) => ({
-                      ...prev,
-                      center: [station.lon, station.lat],
-                      zoom: 15,
-                      duration: 800,
-                    }));
-                  }
-                }
-              }}
+              onClick={onClickStation}
             >
               <PriceMarker
                 price={cluster.properties.price}
                 fuelType={cluster.properties.fuelType}
                 isSelected={cluster.properties.isSelected}
-                isBestPrice={bestPriceStationIds.includes(cluster.properties.stationId)}
-                isBestDistance={bestDistanceStationIds.includes(cluster.properties.stationId)}
-                isBestRealCost={bestRealCostStationIds.includes(cluster.properties.stationId)}
+                isBestPrice={bestPriceStationIds.includes(
+                  cluster.properties.stationId,
+                )}
+                isBestDistance={bestDistanceStationIds.includes(
+                  cluster.properties.stationId,
+                )}
+                isBestRealCost={bestRealCostStationIds.includes(
+                  cluster.properties.stationId,
+                )}
                 filteredStats={filteredStats}
                 updatedAt={cluster.properties.updatedAt}
               />

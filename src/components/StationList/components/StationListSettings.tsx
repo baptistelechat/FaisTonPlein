@@ -174,6 +174,8 @@ function SettingsBody() {
     setShowHighwayStations,
     showRoute,
     setShowRoute,
+    showRuptureStations,
+    setShowRuptureStations,
     stations,
     vehicleType,
     setVehicleType,
@@ -252,7 +254,10 @@ function SettingsBody() {
           />
         </div>
         <div className="flex items-center gap-2">
-          <Label htmlFor="route-switch-settings" className="flex cursor-pointer items-center gap-1.5">
+          <Label
+            htmlFor="route-switch-settings"
+            className="flex cursor-pointer items-center gap-1.5"
+          >
             <Route className="size-3.5" />
             Tracé de l&apos;itinéraire
           </Label>
@@ -260,6 +265,20 @@ function SettingsBody() {
             id="route-switch-settings"
             checked={showRoute}
             onCheckedChange={setShowRoute}
+          />
+        </div>
+        <div className="flex items-center gap-2">
+          <Label
+            htmlFor="rupture-switch-settings"
+            className="flex cursor-pointer items-center gap-1.5"
+          >
+            <Fuel className="size-3.5 text-red-400" />
+            Stations en rupture
+          </Label>
+          <Switch
+            id="rupture-switch-settings"
+            checked={showRuptureStations}
+            onCheckedChange={setShowRuptureStations}
           />
         </div>
       </div>
@@ -270,18 +289,18 @@ function SettingsBody() {
       <div className="grid grid-cols-2 gap-1.5">
         {(
           [
-            { value: 'road', label: 'Route réelle', icon: Navigation },
-            { value: 'crow-fly', label: "Vol d'oiseau", icon: Bird },
+            { value: "road", label: "Route réelle", icon: Navigation },
+            { value: "crow-fly", label: "Vol d'oiseau", icon: Bird },
           ] as const
         ).map(({ value, label, icon: Icon }) => (
           <button
             key={value}
             onClick={() => setDistanceMode(value)}
             className={cn(
-              'flex items-center gap-1.5 rounded-lg border p-2 text-left text-xs transition-all',
+              "flex items-center gap-1.5 rounded-lg border p-2 text-left text-xs transition-all",
               distanceMode === value
-                ? 'border-primary bg-primary/5 text-primary font-semibold'
-                : 'border-border/50 text-muted-foreground hover:border-border hover:text-foreground',
+                ? "border-primary bg-primary/5 text-primary font-semibold"
+                : "border-border/50 text-muted-foreground hover:border-border hover:text-foreground",
             )}
           >
             <Icon className="size-3.5 shrink-0" />

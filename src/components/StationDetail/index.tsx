@@ -77,6 +77,10 @@ export function StationDetail({ mobileDrawerSnap }: StationDetailProps) {
       ? (roadDurations[selectedStation.id] ?? null)
       : null;
 
+  const isSelectedFuelRupture = selectedStation.ruptureFuels.includes(
+    selectedFuel as (typeof selectedStation.ruptureFuels)[number],
+  );
+
   const selectedPrice = selectedStation.prices.find(
     (p) => p.fuel_type === selectedFuel,
   );
@@ -190,22 +194,43 @@ export function StationDetail({ mobileDrawerSnap }: StationDetailProps) {
           )}
         </div>
 
-        {mobileDrawerSnap === DRAWER_SNAP_POINTS.DEFAULT && selectedPrice && (
-          <PriceCard
-            price={selectedPrice}
-            selectedFuel={selectedFuel}
-            filteredStats={filteredStats[selectedPrice.fuel_type] ?? null}
-            inlineEstimate
-            distanceKm={distanceKm}
-            stationId={selectedStation.id}
-          />
-        )}
+        {mobileDrawerSnap === DRAWER_SNAP_POINTS.DEFAULT &&
+          (selectedPrice ? (
+            <PriceCard
+              price={selectedPrice}
+              selectedFuel={selectedFuel}
+              filteredStats={filteredStats[selectedPrice.fuel_type] ?? null}
+              inlineEstimate
+              distanceKm={distanceKm}
+              stationId={selectedStation.id}
+            />
+          ) : isSelectedFuelRupture ? (
+            <PriceCard
+              fuelType={selectedFuel}
+              selectedFuel={selectedFuel}
+              filteredStats={null}
+              inlineEstimate
+              distanceKm={distanceKm}
+              stationId={selectedStation.id}
+              isRupture
+            />
+          ) : null)}
 
         {(mobileDrawerSnap === DRAWER_SNAP_POINTS.EXPANDED ||
           !mobileDrawerSnap) && (
           <>
-            {/* Pricing Grid */}
+            {/* Pricing Grid — carte rupture en premier si besoin */}
             <div className="grid grid-cols-2 gap-4">
+              {isSelectedFuelRupture && (
+                <PriceCard
+                  fuelType={selectedFuel}
+                  selectedFuel={selectedFuel}
+                  filteredStats={null}
+                  distanceKm={distanceKm}
+                  stationId={selectedStation.id}
+                  isRupture
+                />
+              )}
               {sortedPrices.map((price) => (
                 <PriceCard
                   price={price}

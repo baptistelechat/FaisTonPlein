@@ -6,6 +6,7 @@ import { useFilteredStations } from "@/hooks/useFilteredStations";
 import { useFilteredStats } from "@/hooks/useFilteredStats";
 import { useIsDesktop } from "@/hooks/useIsDesktop";
 import { useReferenceLocation } from "@/hooks/useReferenceLocation";
+import { useRuptureStations } from "@/hooks/useRuptureStations";
 import { DRAWER_SNAP_POINTS, RADIUS_OPTIONS } from "@/lib/constants";
 import { getStationNamesDb } from "@/lib/stationName";
 import {
@@ -18,7 +19,15 @@ import {
 import { Station, useAppStore } from "@/store/useAppStore";
 import { formatRelative } from "date-fns";
 import { fr } from "date-fns/locale";
-import { Calculator, Clock, Euro, Route } from "lucide-react";
+import {
+  Calculator,
+  ChevronDown,
+  ChevronRight,
+  Clock,
+  Euro,
+  Fuel,
+  Route,
+} from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { StationCard } from "./components/StationCard";
 import { StationCardSkeleton } from "./components/StationCardSkeleton";
@@ -56,6 +65,7 @@ export function StationList({ mobileDrawerSnap }: StationListProps = {}) {
     roadDistances,
     isLoadingRoadDistances,
     distanceMode,
+    showRuptureStations,
   } = useAppStore();
 
   const majLabel = lastUpdate
@@ -73,11 +83,13 @@ export function StationList({ mobileDrawerSnap }: StationListProps = {}) {
   );
 
   const filteredStations = useFilteredStations();
+  const ruptureStations = useRuptureStations();
   const allFilteredStats = useFilteredStats();
 
   const isDesktop = useIsDesktop();
 
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+  const [ruptureOpen, setRuptureOpen] = useState(false);
   const sentinelRef = useRef<HTMLDivElement>(null);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
 
@@ -95,8 +107,8 @@ export function StationList({ mobileDrawerSnap }: StationListProps = {}) {
       const priceA = a.prices.find((p) => p.fuel_type === selectedFuel)?.price;
       const priceB = b.prices.find((p) => p.fuel_type === selectedFuel)?.price;
 
-      const distA = getStationDistance(a, referenceLocation, roadDistances)
-      const distB = getStationDistance(b, referenceLocation, roadDistances)
+      const distA = getStationDistance(a, referenceLocation, roadDistances);
+      const distB = getStationDistance(b, referenceLocation, roadDistances);
 
       if (listSortBy === "real-cost") {
         if (!priceA) return 1;
@@ -163,9 +175,9 @@ export function StationList({ mobileDrawerSnap }: StationListProps = {}) {
     [sortedStations, visibleCount],
   );
 
-  // Résolution bulk des noms pour les stations visibles uniquement
+  // Résolution bulk des noms pour les stations visibles + stations en rupture
   useEffect(() => {
-    const unresolved = visibleStations.filter(
+    const unresolved = [...visibleStations, ...ruptureStations].filter(
       (s) => !resolvedNames[String(s.id)],
     );
     if (unresolved.length === 0) return;
@@ -178,7 +190,7 @@ export function StationList({ mobileDrawerSnap }: StationListProps = {}) {
         );
       }
     });
-  }, [visibleStations, resolvedNames, setResolvedName]);
+  }, [visibleStations, ruptureStations, resolvedNames, setResolvedName]);
 
   // IntersectionObserver pour le chargement des stations suivantes
   useEffect(() => {
@@ -219,7 +231,12 @@ export function StationList({ mobileDrawerSnap }: StationListProps = {}) {
                 : "Autour de moi"}
           </h2>
           {majLabel && (
-            <span className={cn("flex items-center gap-1 text-[11px]", isDataStale ? "text-red-700" : "text-muted-foreground")}>
+            <span
+              className={cn(
+                "flex items-center gap-1 text-[11px]",
+                isDataStale ? "text-red-700" : "text-muted-foreground",
+              )}
+            >
               <Clock className="size-3" />
               {`Mise à jour : ${majLabel}`}
             </span>
@@ -300,7 +317,8 @@ export function StationList({ mobileDrawerSnap }: StationListProps = {}) {
         )}
       </div>
 
-      {isExpanded && (isLoading || (distanceMode === 'road' && isLoadingRoadDistances)) ? (
+      {isExpanded &&
+      (isLoading || (distanceMode === "road" && isLoadingRoadDistances)) ? (
         <div className="flex-1 overflow-hidden">
           <div className="flex flex-col gap-3 px-4 pt-1 pb-4">
             {Array.from({ length: 20 }).map((_, i) => (
@@ -308,7 +326,9 @@ export function StationList({ mobileDrawerSnap }: StationListProps = {}) {
             ))}
           </div>
         </div>
-      ) : !isLoading && sortedStations.length === 0 ? (
+      ) : !isLoading &&
+        sortedStations.length === 0 &&
+        ruptureStations.length === 0 ? (
         <div
           className={cn(
             "text-muted-foreground flex flex-1 flex-col items-center gap-4 p-4 text-center",
@@ -324,6 +344,13 @@ export function StationList({ mobileDrawerSnap }: StationListProps = {}) {
         >
           <ScrollArea className="h-full pb-4">
             <div className="flex flex-col gap-3 px-4 pb-32 md:pb-4">
+              {sortedStations.length === 0 &&
+                showRuptureStations &&
+                ruptureStations.length > 0 && (
+                  <p className="text-muted-foreground py-2 text-center text-sm">
+                    Aucune station active — voir les ruptures ci-dessous.
+                  </p>
+                )}
               {visibleStations.map((station) => (
                 <StationCard
                   key={station.id}
@@ -338,6 +365,44 @@ export function StationList({ mobileDrawerSnap }: StationListProps = {}) {
                 />
               ))}
               <div ref={sentinelRef} className="h-1" />
+
+              {/* Section stations en rupture */}
+              {showRuptureStations && ruptureStations.length > 0 && (
+                <div className="border-border/50 mt-2 border-t pt-2">
+                  <button
+                    className="text-muted-foreground hover:text-foreground flex w-full items-center gap-2 py-2 text-xs font-semibold transition-colors"
+                    onClick={() => setRuptureOpen((o) => !o)}
+                  >
+                    {ruptureOpen ? (
+                      <ChevronDown className="size-3.5" />
+                    ) : (
+                      <ChevronRight className="size-3.5" />
+                    )}
+                    <Fuel className="size-3.5 text-red-400" />
+                    <span className="text-red-500">
+                      Stations en rupture ({ruptureStations.length})
+                    </span>
+                  </button>
+                  {ruptureOpen && (
+                    <div className="flex flex-col gap-3 pt-1">
+                      {ruptureStations.map((station) => (
+                        <StationCard
+                          key={station.id}
+                          station={station}
+                          selectedFuel={selectedFuel}
+                          referenceLocation={referenceLocation}
+                          filteredStats={currentStats}
+                          bestPriceStationIds={[]}
+                          bestDistanceStationIds={[]}
+                          bestRealCostStationIds={[]}
+                          isRupture
+                          onClick={() => handleStationClick(station)}
+                        />
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </ScrollArea>
         </div>
