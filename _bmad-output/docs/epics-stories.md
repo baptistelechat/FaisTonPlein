@@ -202,8 +202,8 @@
 
 **Critères d'Acceptation :**
 
-- [ ] Toggle "Mode Analyste" dans les paramètres.
-- [ ] L'activation affiche les graphiques et stats avancées.
+- [x] Toggle "Mode Analyste" dans les paramètres.
+- [x] L'activation affiche les graphiques et stats avancées.
 
 ### US-03-03 : Graphique Historique
 
@@ -213,8 +213,8 @@
 
 **Critères d'Acceptation :**
 
-- [ ] Graphique linéaire interactif (Recharts).
-- [ ] Affichage des points de données au survol.
+- [x] Graphique linéaire interactif (Recharts).
+- [x] Affichage des points de données au survol.
 
 ***
 

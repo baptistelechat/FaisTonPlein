@@ -12,7 +12,6 @@ type PriceMarkerProps = {
   isBestPrice?: boolean;
   isBestDistance?: boolean;
   isBestRealCost?: boolean;
-  trend?: "up" | "down" | "stable";
   filteredStats?: FuelStats | null;
   updatedAt?: string | number | Date | null;
 };
@@ -46,19 +45,6 @@ export function PriceMarker({
             : cn("bg-background hover:scale-105 hover:shadow-md", statusColor),
         )}
       >
-        {/* {showBestBadge && (
-        <div
-          className={cn(
-            "pointer-events-none absolute -top-2 -right-2 flex items-center gap-1 rounded-full border px-0.5 py-0.5 text-[10px] font-semibold shadow-sm",
-            isSelected
-              ? "border-primary bg-primary text-primary-foreground"
-              : "border-yellow-300 bg-yellow-50 text-yellow-900",
-          )}
-        >
-          {isBestPrice && <Euro className="size-3" />}
-          {isBestDistance && <MapPin className="size-3" />}
-        </div>
-      )} */}
         {updatedAt && (
           <span
             className={cn(

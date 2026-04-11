@@ -1,8 +1,8 @@
 import { cn } from "@/lib/utils";
 
 interface PulseMarkerProps {
-  color?: string; // Tailwind color class like 'bg-indigo-600' or 'bg-primary'
-  pingColor?: string; // Tailwind color class for the ping animation
+  color?: string;
+  pingColor?: string;
   tooltip?: string;
 }
 

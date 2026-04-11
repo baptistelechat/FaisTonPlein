@@ -37,7 +37,7 @@ export function SearchPanel({ onClose }: SearchPanelProps) {
     // fixed inset-0 : s'adapte naturellement au viewport réduit par le clavier
     // Le clavier réduit window.innerHeight → inset-0 prend les nouvelles dimensions
     // L'input en haut reste toujours visible au-dessus du clavier
-    <div className='bg-background fixed inset-0 z-[200] flex flex-col'>
+    <div className='bg-background fixed inset-0 z-200 flex flex-col'>
       {/* Header : bouton retour + input */}
       <div className='flex items-center p-3 pb-0'>
         <Button

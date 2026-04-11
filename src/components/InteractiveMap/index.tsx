@@ -4,151 +4,34 @@ import {
   Map,
   MapControls,
   MapMarker,
-  useMap,
   type MapViewport,
 } from "@/components/ui/map";
 import { useFilteredStations } from "@/hooks/useFilteredStations";
-import { useFilteredStats } from "@/hooks/useFilteredStats";
 import { useIsodistance } from "@/hooks/useIsodistance";
 import { useRouteGeometry } from "@/hooks/useRouteGeometry";
 import { useRuptureStations } from "@/hooks/useRuptureStations";
 import { reverseGeocode } from "@/lib/api-adresse";
 import { useAppStore } from "@/store/useAppStore";
 import { Loader2 } from "lucide-react";
-import type { GeoJSONSource, Map as MapLibreMap } from "maplibre-gl";
-import { ReactNode, useCallback, useEffect, useRef, useState } from "react";
+import type { Map as MapLibreMap } from "maplibre-gl";
+import {
+  type ReactNode,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import { toast } from "sonner";
 import useSupercluster from "use-supercluster";
-import { PriceMarker } from "./PriceMarker";
-import { PulseMarker } from "./PulseMarker";
-import { RuptureMarker } from "./RuptureMarker";
-import { StationRoute } from "./StationRoute";
+import { PulseMarker } from "./components/PulseMarker";
+import { StationRoute } from "../StationRoute";
+import { RadiusZone } from "./components/RadiusZone";
+import { StationClustersLayer } from "./components/StationClustersLayer";
 
 const DEFAULT_CENTER: [number, number] = [2.3522, 48.8566]; // Paris [lon, lat]
 const DEFAULT_ZOOM = 13;
-const MAP_HEADER_HEIGHT = 100; // search bar + fuel selector flottants
-const MAP_DRAWER_CLEARANCE = 16; // marge au-dessus du drawer mobile
-
-const createCircleGeoJSON = (
-  center: [number, number],
-  radiusKm: number,
-): GeoJSON.Feature<GeoJSON.Polygon> => {
-  const POINTS = 64;
-  const [lon, lat] = center;
-  const latRad = (lat * Math.PI) / 180;
-  const latOffset = radiusKm / 111.32;
-  const lonOffset = radiusKm / (111.32 * Math.cos(latRad));
-
-  const coordinates: [number, number][] = [];
-  for (let i = 0; i <= POINTS; i++) {
-    const angle = (i * 2 * Math.PI) / POINTS;
-    coordinates.push([
-      lon + lonOffset * Math.cos(angle),
-      lat + latOffset * Math.sin(angle),
-    ]);
-  }
-
-  return {
-    type: "Feature",
-    properties: {},
-    geometry: {
-      type: "Polygon",
-      coordinates: [coordinates],
-    },
-  };
-};
-
-const RADIUS_SOURCE_ID = "radius-zone";
-const RADIUS_PRIMARY_COLOR = "#4f46e5";
-
-function RadiusZone({
-  referenceLocation,
-  searchRadius,
-  distanceMode,
-}: {
-  referenceLocation: [number, number] | null;
-  searchRadius: number;
-  distanceMode: "road" | "crow-fly";
-}) {
-  const { map, isLoaded } = useMap();
-  const isodistanceGeometry = useAppStore((s) => s.isodistanceGeometry);
-
-  // Créer la source et les layers une seule fois quand la carte est chargée
-  useEffect(() => {
-    if (!isLoaded || !map) return;
-    if (!map.getSource(RADIUS_SOURCE_ID)) {
-      map.addSource(RADIUS_SOURCE_ID, {
-        type: "geojson",
-        data: { type: "FeatureCollection", features: [] },
-      });
-      map.addLayer({
-        id: "radius-fill",
-        type: "fill",
-        source: RADIUS_SOURCE_ID,
-        paint: { "fill-color": RADIUS_PRIMARY_COLOR, "fill-opacity": 0.04 },
-      });
-      map.addLayer({
-        id: "radius-border",
-        type: "line",
-        source: RADIUS_SOURCE_ID,
-        paint: {
-          "line-color": RADIUS_PRIMARY_COLOR,
-          "line-width": 1.5,
-          "line-opacity": 0.5,
-        },
-      });
-    }
-    return () => {
-      try {
-        if (map.getLayer("radius-border")) map.removeLayer("radius-border");
-        if (map.getLayer("radius-fill")) map.removeLayer("radius-fill");
-        if (map.getSource(RADIUS_SOURCE_ID)) map.removeSource(RADIUS_SOURCE_ID);
-      } catch {
-        // la carte a déjà été détruite, rien à nettoyer
-      }
-    };
-  }, [isLoaded, map]);
-
-  // Mettre à jour les données et le style de la zone quand les paramètres changent
-  useEffect(() => {
-    if (!isLoaded || !map) return;
-    const source = map.getSource(RADIUS_SOURCE_ID) as GeoJSONSource;
-    if (!source) return;
-
-    if (map.getLayer("radius-border")) {
-      map.setPaintProperty(
-        "radius-border",
-        "line-dasharray",
-        distanceMode === "crow-fly" ? [3, 3] : null,
-      );
-    }
-
-    if (!referenceLocation || searchRadius === 0) {
-      source.setData({ type: "FeatureCollection", features: [] });
-    } else if (distanceMode === "road") {
-      if (isodistanceGeometry) {
-        source.setData({
-          type: "Feature",
-          geometry: isodistanceGeometry,
-          properties: {},
-        });
-      } else {
-        source.setData({ type: "FeatureCollection", features: [] });
-      }
-    } else {
-      source.setData(createCircleGeoJSON(referenceLocation, searchRadius));
-    }
-  }, [
-    isLoaded,
-    map,
-    referenceLocation,
-    searchRadius,
-    distanceMode,
-    isodistanceGeometry,
-  ]);
-
-  return null;
-}
+const MAP_HEADER_HEIGHT = 100;
+const MAP_DRAWER_CLEARANCE = 16;
 
 export default function InteractiveMap({
   children,
@@ -158,11 +41,9 @@ export default function InteractiveMap({
   mobileDrawerSnap?: number | string | null;
 }) {
   const {
-    stations,
     isLoading,
     selectedFuel,
     selectedStation,
-    setSelectedStation,
     userLocation,
     setUserLocation,
     flyToStation,
@@ -172,9 +53,6 @@ export default function InteractiveMap({
     searchLocation,
     setSelectedDepartment,
     setSearchLocation,
-    bestPriceStationIds,
-    bestDistanceStationIds,
-    bestRealCostStationIds,
     searchRadius,
     fitToListSignal,
   } = useAppStore();
@@ -182,7 +60,6 @@ export default function InteractiveMap({
   const distanceMode = useAppStore((s) => s.distanceMode);
   const showRoute = useAppStore((s) => s.showRoute);
   const showRuptureStations = useAppStore((s) => s.showRuptureStations);
-  const isodistanceGeometry = useAppStore((s) => s.isodistanceGeometry);
   useIsodistance();
 
   const route = useRouteGeometry();
@@ -206,8 +83,6 @@ export default function InteractiveMap({
 
   const filteredStations = useFilteredStations();
   const ruptureStations = useRuptureStations();
-  const allFilteredStats = useFilteredStats();
-  const filteredStats = allFilteredStats[selectedFuel] ?? null;
   const filteredStationsRef = useRef(filteredStations);
   useEffect(() => {
     filteredStationsRef.current = filteredStations;
@@ -215,11 +90,9 @@ export default function InteractiveMap({
 
   const mapRef = useRef<MapLibreMap>(null);
   const [mapInstance, setMapInstance] = useState<MapLibreMap | null>(null);
-
   const [bounds, setBounds] = useState<[number, number, number, number] | null>(
     null,
   );
-
   const [viewport, setViewport] = useState<Partial<MapViewport>>({
     center: DEFAULT_CENTER,
     zoom: DEFAULT_ZOOM,
@@ -237,7 +110,6 @@ export default function InteractiveMap({
       }
       requestAnimationFrame(tick);
     };
-
     tick();
     return () => {
       cancelled = true;
@@ -246,19 +118,15 @@ export default function InteractiveMap({
 
   useEffect(() => {
     if (!mapInstance) return;
-
     const updateBounds = () => {
       const b = mapInstance.getBounds();
       setBounds([b.getWest(), b.getSouth(), b.getEast(), b.getNorth()]);
     };
-
     updateBounds();
     const timer = setTimeout(updateBounds, 0);
-
     mapInstance.on("load", updateBounds);
     mapInstance.on("moveend", updateBounds);
     mapInstance.on("zoomend", updateBounds);
-
     return () => {
       clearTimeout(timer);
       mapInstance.off("load", updateBounds);
@@ -267,9 +135,7 @@ export default function InteractiveMap({
     };
   }, [mapInstance]);
 
-  // Search radius circle layer
   const referenceLocation = searchLocation || userLocation;
-  // Refs stables pour lecture dans les effects à dep unique (fitToListSignal)
   const searchRadiusRef = useRef(searchRadius);
   const referenceLocationRef = useRef(referenceLocation);
   useEffect(() => {
@@ -277,11 +143,11 @@ export default function InteractiveMap({
     referenceLocationRef.current = referenceLocation;
   }, [searchRadius, referenceLocation]);
 
-  // Adapter le zoom quand l'isodistance routière arrive
+  const isodistanceGeometry = useAppStore((s) => s.isodistanceGeometry);
+
   useEffect(() => {
     if (!mapRef.current || !isodistanceGeometry || distanceMode !== "road")
       return;
-
     const coords: [number, number][] = [];
     if (isodistanceGeometry.type === "Polygon") {
       coords.push(
@@ -293,7 +159,6 @@ export default function InteractiveMap({
       }
     }
     if (coords.length === 0) return;
-
     const lons = coords.map(([lon]) => lon);
     const lats = coords.map(([, lat]) => lat);
     mapRef.current.fitBounds(
@@ -305,16 +170,13 @@ export default function InteractiveMap({
     );
   }, [isodistanceGeometry, distanceMode, getMapPadding]);
 
-  // Recentrer la carte quand le rayon de recherche change
   useEffect(() => {
-    if (searchRadius === 0 || referenceLocation === null) return;
-    if (!mapRef.current) return;
-
+    if (searchRadius === 0 || referenceLocation === null || !mapRef.current)
+      return;
     const [lon, lat] = referenceLocation;
     const latRad = (lat * Math.PI) / 180;
     const latOffset = searchRadius / 111.32;
     const lonOffset = searchRadius / (111.32 * Math.cos(latRad));
-
     mapRef.current.fitBounds(
       [
         [lon - lonOffset, lat - latOffset],
@@ -324,7 +186,6 @@ export default function InteractiveMap({
     );
   }, [searchRadius, referenceLocation, getMapPadding]);
 
-  // Retour à la liste — recentre sur le cercle de rayon (même comportement que le changement de rayon)
   useEffect(() => {
     if (fitToListSignal === 0 || !mapRef.current) return;
     const sr = searchRadiusRef.current;
@@ -344,7 +205,6 @@ export default function InteractiveMap({
     }
   }, [fitToListSignal, getMapPadding]);
 
-  // Affiner le zoom quand la vraie géométrie de la route routière arrive
   useEffect(() => {
     if (
       !showRoute ||
@@ -364,72 +224,64 @@ export default function InteractiveMap({
     );
   }, [route, showRoute, getMapPadding]);
 
-  // Handle flyToLocation effect — si un rayon est actif, fitBounds sur le cercle plutôt que flyTo fixe
   useEffect(() => {
-    if (flyToLocation && mapRef.current) {
-      const [lon, lat] = flyToLocation;
-      if (searchRadius > 0) {
-        const latRad = (lat * Math.PI) / 180;
-        const latOffset = searchRadius / 111.32;
-        const lonOffset = searchRadius / (111.32 * Math.cos(latRad));
-        mapRef.current.fitBounds(
-          [
-            [lon - lonOffset, lat - latOffset],
-            [lon + lonOffset, lat + latOffset],
-          ],
-          { padding: getMapPadding(60), duration: 800 },
-        );
-      } else {
-        mapRef.current.flyTo({
-          center: [lon, lat],
-          zoom: 13,
-          duration: 2000,
-        });
-      }
-      setFlyToLocation(null);
+    if (!flyToLocation || !mapRef.current) return;
+    const [lon, lat] = flyToLocation;
+    if (searchRadius > 0) {
+      const latRad = (lat * Math.PI) / 180;
+      const latOffset = searchRadius / 111.32;
+      const lonOffset = searchRadius / (111.32 * Math.cos(latRad));
+      mapRef.current.fitBounds(
+        [
+          [lon - lonOffset, lat - latOffset],
+          [lon + lonOffset, lat + latOffset],
+        ],
+        { padding: getMapPadding(60), duration: 800 },
+      );
+    } else {
+      mapRef.current.flyTo({ center: [lon, lat], zoom: 13, duration: 2000 });
     }
+    setFlyToLocation(null);
   }, [flyToLocation, setFlyToLocation, searchRadius, getMapPadding]);
 
-  // Handle flyToStation effect
   useEffect(() => {
-    if (flyToStation && mapRef.current) {
-      const timer = setTimeout(() => {
-        if (!showRoute) {
-          mapRef.current?.flyTo({
-            center: [flyToStation.lon, flyToStation.lat],
-            zoom: 15,
-            speed: 1.2,
-            curve: 1.42,
-            essential: true,
-          });
-        } else if (referenceLocation) {
-          const [originLon, originLat] = referenceLocation;
-          mapRef.current?.fitBounds(
+    if (!flyToStation || !mapRef.current) return;
+    const timer = setTimeout(() => {
+      if (!showRoute) {
+        mapRef.current?.flyTo({
+          center: [flyToStation.lon, flyToStation.lat],
+          zoom: 15,
+          speed: 1.2,
+          curve: 1.42,
+          essential: true,
+        });
+      } else if (referenceLocation) {
+        const [originLon, originLat] = referenceLocation;
+        mapRef.current?.fitBounds(
+          [
             [
-              [
-                Math.min(originLon, flyToStation.lon),
-                Math.min(originLat, flyToStation.lat),
-              ],
-              [
-                Math.max(originLon, flyToStation.lon),
-                Math.max(originLat, flyToStation.lat),
-              ],
+              Math.min(originLon, flyToStation.lon),
+              Math.min(originLat, flyToStation.lat),
             ],
-            { padding: getMapPadding(80), duration: 800, maxZoom: 16 },
-          );
-        } else {
-          mapRef.current?.flyTo({
-            center: [flyToStation.lon, flyToStation.lat],
-            zoom: 15,
-            speed: 1.2,
-            curve: 1.42,
-            essential: true,
-          });
-        }
-        setFlyToStation(null);
-      }, 0);
-      return () => clearTimeout(timer);
-    }
+            [
+              Math.max(originLon, flyToStation.lon),
+              Math.max(originLat, flyToStation.lat),
+            ],
+          ],
+          { padding: getMapPadding(80), duration: 800, maxZoom: 16 },
+        );
+      } else {
+        mapRef.current?.flyTo({
+          center: [flyToStation.lon, flyToStation.lat],
+          zoom: 15,
+          speed: 1.2,
+          curve: 1.42,
+          essential: true,
+        });
+      }
+      setFlyToStation(null);
+    }, 0);
+    return () => clearTimeout(timer);
   }, [
     flyToStation,
     setFlyToStation,
@@ -438,12 +290,6 @@ export default function InteractiveMap({
     getMapPadding,
   ]);
 
-  // Ensure bounds are updated when viewport stabilizes
-  // We removed the timeout here to avoid conflict with handleViewportChange
-  // But if we notice missing clusters after flyTo, we might need to trigger a bounds update manually.
-  // The handleViewportChange is called during flyTo so it should be fine.
-
-  // Prepare points for supercluster (stations actives + stations en rupture)
   const points = [
     ...filteredStations
       .map((station) => {
@@ -460,10 +306,7 @@ export default function InteractiveMap({
             updatedAt: price.updated_at ?? null,
             isRupture: false,
           },
-          geometry: {
-            type: "Point",
-            coordinates: [station.lon, station.lat],
-          },
+          geometry: { type: "Point", coordinates: [station.lon, station.lat] },
         };
       })
       .filter((p) => p !== null),
@@ -478,23 +321,18 @@ export default function InteractiveMap({
         updatedAt: null,
         isRupture: true,
       },
-      geometry: {
-        type: "Point",
-        coordinates: [station.lon, station.lat],
-      },
+      geometry: { type: "Point", coordinates: [station.lon, station.lat] },
     })),
   ];
 
-  // Get clusters
   const { clusters, supercluster } = useSupercluster({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     points: points as any[],
     bounds: bounds ?? undefined,
     zoom: viewport.zoom || DEFAULT_ZOOM,
-    options: { radius: 75, maxZoom: 15 }, // radius: cluster size in pixels
+    options: { radius: 75, maxZoom: 15 },
   });
 
-  // Update viewport state on map move — bounds are handled separately by the mapInstance effect (moveend/zoomend)
   const handleViewportChange = useCallback(
     (newViewport: Partial<MapViewport>) => {
       setViewport((prev) => {
@@ -510,16 +348,14 @@ export default function InteractiveMap({
           Math.abs((prev.bearing || 0) - (newViewport.bearing || 0)) < 0.01;
         const isPitchSame =
           Math.abs((prev.pitch || 0) - (newViewport.pitch || 0)) < 0.01;
-
         if (
           isZoomSame &&
           isLatSame &&
           isLonSame &&
           isBearingSame &&
           isPitchSame
-        ) {
+        )
           return prev;
-        }
         return { ...prev, ...newViewport };
       });
     },
@@ -529,31 +365,19 @@ export default function InteractiveMap({
   const handleGeolocation = useCallback(
     async (coords: { latitude: number; longitude: number }) => {
       const { latitude, longitude } = coords;
-      // Always record user's real position (used as fallback reference)
       setUserLocation([longitude, latitude]);
-
-      // If user has an active manual search, don't override anything else.
-      // This prevents a late-arriving automatic geolocation from disrupting
-      // the search-triggered data load.
       if (useAppStore.getState().searchLocation) return;
-
       setSearchLocation(null);
-
-      // Force viewport update
       setViewport((prev) => ({
         ...prev,
         center: [longitude, latitude],
         zoom: 14,
       }));
-
       toast.success("Position trouvée !", { id: "geo-success" });
-
       try {
         const result = await reverseGeocode(longitude, latitude);
-        if (result && result.properties && result.properties.context) {
-          const contextParts = result.properties.context.split(",");
-          const deptCode = contextParts[0].trim();
-
+        if (result?.properties?.context) {
+          const deptCode = result.properties.context.split(",")[0].trim();
           setSelectedDepartment(deptCode);
           toast.success(`Département détecté : ${deptCode}`, {
             id: "geo-dept",
@@ -567,7 +391,6 @@ export default function InteractiveMap({
     [setUserLocation, setSearchLocation, setSelectedDepartment],
   );
 
-  // Initial Geolocation
   useEffect(() => {
     if (!userLocation && "geolocation" in navigator) {
       navigator.geolocation.getCurrentPosition(
@@ -604,7 +427,6 @@ export default function InteractiveMap({
           showCompass={true}
           showLocate={true}
           onLocate={(coords) => {
-            // Clear any active search so handleGeolocation proceeds fully
             useAppStore.getState().setSearchLocation(null);
             handleGeolocation(coords);
           }}
@@ -619,17 +441,14 @@ export default function InteractiveMap({
         />
         {children}
 
-        {/* Zone de rayon — isodistance routière ou cercle à vol d'oiseau */}
         <RadiusZone
           referenceLocation={referenceLocation}
           searchRadius={searchRadius}
           distanceMode={distanceMode}
         />
 
-        {/* Route vers la station sélectionnée */}
         <StationRoute route={showRoute ? route : null} />
 
-        {/* User Location Marker */}
         {userLocation && !searchLocation && (
           <MapMarker longitude={userLocation[0]} latitude={userLocation[1]}>
             <PulseMarker
@@ -640,119 +459,15 @@ export default function InteractiveMap({
           </MapMarker>
         )}
 
-        {/* Clusters and Markers */}
-        {clusters.map((cluster) => {
-          const [longitude, latitude] = cluster.geometry.coordinates;
-          const { cluster: isCluster, point_count: pointCount } =
-            cluster.properties;
-
-          if (isCluster) {
-            return (
-              <MapMarker
-                key={`cluster-${cluster.id}`}
-                latitude={latitude}
-                longitude={longitude}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  const expansionZoom = Math.min(
-                    supercluster?.getClusterExpansionZoom(
-                      cluster.id as number,
-                    ) || 0,
-                    20,
-                  );
-                  setViewport({
-                    ...viewport,
-                    zoom: expansionZoom,
-                    center: [longitude, latitude],
-                  });
-                }}
-              >
-                <div className="bg-primary flex h-10 w-10 items-center justify-center rounded-full border-2 border-white font-bold text-white shadow-lg">
-                  {pointCount}
-                </div>
-              </MapMarker>
-            );
-          }
-
-          // Render individual station marker (prix ou rupture)
-          const onClickStation = (e: MouseEvent) => {
-            e.stopPropagation();
-            const station = stations.find(
-              (s) => s.id === cluster.properties.stationId,
-            );
-            if (!station) return;
-            setSelectedStation(station);
-            if (!showRoute || cluster.properties.isRupture) {
-              setViewport((prev) => ({
-                ...prev,
-                center: [station.lon, station.lat],
-                zoom: 15,
-                duration: 800,
-              }));
-            } else if (referenceLocation && mapRef.current) {
-              const [originLon, originLat] = referenceLocation;
-              mapRef.current.fitBounds(
-                [
-                  [
-                    Math.min(originLon, station.lon),
-                    Math.min(originLat, station.lat),
-                  ],
-                  [
-                    Math.max(originLon, station.lon),
-                    Math.max(originLat, station.lat),
-                  ],
-                ],
-                { padding: getMapPadding(80), duration: 800, maxZoom: 16 },
-              );
-            } else {
-              setViewport((prev) => ({
-                ...prev,
-                center: [station.lon, station.lat],
-                zoom: 15,
-                duration: 800,
-              }));
-            }
-          };
-
-          if (cluster.properties.isRupture) {
-            return (
-              <MapMarker
-                key={`station-${cluster.properties.stationId}`}
-                latitude={latitude}
-                longitude={longitude}
-                onClick={onClickStation}
-              >
-                <RuptureMarker isSelected={cluster.properties.isSelected} />
-              </MapMarker>
-            );
-          }
-
-          return (
-            <MapMarker
-              key={`station-${cluster.properties.stationId}`}
-              latitude={latitude}
-              longitude={longitude}
-              onClick={onClickStation}
-            >
-              <PriceMarker
-                price={cluster.properties.price}
-                fuelType={cluster.properties.fuelType}
-                isSelected={cluster.properties.isSelected}
-                isBestPrice={bestPriceStationIds.includes(
-                  cluster.properties.stationId,
-                )}
-                isBestDistance={bestDistanceStationIds.includes(
-                  cluster.properties.stationId,
-                )}
-                isBestRealCost={bestRealCostStationIds.includes(
-                  cluster.properties.stationId,
-                )}
-                filteredStats={filteredStats}
-                updatedAt={cluster.properties.updatedAt}
-              />
-            </MapMarker>
-          );
-        })}
+        <StationClustersLayer
+          clusters={clusters}
+          supercluster={supercluster}
+          viewport={viewport}
+          setViewport={setViewport}
+          mapRef={mapRef}
+          getMapPadding={getMapPadding}
+          referenceLocation={referenceLocation}
+        />
 
         {searchLocation && (
           <MapMarker longitude={searchLocation[0]} latitude={searchLocation[1]}>

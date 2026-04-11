@@ -1,35 +1,29 @@
-import type { AsyncDuckDB } from '@duckdb/duckdb-wasm'
-import { FUEL_TYPES } from '@/lib/constants'
-import type { FuelType } from '@/lib/constants'
-import type { Station } from '@/store/useAppStore'
+import type { AsyncDuckDB } from "@duckdb/duckdb-wasm";
+import { FUEL_TYPES, HF_ROLLING_BASE_URL } from "@/lib/constants";
+import type { FuelType } from "@/lib/constants";
+import type { Station } from "@/store/useAppStore";
+import { getDeptFromStationId } from "@/lib/utils";
 
-export type TrendDirection = 'up' | 'down' | 'stable'
+export type TrendDirection = "up" | "down" | "stable";
 
-const TREND_THRESHOLD = 0.01
-
-const ROLLING_BASE_URL =
-  'https://huggingface.co/datasets/baptistelechat/fais-ton-plein_dataset/resolve/main/data/rolling/30days'
+const TREND_THRESHOLD = 0.01;
 
 export const buildTrendKey = (stationId: string, fuelType: FuelType): string =>
-  `${stationId}_${fuelType}`
-
-export const getDeptFromStationId = (stationId: string): string => {
-  const s = String(stationId)
-  if (/^97[1-6]/.test(s)) return s.slice(0, 3) // DOM-TOM: 971–976
-  if (/^2[AB]/i.test(s)) return s.slice(0, 2)  // Corse : "2A..." → "2A", "2B..." → "2B"
-  return s.slice(0, 2)                           // Métropole
-}
+  `${stationId}_${fuelType}`;
 
 export const fetchPriceTrends = async (
   db: AsyncDuckDB,
   stations: Station[],
 ): Promise<Record<string, TrendDirection>> => {
-  const depts = [...new Set(stations.map((s) => getDeptFromStationId(s.id)))]
+  const depts = [...new Set(stations.map((s) => getDeptFromStationId(s.id)))];
 
   // 1 fichier rolling par département — filtre les 7 derniers jours
   const urlList = depts
-    .map((dept) => `'${ROLLING_BASE_URL}/code_departement=${dept}/data_0.parquet'`)
-    .join(', ')
+    .map(
+      (dept) =>
+        `'${HF_ROLLING_BASE_URL}/code_departement=${dept}/data_0.parquet'`,
+    )
+    .join(", ");
 
   const query = `
     SELECT
@@ -43,24 +37,24 @@ export const fetchPriceTrends = async (
     FROM read_parquet([${urlList}])
     WHERE CAST(date AS DATE) >= CURRENT_DATE - INTERVAL 7 DAYS
     GROUP BY id
-  `
+  `;
 
-  const conn = await db.connect()
-  let rows: Record<string, unknown>[] = []
+  const conn = await db.connect();
+  let rows: Record<string, unknown>[] = [];
   try {
-    const result = await conn.query(query)
-    rows = result.toArray().map((r) => r.toJSON())
+    const result = await conn.query(query);
+    rows = result.toArray().map((r) => r.toJSON());
   } finally {
-    await conn.close()
+    await conn.close();
   }
 
-  const avgMap = new Map<string, Record<string, number | null>>()
+  const avgMap = new Map<string, Record<string, number | null>>();
   for (const row of rows) {
     const toNum = (v: unknown): number | null => {
-      if (v == null) return null
-      const n = Number(v)
-      return isNaN(n) ? null : n
-    }
+      if (v == null) return null;
+      const n = Number(v);
+      return isNaN(n) ? null : n;
+    };
     avgMap.set(String(row.id), {
       Gazole: toNum(row.avg_gazole),
       E10: toNum(row.avg_e10),
@@ -68,35 +62,37 @@ export const fetchPriceTrends = async (
       SP98: toNum(row.avg_sp98),
       E85: toNum(row.avg_e85),
       GPLc: toNum(row.avg_gplc),
-    })
+    });
   }
 
-  const trends: Record<string, TrendDirection> = {}
-  const fuelTypes = FUEL_TYPES.map((f) => f.type)
+  const trends: Record<string, TrendDirection> = {};
+  const fuelTypes = FUEL_TYPES.map((f) => f.type);
 
   for (const station of stations) {
-    const historicEntry = avgMap.get(String(station.id))
-    if (!historicEntry) continue
+    const historicEntry = avgMap.get(String(station.id));
+    if (!historicEntry) continue;
 
     for (const fuelType of fuelTypes) {
-      const currentPriceEntry = station.prices.find((p) => p.fuel_type === fuelType)
-      if (!currentPriceEntry) continue
+      const currentPriceEntry = station.prices.find(
+        (p) => p.fuel_type === fuelType,
+      );
+      if (!currentPriceEntry) continue;
 
-      const avg7d = historicEntry[fuelType]
-      if (avg7d === null || avg7d === undefined) continue
+      const avg7d = historicEntry[fuelType];
+      if (avg7d === null || avg7d === undefined) continue;
 
-      const currentPrice = currentPriceEntry.price
-      const key = buildTrendKey(station.id, fuelType)
+      const currentPrice = currentPriceEntry.price;
+      const key = buildTrendKey(station.id, fuelType);
 
       if (currentPrice > avg7d * (1 + TREND_THRESHOLD)) {
-        trends[key] = 'up'
+        trends[key] = "up";
       } else if (currentPrice < avg7d * (1 - TREND_THRESHOLD)) {
-        trends[key] = 'down'
+        trends[key] = "down";
       } else {
-        trends[key] = 'stable'
+        trends[key] = "stable";
       }
     }
   }
 
-  return trends
-}
+  return trends;
+};

@@ -2,6 +2,7 @@
 
 import { getDepartmentsInRadius } from "@/lib/departments";
 import { mapRawDataToStation, RawStationData } from "@/lib/mappers";
+import { HF_LATEST_BASE_URL } from "@/lib/constants";
 import { Station, useAppStore } from "@/store/useAppStore";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
@@ -78,16 +79,15 @@ export const FuelDataLoader = () => {
       setIsLoading(true);
 
       try {
-        const BASE =
-          "https://huggingface.co/datasets/baptistelechat/fais-ton-plein_dataset/resolve/main/data/latest";
+        const BASE = HF_LATEST_BASE_URL;
 
         // Métadonnées globales France (total stations + last_updated)
         fetch(`${BASE}/metadata.json`)
           .then((res) => res.json())
           .then((meta) => {
-            if (isMounted && typeof meta.total_stations === 'number')
+            if (isMounted && typeof meta.total_stations === "number")
               setNationalStationsCount(meta.total_stations);
-            if (isMounted && typeof meta.france_area_km2 === 'number')
+            if (isMounted && typeof meta.france_area_km2 === "number")
               setNationalFranceAreaKm2(meta.france_area_km2);
             if (isMounted && meta.last_updated)
               setLastUpdate(meta.last_updated);
@@ -145,7 +145,21 @@ export const FuelDataLoader = () => {
     return () => {
       isMounted = false;
     };
-  }, [db, deptKey, loadedDeptsKey, canLoadData, locationAvailable, searchLocation, selectedDepartment, setIsLoading, setLastUpdate, setStations, departmentsToLoad, setNationalStationsCount, setNationalFranceAreaKm2]);
+  }, [
+    db,
+    deptKey,
+    loadedDeptsKey,
+    canLoadData,
+    locationAvailable,
+    searchLocation,
+    selectedDepartment,
+    setIsLoading,
+    setLastUpdate,
+    setStations,
+    departmentsToLoad,
+    setNationalStationsCount,
+    setNationalFranceAreaKm2,
+  ]);
 
   if (dbError) {
     return null; // Or show a global error banner

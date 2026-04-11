@@ -25,12 +25,10 @@ D1 - **Status:** done
 - [x] Task 1 : Exporter les helpers depuis `priceTrends.ts` (AC: #8)
   - [x] Ajouter `export` devant `getDeptFromStationId` (ligne 16)
   - [x] Ajouter `export` devant `filterAvailableUrls` (ligne 129)
-
 - [x] Task 2 : Créer `src/lib/priceHistory.ts` (AC: #2, #3, #5)
   - [x] Exporter type `PriceHistoryPoint = { date: string; price: number | null }`
   - [x] Implémenter `getLast30DayPaths(dept)` → `Array<{url: string, date: string}>` inversé (chronologique)
   - [x] Implémenter `fetchStationPriceHistory(db, stationId, dept, fuelType)` → `Promise<PriceHistoryPoint[]>` avec requête DuckDB `filename=true` en une seule connexion (voir Dev Notes)
-
 - [x] Task 3 : Créer `src/hooks/usePriceHistory.ts` (AC: #2, #6, #7)
   - [x] Hook `usePriceHistory()` retournant `{ data, isLoading, isVisible, toggleVisibility }`
   - [x] Cache session `useRef<Map<string, PriceHistoryPoint[]>>` — clé `${stationId}_${fuelType}`
@@ -38,20 +36,17 @@ D1 - **Status:** done
   - [x] `toggleVisibility()` : si `!isVisible` → vérifier cache, sinon fetcher ; si `isVisible` → masquer (garder data)
   - [x] `useDuckDB()` pour `db` ; selectors isolés pour `selectedStation` et `selectedFuel`
   - [x] Fallback silencieux sur erreur
-
 - [x] Task 4 : Créer `src/components/StationDetail/components/PriceHistoryChart.tsx` (AC: #3, #4, #5)
   - [x] Props : `{ data: PriceHistoryPoint[]; isLoading: boolean; selectedFuel: FuelType }`
   - [x] Skeleton `h-40` si `isLoading` ; message centré si `data.length === 0`
   - [x] `LineChart` responsive 160px, axe X `MM-DD`, axe Y prix en €, tooltip DD/MM/YYYY
   - [x] Couleur de ligne via `FUEL_COLOR_MAP[selectedFuel]` (mapping CSS défini dans le composant, voir Dev Notes)
-
 - [x] Task 5 : Intégrer dans `StationDetail/index.tsx` (AC: #1, #2, #3, #6, #7)
   - [x] Importer `usePriceHistory`, `PriceHistoryChart`, `History`, `TrendingUp`
-  - [x] Appeler `usePriceHistory()` au niveau du composant (après `useStationName`, ligne ~41)
-  - [x] Dans la section Actions (après grid Maps/Waze, ligne ~175), ajouter le bouton "Historique" + zone conditionnelle
+  - [x] Appeler `usePriceHistory()` au niveau du composant (après `useStationName`, ligne \~41)
+  - [x] Dans la section Actions (après grid Maps/Waze, ligne \~175), ajouter le bouton "Historique" + zone conditionnelle
   - [x] Le bouton affiche "Historique" si `!isVisible`, "Masquer l'historique" si `isVisible`
   - [x] `<PriceHistoryChart>` rendu uniquement si `isVisible`
-
 - [x] Task 6 : Lint et validation (AC: #9)
   - [x] `pnpm lint` — 0 erreur bloquante
 
@@ -77,7 +72,7 @@ export const getDeptFromStationId = (stationId: string): string => { ... }
 export async function filterAvailableUrls(urls: string[]): Promise<string[]> { ... }
 ```
 
-Ces fonctions sont déjà présentes et correctes — **uniquement ajouter `export`**.
+Ces fonctions sont déjà présentes et correctes — **uniquement ajouter** **`export`**.
 
 ### Task 2 — `src/lib/priceHistory.ts`
 
@@ -247,7 +242,7 @@ export function usePriceHistory() {
 
 ### Task 4 — `src/components/StationDetail/components/PriceHistoryChart.tsx`
 
-**`FUEL_TYPES.color` contient des noms Tailwind** (`"yellow"`, `"green"`...), pas du CSS. Mapping requis :
+**`FUEL_TYPES.color`** **contient des noms Tailwind** (`"yellow"`, `"green"`...), pas du CSS. Mapping requis :
 
 ```ts
 const FUEL_COLOR_MAP: Record<FuelType, string> = {
@@ -377,7 +372,7 @@ import { PriceHistoryChart } from "./components/PriceHistoryChart";
 // import { Bird, Calculator, CreditCard, Euro, History, MapPin, Navigation, Road, Route, TrendingUp } from 'lucide-react'
 ```
 
-**Hook (après `useStationName` ligne 40) :**
+**Hook (après** **`useStationName`** **ligne 40) :**
 
 ```tsx
 const {
@@ -459,17 +454,17 @@ const {
 
 ## Review Findings
 
-- [ ] [Review][Decision] Modèle d'interaction et approche données divergent complètement de la spec — La spec exige un bouton "Historique" toggle (AC #1), un fetch déclenché au premier clic uniquement (AC #2), `isVisible`/`toggleVisibility` dans le hook (AC #3 dev notes), un reset visuel au changement de station (AC #7), et `filterAvailableUrls` exportée de `priceTrends.ts` (AC #8). L'implémentation a opté pour un chargement automatique au montage via `useEffect`, un graphique toujours visible, un cache module-level avec clé `${id}_${fuel}_${date}`, et une approche données entièrement différente (1 Parquet rolling vs 30 fichiers journaliers). Confirmer si ce changement de design est intentionnel ou si la spec doit être respectée.
-- [ ] [Review][Patch] `isLoading` retourné `false` depuis l'early-return guard malgré state=true → flash d'état vide [`src/hooks/usePriceHistory.ts:55-57`]
-- [ ] [Review][Patch] `prices` vide (tous `null`) → `Math.min/max(…[])` = ±Infinity, `avgPrice` = NaN → graphique Recharts cassé [`src/components/StationDetail/components/PriceHistoryChart.tsx:118-120`]
-- [ ] [Review][Patch] `deltaPct` division par zéro si `prices[0] === 0` → "Infinity%" affiché en en-tête [`src/components/StationDetail/components/PriceHistoryChart.tsx:126`]
-- [ ] [Review][Patch] Tooltip: `price` peut être `undefined` si le payload "price" est absent → `Number(undefined).toFixed(3)` = "NaN €/L" [`src/components/StationDetail/components/PriceHistoryChart.tsx:279-282`]
-- [ ] [Review][Patch] `augmentWithOutageBridge` off-by-one : le jour réel post-gap reçoit `outagePrice = priceAfter` → série rouge déborde d'un jour après la fin de rupture [`src/components/StationDetail/components/PriceHistoryChart.tsx:85`]
-- [ ] [Review][Patch] `augmentWithOutageBridge` trailing nulls : interpolation vers `endVal = priceBefore` au lieu de rester plat → fausse descente vers 0 sur une rupture en fin de période [`src/components/StationDetail/components/PriceHistoryChart.tsx:82-84`]
-- [ ] [Review][Patch] `onFocus → blur()` dans `ChartContainer` supprime tout focus clavier sur le graphique → violation a11y (navigation clavier impossible) [`src/components/StationDetail/components/PriceHistoryChart.tsx:193`]
-- [x] [Review][Defer] SQL injection théorique : `stationId` et `dept` interpolés dans la requête DuckDB sans sanitization [`src/lib/priceHistory.ts:24-26`] — deferred, données internes (data.gouv.fr), sandbox WASM, risque pratique nul
-- [x] [Review][Defer] Cache module-level `historyCache` non borné : croissance illimitée en session longue [`src/hooks/usePriceHistory.ts:10`] — deferred, entrées de ~2 KB chacune, impact pratique très faible
-- [x] [Review][Defer] `parseInt(timeRange)` sans radix (base 10 implicite) [`src/components/StationDetail/components/PriceHistoryChart.tsx:110`] — deferred, valeur contrainte par le type `"7"|"14"|"30"`, aucun impact fonctionnel
+- [x] \[Review]\[Decision] Modèle d'interaction et approche données divergent complètement de la spec — La spec exige un bouton "Historique" toggle (AC #1), un fetch déclenché au premier clic uniquement (AC #2), `isVisible`/`toggleVisibility` dans le hook (AC #3 dev notes), un reset visuel au changement de station (AC #7), et `filterAvailableUrls` exportée de `priceTrends.ts` (AC #8). L'implémentation a opté pour un chargement automatique au montage via `useEffect`, un graphique toujours visible, un cache module-level avec clé `${id}_${fuel}_${date}`, et une approche données entièrement différente (1 Parquet rolling vs 30 fichiers journaliers). Confirmer si ce changement de design est intentionnel ou si la spec doit être respectée.
+- [x] \[Review]\[Patch] `isLoading` retourné `false` depuis l'early-return guard malgré state=true → flash d'état vide \[`src/hooks/usePriceHistory.ts:55-57`]
+- [x] \[Review]\[Patch] `prices` vide (tous `null`) → `Math.min/max(…[])` = ±Infinity, `avgPrice` = NaN → graphique Recharts cassé \[`src/components/StationDetail/components/PriceHistoryChart.tsx:118-120`]
+- [x] \[Review]\[Patch] `deltaPct` division par zéro si `prices[0] === 0` → "Infinity%" affiché en en-tête \[`src/components/StationDetail/components/PriceHistoryChart.tsx:126`]
+- [x] \[Review]\[Patch] Tooltip: `price` peut être `undefined` si le payload "price" est absent → `Number(undefined).toFixed(3)` = "NaN €/L" \[`src/components/StationDetail/components/PriceHistoryChart.tsx:279-282`]
+- [x] \[Review]\[Patch] `augmentWithOutageBridge` off-by-one : le jour réel post-gap reçoit `outagePrice = priceAfter` → série rouge déborde d'un jour après la fin de rupture \[`src/components/StationDetail/components/PriceHistoryChart.tsx:85`]
+- [x] \[Review]\[Patch] `augmentWithOutageBridge` trailing nulls : interpolation vers `endVal = priceBefore` au lieu de rester plat → fausse descente vers 0 sur une rupture en fin de période \[`src/components/StationDetail/components/PriceHistoryChart.tsx:82-84`]
+- [x] \[Review]\[Patch] `onFocus → blur()` dans `ChartContainer` supprime tout focus clavier sur le graphique → violation a11y (navigation clavier impossible) \[`src/components/StationDetail/components/PriceHistoryChart.tsx:193`]
+- [x] \[Review]\[Defer] SQL injection théorique : `stationId` et `dept` interpolés dans la requête DuckDB sans sanitization \[`src/lib/priceHistory.ts:24-26`] — deferred, données internes (data.gouv.fr), sandbox WASM, risque pratique nul
+- [x] \[Review]\[Defer] Cache module-level `historyCache` non borné : croissance illimitée en session longue \[`src/hooks/usePriceHistory.ts:10`] — deferred, entrées de \~2 KB chacune, impact pratique très faible
+- [x] \[Review]\[Defer] `parseInt(timeRange)` sans radix (base 10 implicite) \[`src/components/StationDetail/components/PriceHistoryChart.tsx:110`] — deferred, valeur contrainte par le type `"7"|"14"|"30"`, aucun impact fonctionnel
 
 ## Dev Agent Record
 
@@ -505,3 +500,4 @@ claude-sonnet-4-6
 ## Change Log
 
 - 2026-04-08 : Implémentation US-03-03 — Graphique historique 30j ajouté dans `StationDetail`. Exports `getDeptFromStationId`/`filterAvailableUrls` dans `priceTrends.ts`, nouveau lib `priceHistory.ts`, hook `usePriceHistory` avec cache session, composant `PriceHistoryChart` Recharts. Lint : 0 erreur.
+

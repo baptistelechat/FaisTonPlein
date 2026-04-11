@@ -1,5 +1,5 @@
 generated: 2026-03-10
-last_updated: 2026-04-11 # us-03-03 code review
+last_updated: 2026-04-11 # epic-3-retrospective done
 project: FaisTonPlein
 project_key: FTP
 tracking_system: file-system
@@ -64,7 +64,7 @@ development_status:
   us-03-01-indicateur-de-tendance: done
   us-03-02-mode-analyste: done
   us-03-03-graphique-historique: done
-  epic-3-retrospective: optional
+  epic-3-retrospective: done
 
   # Epic 4: Résilience (Offline)
   epic-4-resilience-offline: backlog

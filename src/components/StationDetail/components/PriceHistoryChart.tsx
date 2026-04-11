@@ -83,6 +83,10 @@ function augmentWithOutageBridge(data: PriceHistoryPoint[]): AugmentedPoint[] {
         result[j].outagePrice =
           startVal + ((j - gapStart + 1) / steps) * (endVal - startVal);
       }
+      // Étendre le pont au premier point valide post-rupture pour éviter le trou visuel
+      if (priceAfter !== null && i < result.length) {
+        result[i].outagePrice = priceAfter;
+      }
     } else {
       i++;
     }

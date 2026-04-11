@@ -80,7 +80,7 @@ export function StationCard({
       className={cn(
         "mt-0.5 cursor-pointer p-4 transition-all",
         isRupture
-          ? "hover:bg-red-50/50 border-red-100 bg-red-50/30"
+          ? "border-red-100 bg-red-50/30 hover:bg-red-50/50"
           : "hover:bg-muted/50",
       )}
       onClick={onClick}

@@ -13,7 +13,7 @@ export function RuptureMarker({ isSelected }: RuptureMarkerProps) {
           "group relative z-10 flex cursor-pointer flex-col items-center justify-center rounded-lg border shadow-sm transition-all duration-300",
           isSelected
             ? "border-red-500 bg-red-500 shadow-xl"
-            : "border-red-200 bg-background hover:scale-105 hover:shadow-md",
+            : "bg-background border-red-200 hover:scale-105 hover:shadow-md",
         )}
       >
         <div className="flex items-center gap-1 px-2 py-1">
@@ -37,7 +37,7 @@ export function RuptureMarker({ isSelected }: RuptureMarkerProps) {
             "absolute -bottom-1.5 left-1/2 size-3 -translate-x-1/2 rotate-45 border-r border-b",
             isSelected
               ? "border-red-500 bg-red-500"
-              : "border-red-200 bg-background",
+              : "bg-background border-red-200",
           )}
         />
       </div>

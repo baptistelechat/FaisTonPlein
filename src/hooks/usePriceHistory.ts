@@ -7,7 +7,7 @@ import {
   fetchStationPriceHistory,
   type PriceHistoryPoint,
 } from "@/lib/priceHistory";
-import { getDeptFromStationId } from "@/lib/priceTrends";
+import { getDeptFromStationId } from "@/lib/utils";
 
 // Cache module-level — persiste toute la session (survit aux unmounts du composant)
 const HISTORY_CACHE_MAX = 150;

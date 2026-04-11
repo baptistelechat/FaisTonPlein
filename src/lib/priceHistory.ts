@@ -1,10 +1,8 @@
 import type { AsyncDuckDB } from "@duckdb/duckdb-wasm";
+import { HF_ROLLING_BASE_URL } from "@/lib/constants";
 import type { FuelType } from "@/lib/constants";
 
 export type PriceHistoryPoint = { date: string; price: number | null };
-
-const ROLLING_BASE_URL =
-  "https://huggingface.co/datasets/baptistelechat/fais-ton-plein_dataset/resolve/main/data/rolling/30days";
 
 export const fetchStationPriceHistory = async (
   db: AsyncDuckDB,
@@ -15,7 +13,7 @@ export const fetchStationPriceHistory = async (
   const today = new Date().toISOString().slice(0, 10);
   const safeId = String(stationId).replace(/[^0-9]/g, "");
   const safeDept = String(dept).replace(/[^a-zA-Z0-9]/g, "");
-  const url = `${ROLLING_BASE_URL}/code_departement=${safeDept}/data_0.parquet?v=${today}`;
+  const url = `${HF_ROLLING_BASE_URL}/code_departement=${safeDept}/data_0.parquet?v=${today}`;
   const fuelCol = `"Prix ${fuelType}"`;
 
   // GROUP BY date calendrier pour éliminer les doublons intra-journaliers (plusieurs relevés/jour)
