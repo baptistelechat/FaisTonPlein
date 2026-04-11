@@ -30,35 +30,40 @@ export type SearchRadius = (typeof RADIUS_OPTIONS)[number]["value"];
 export const DEFAULT_SEARCH_RADIUS: SearchRadius = 20;
 
 export type VehicleType =
-  | 'citadine'
-  | 'berline'
-  | 'berline_exec'
-  | 'suv_compact'
-  | 'suv'
-  | 'grand_suv'
-  | 'monospace'
-  | 'utilitaire'
-  | 'hybride'
-  | 'phev'
+  | "citadine"
+  | "berline"
+  | "berline_exec"
+  | "suv_compact"
+  | "suv"
+  | "grand_suv"
+  | "monospace"
+  | "utilitaire"
+  | "hybride"
+  | "phev";
 
 export type VehiclePreset = {
-  type: VehicleType
-  label: string
-  examples: string
-  icon: string
-  tankCapacity: number
-  consumption: number
-}
+  type: VehicleType;
+  label: string;
+  examples: string;
+  icon: string;
+  tankCapacity: number;
+  consumption: number;
+};
 
 export const FILL_HABIT_OPTIONS = [
-  { value: 0.25, label: 'Dès ¼ consommé' },
-  { value: 0.5, label: 'À moitié' },
-  { value: 0.75, label: '¼ restant' },
-  { value: 0.9, label: 'À la réserve' },
-  { value: 1.0, label: 'Plein complet' },
-] as const
+  { value: 0.25, label: "Dès ¼ consommé" },
+  { value: 0.5, label: "À moitié" },
+  { value: 0.75, label: "¼ restant" },
+  { value: 0.9, label: "À la réserve" },
+  { value: 1.0, label: "Plein complet" },
+] as const;
 
-export type FillHabit = (typeof FILL_HABIT_OPTIONS)[number]['value']
+export type FillHabit = (typeof FILL_HABIT_OPTIONS)[number]["value"];
+
+export const HF_DATASET_BASE =
+  "https://huggingface.co/datasets/baptistelechat/fais-ton-plein_dataset/resolve/main/data";
+export const HF_LATEST_BASE_URL = `${HF_DATASET_BASE}/latest`;
+export const HF_ROLLING_BASE_URL = `${HF_DATASET_BASE}/rolling/30days`;
 
 export const VEHICLE_PRESETS: VehiclePreset[] = [
   {

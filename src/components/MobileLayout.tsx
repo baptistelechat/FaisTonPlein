@@ -5,6 +5,7 @@ import { StationDetail } from "@/components/StationDetail";
 import { StationList } from "@/components/StationList";
 import { Button } from "@/components/ui/button";
 import { Drawer, DrawerContent, DrawerTitle } from "@/components/ui/drawer";
+import { usePriceTrends } from "@/hooks/usePriceTrends";
 import { useRoadDistances } from "@/hooks/useRoadDistances";
 import { DRAWER_SNAP_POINTS, DRAWER_SNAP_POINTS_ARRAY } from "@/lib/constants";
 import { useAppStore } from "@/store/useAppStore";
@@ -13,6 +14,7 @@ import { useEffect, useLayoutEffect, useRef, useState } from "react";
 
 export function MobileLayout() {
   useRoadDistances();
+  usePriceTrends();
   const {
     selectedStation,
     setSelectedStation,

@@ -1,4 +1,4 @@
-import { FUEL_TYPES } from "@/lib/constants";
+import { FUEL_TYPES, FuelType } from "@/lib/constants";
 import { capitalize } from "@/lib/utils";
 import { FuelPrice, Station } from "@/store/useAppStore";
 
@@ -25,6 +25,7 @@ export interface RawStationData {
   "Prix E85 mis à jour le"?: string | null;
   "Prix GPLc"?: number | null;
   "Prix GPLc mis à jour le"?: string | null;
+  "Carburants en rupture temporaire"?: string | null;
   [key: string]: unknown;
 }
 
@@ -37,12 +38,17 @@ export function mapRawDataToStation(raw: RawStationData): Station {
   // Parse prices from dedicated columns
   const prices: FuelPrice[] = FUEL_TYPES.map((fuel) => {
     const price = raw[`Prix ${fuel.type}`] as number | null | undefined;
-    const updatedAt = raw[`Prix ${fuel.type} mis à jour le`] as string | number | Date | null | undefined;
+    const updatedAt = raw[`Prix ${fuel.type} mis à jour le`] as
+      | string
+      | number
+      | Date
+      | null
+      | undefined;
     if (price == null || isNaN(price)) return null;
     return {
       fuel_type: fuel.type,
       price,
-      updated_at: updatedAt ?? '',
+      updated_at: updatedAt ?? "",
     };
   }).filter((p): p is FuelPrice => p !== null);
 
@@ -65,14 +71,29 @@ export function mapRawDataToStation(raw: RawStationData): Station {
   }
 
   const is24h =
-    raw['Automate 24-24 (oui/non)']?.toLowerCase() === 'oui' ||
-    services.includes('Automate CB 24/24');
+    raw["Automate 24-24 (oui/non)"]?.toLowerCase() === "oui" ||
+    services.includes("Automate CB 24/24");
 
-  const isHighway = raw.pop?.toUpperCase() === 'A';
+  const isHighway = raw.pop?.toUpperCase() === "A";
+
+  // Parse rupture fuels from the dedicated columns (semicolon-separated lists)
+  const VALID_FUEL_SET = new Set<string>(FUEL_TYPES.map((f) => f.type));
+  const parseRuptureList = (value: string | null | undefined): FuelType[] => {
+    if (!value) return [];
+    return value
+      .split(";")
+      .map((s) => s.trim())
+      .filter((s) => VALID_FUEL_SET.has(s)) as FuelType[];
+  };
+  // Seules les ruptures TEMPORAIRES sont affichées — une rupture définitive
+  // signifie que la station a arrêté ce carburant pour toujours (≈ ne le vend pas).
+  const ruptureFuels: FuelType[] = parseRuptureList(
+    raw["Carburants en rupture temporaire"],
+  );
 
   return {
     id: raw.id,
-    name: 'Station service',
+    name: "Station service",
     lat,
     lon,
     address: `${capitalize(raw.Adresse)}, ${raw["Code postal"]} ${raw.Ville}`,
@@ -80,5 +101,6 @@ export function mapRawDataToStation(raw: RawStationData): Station {
     prices,
     is24h,
     isHighway,
+    ruptureFuels,
   };
 }

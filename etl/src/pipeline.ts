@@ -1,10 +1,25 @@
 import chalk from "chalk";
 import fs from "fs";
-import { HF_REPO, HF_TOKEN, OUTPUT_DIR } from "./config";
+import { HF_REPO, HF_TOKEN, OUTPUT_DIR, UPTIME_PUSH_URL } from "./config";
 import { runConsolidationService } from "./consolidate";
+import { runRollingService } from "./rolling";
 import { initDB } from "./db";
 import { ensureRepoExists, uploadDirectory } from "./hf";
-import { processFuelData } from "./transform";
+import { CSV_TEMP_PATH, processFuelData } from "./transform";
+
+export function sendUptimeHeartbeat(status: "up" | "down", msg: string) {
+  if (!UPTIME_PUSH_URL) return;
+  try {
+    const url = new URL(UPTIME_PUSH_URL);
+    url.searchParams.set("status", status);
+    url.searchParams.set("msg", msg);
+    fetch(url.toString()).catch(() => {
+      console.warn(chalk.yellow("⚠️ Uptime Kuma heartbeat failed (non-blocking)"));
+    });
+  } catch {
+    // URL invalide, non-bloquant
+  }
+}
 
 export async function runETL() {
   const now = new Date().toISOString();
@@ -38,10 +53,6 @@ export async function runETL() {
       ),
     );
 
-    // Start Consolidation (ONLY if specifically requested or scheduled - logic moved to index.ts)
-    // We removed automatic consolidation here to separate concerns and schedules.
-    // await consolidateData({...});
-
     // Cleanup: Remove local data directory after successful upload to save space
     console.log(chalk.gray("🧹 Cleaning up local data..."));
     if (fs.existsSync(OUTPUT_DIR)) {
@@ -54,8 +65,14 @@ export async function runETL() {
     );
     throw error; // Rethrow to stop pipeline execution
   } finally {
-    // Close DB connection
+    // db.close() libère tous les handles de fichiers DuckDB
     db.close();
+    // Suppression du CSV temp après fermeture DB (handle libéré sur Windows)
+    try {
+      if (fs.existsSync(CSV_TEMP_PATH)) fs.rmSync(CSV_TEMP_PATH);
+    } catch {
+      // Non-bloquant
+    }
   }
 }
 
@@ -69,6 +86,14 @@ export async function runPipeline() {
     if (currentHour >= 22) {
       console.log(chalk.blue("✅ ETL finished, starting Consolidation..."));
       await runConsolidationService();
+      // Rolling 30j : après la consolidation daily (fichier du jour déjà sur HF)
+      // Non-bloquant : un échec du rolling ne doit pas marquer le pipeline DOWN
+      console.log(chalk.blue("✅ Consolidation done, generating Rolling 30-day files..."));
+      try {
+        await runRollingService();
+      } catch (rollingError) {
+        console.error(chalk.red("⚠️ Rolling 30d failed (non-blocking):"), rollingError);
+      }
     } else {
       console.log(
         chalk.gray(
@@ -78,7 +103,10 @@ export async function runPipeline() {
     }
 
     console.log(chalk.green("🎉 Pipeline completed successfully."));
+    sendUptimeHeartbeat("up", "OK");
   } catch (error) {
     console.error(chalk.red("❌ Pipeline failed:"), error);
+    const msg = error instanceof Error ? error.message.slice(0, 100) : "Pipeline failed";
+    sendUptimeHeartbeat("down", msg);
   }
 }

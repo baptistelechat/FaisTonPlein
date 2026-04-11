@@ -1,7 +1,6 @@
-"use client";
+'use client'
 
-import { Button } from "@/components/ui/button";
-
+import { Button } from '@/components/ui/button'
 import {
   Dialog,
   DialogClose,
@@ -10,7 +9,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog";
+} from '@/components/ui/dialog'
 import {
   Drawer,
   DrawerContent,
@@ -18,83 +17,77 @@ import {
   DrawerHeader,
   DrawerTitle,
   DrawerTrigger,
-} from "@/components/ui/drawer";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Separator } from "@/components/ui/separator";
-import { useIsDesktop } from "@/hooks/useIsDesktop";
-import { DRAWER_SNAP_POINTS } from "@/lib/constants";
-import { FuelStats } from "@/store/useAppStore";
-import { formatPrice } from "@/lib/utils";
-import { ChartNoAxesCombined } from "lucide-react";
+} from '@/components/ui/drawer'
+import { ScrollArea } from '@/components/ui/scroll-area'
+import { useFilteredStations } from '@/hooks/useFilteredStations'
+import { useIsDesktop } from '@/hooks/useIsDesktop'
+import { useReferenceLocation } from '@/hooks/useReferenceLocation'
+import { DRAWER_SNAP_POINTS } from '@/lib/constants'
+import { getStationNamesDb } from '@/lib/stationName'
+import { FuelStats, useAppStore } from '@/store/useAppStore'
+import { Bird, ChartNoAxesCombined, Navigation } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { StatsBody, StatsBodyProps } from './StationListStats/components/StatsBody'
 
 interface StationListStatsProps {
-  statistics: FuelStats;
-}
-
-interface StatRowProps {
-  label: string;
-  value: string;
-  className?: string;
-}
-
-function StatRow({ label, value, className = 'text-slate-600' }: StatRowProps) {
-  return (
-    <div className="flex items-center justify-between">
-      <span className="text-sm font-bold">{label}</span>
-      <span className={`font-mono font-bold ${className}`}>{value}</span>
-    </div>
-  );
-}
-
-function StatsBody({ statistics }: { statistics: FuelStats }) {
-  return (
-    <div className="flex flex-col gap-4 pr-4 pb-4">
-      <div className="text-muted-foreground text-xs font-bold tracking-wider uppercase">
-        Échantillon
-      </div>
-      <div className="flex flex-col gap-4">
-        <StatRow label="Nombre de stations" value={String(statistics.count)} />
-      </div>
-      <Separator />
-      <div className="text-muted-foreground text-xs font-bold tracking-wider uppercase">
-        Plage
-      </div>
-      <div className="flex flex-col gap-4">
-        <StatRow label="Prix minimum" value={formatPrice(statistics.min)} className="text-emerald-600" />
-        <StatRow label="Prix maximum" value={formatPrice(statistics.max)} className="text-rose-600" />
-      </div>
-      <Separator />
-      <div className="text-muted-foreground text-xs font-bold tracking-wider uppercase">
-        Tendance
-      </div>
-      <div className="flex flex-col gap-4">
-        <StatRow label="Médiane" value={formatPrice(statistics.median)} className="text-amber-600" />
-        <StatRow label="Prix moyen" value={formatPrice(statistics.average)} />
-      </div>
-      <Separator />
-      <div className="text-muted-foreground text-xs font-bold tracking-wider uppercase">
-        Quartiles & percentiles
-      </div>
-      <div className="flex flex-col gap-4">
-        <StatRow label="P10" value={formatPrice(statistics.p10)} />
-        <StatRow label="P25" value={formatPrice(statistics.p25)} />
-        <StatRow label="P75" value={formatPrice(statistics.p75)} />
-        <StatRow label="P90" value={formatPrice(statistics.p90)} />
-      </div>
-      <Separator />
-      <div className="text-muted-foreground text-xs font-bold tracking-wider uppercase">
-        Dispersion
-      </div>
-      <div className="flex flex-col gap-4">
-        <StatRow label="Écart interquartile (P75 − P25)" value={formatPrice(statistics.iqr)} />
-        <StatRow label="Écart-type" value={formatPrice(statistics.stdDev)} />
-      </div>
-    </div>
-  );
+  statistics: FuelStats
 }
 
 const StationListStats = ({ statistics }: StationListStatsProps) => {
-  const isDesktop = useIsDesktop();
+  const isDesktop = useIsDesktop()
+  const selectedFuel = useAppStore((s) => s.selectedFuel)
+  const searchRadius = useAppStore((s) => s.searchRadius)
+  const distanceMode = useAppStore((s) => s.distanceMode)
+  const isodistanceGeometry = useAppStore((s) => s.isodistanceGeometry)
+  const roadDistances = useAppStore((s) => s.roadDistances)
+  const priceTrends = useAppStore((s) => s.priceTrends)
+  const filteredStations = useFilteredStations()
+  const referenceLocation = useReferenceLocation()
+  const [stationNames, setStationNames] = useState<Record<string, string>>({})
+  const [namesLoading, setNamesLoading] = useState(true)
+
+  useEffect(() => {
+    let cancelled = false
+    getStationNamesDb()
+      .then((names) => {
+        if (!cancelled) {
+          setStationNames(names)
+          setNamesLoading(false)
+        }
+      })
+      .catch(() => {
+        if (!cancelled) setNamesLoading(false)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  const count = statistics.count
+  const DistanceIcon = distanceMode === 'road' ? Navigation : Bird
+  const distanceLabel = distanceMode === 'road' ? 'Route réelle' : "Vol d'oiseau"
+  const subtitle = (
+    <span className="flex flex-wrap items-center gap-1">
+      {count} station{count > 1 ? 's' : ''} proposant du {selectedFuel} dans un rayon de {searchRadius} km
+      <span className="text-muted-foreground/70 flex items-center gap-1">
+        (<DistanceIcon className="-ml-1 size-3" />{distanceLabel})
+      </span>
+    </span>
+  )
+
+  const bodyProps: StatsBodyProps = {
+    statistics,
+    stations: filteredStations,
+    searchRadius,
+    selectedFuel,
+    referenceLocation,
+    roadDistances,
+    priceTrends,
+    stationNames,
+    namesLoading,
+    distanceMode,
+    isodistanceGeometry,
+  }
 
   if (isDesktop) {
     return (
@@ -102,25 +95,23 @@ const StationListStats = ({ statistics }: StationListStatsProps) => {
         <DialogTrigger render={<Button variant="outline" size="icon" />}>
           <ChartNoAxesCombined />
         </DialogTrigger>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-lg">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <ChartNoAxesCombined className="size-4" />
               Statistiques
             </DialogTitle>
-            <DialogDescription>
-              Statistiques des prix dans le rayon sélectionné.
-            </DialogDescription>
+            <DialogDescription>{subtitle}</DialogDescription>
           </DialogHeader>
           <ScrollArea className="max-h-[70vh]">
-            <StatsBody statistics={statistics} />
+            <StatsBody {...bodyProps} />
           </ScrollArea>
           <div className="flex justify-end pt-2">
             <DialogClose render={<Button variant="outline" />}>Fermer</DialogClose>
           </div>
         </DialogContent>
       </Dialog>
-    );
+    )
   }
 
   return (
@@ -139,9 +130,7 @@ const StationListStats = ({ statistics }: StationListStatsProps) => {
             <ChartNoAxesCombined className="size-4" />
             Statistiques
           </DrawerTitle>
-          <DrawerDescription>
-            Voici les statistiques des prix des stations de carburant.
-          </DrawerDescription>
+          <DrawerDescription>{subtitle}</DrawerDescription>
         </DrawerHeader>
         <ScrollArea
           style={{
@@ -149,12 +138,12 @@ const StationListStats = ({ statistics }: StationListStatsProps) => {
           }}
         >
           <div className="px-4">
-            <StatsBody statistics={statistics} />
+            <StatsBody {...bodyProps} />
           </div>
         </ScrollArea>
       </DrawerContent>
     </Drawer>
-  );
-};
+  )
+}
 
-export default StationListStats;
+export default StationListStats

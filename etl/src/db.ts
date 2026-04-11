@@ -30,14 +30,12 @@ export async function initDB(): Promise<Database> {
   });
 
   try {
-    // Install httpfs extension for fetching remote CSV
-    // This is critical for ETL to work with remote files
+    // httpfs is required by the consolidation service for DuckDB to access HF directly
     await runSQL(db, "INSTALL httpfs; LOAD httpfs;");
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error(
       chalk.red(
-        `❌ CRITICAL: Could not install/load httpfs extension: ${err.message}`,
+        `❌ CRITICAL: Could not install/load httpfs extension: ${err instanceof Error ? err.message : String(err)}`,
       ),
     );
     throw err;

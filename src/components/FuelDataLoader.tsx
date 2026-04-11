@@ -2,6 +2,7 @@
 
 import { getDepartmentsInRadius } from "@/lib/departments";
 import { mapRawDataToStation, RawStationData } from "@/lib/mappers";
+import { HF_LATEST_BASE_URL } from "@/lib/constants";
 import { Station, useAppStore } from "@/store/useAppStore";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
@@ -14,6 +15,8 @@ export const FuelDataLoader = () => {
     setIsLoading,
     selectedDepartment,
     setLastUpdate,
+    setNationalStationsCount,
+    setNationalFranceAreaKm2,
     searchLocation,
     searchRadius,
     userLocation,
@@ -76,24 +79,26 @@ export const FuelDataLoader = () => {
       setIsLoading(true);
 
       try {
-        const BASE =
-          "https://huggingface.co/datasets/baptistelechat/fais-ton-plein_dataset/resolve/main/data/latest";
+        const BASE = HF_LATEST_BASE_URL;
+
+        // Métadonnées globales France (total stations + last_updated)
+        fetch(`${BASE}/metadata.json`)
+          .then((res) => res.json())
+          .then((meta) => {
+            if (isMounted && typeof meta.total_stations === "number")
+              setNationalStationsCount(meta.total_stations);
+            if (isMounted && typeof meta.france_area_km2 === "number")
+              setNationalFranceAreaKm2(meta.france_area_km2);
+            if (isMounted && meta.last_updated)
+              setLastUpdate(meta.last_updated);
+          })
+          .catch(() => {});
 
         // Charger tous les départements en parallèle
         const results = await Promise.allSettled(
           departmentsToLoad.map(async (dept) => {
             const conn = await db.connect();
             const url = `${BASE}/code_departement=${dept}/data_0.parquet`;
-            // Charger aussi les métadonnées du département principal
-            if (dept === selectedDepartment) {
-              fetch(`${BASE}/code_departement=${dept}/metadata.json`)
-                .then((res) => res.json())
-                .then((meta) => {
-                  if (isMounted && meta.last_updated)
-                    setLastUpdate(meta.last_updated);
-                })
-                .catch(() => {});
-            }
             const res = await conn.query(
               `SELECT * FROM read_parquet('${url}')`,
             );
@@ -152,6 +157,8 @@ export const FuelDataLoader = () => {
     setLastUpdate,
     setStations,
     departmentsToLoad,
+    setNationalStationsCount,
+    setNationalFranceAreaKm2,
   ]);
 
   if (dbError) {

@@ -11,3 +11,4 @@ export const CSV_URL =
 // Use process.cwd() for output to keep it consistent regardless of where the script runs from (assuming executed from 'etl/')
 export const OUTPUT_DIR = path.join(process.cwd(), "data");
 export const CRON_SCHEDULE = process.env.CRON_SCHEDULE || "0 * * * *";
+export const UPTIME_PUSH_URL = process.env.UPTIME_PUSH_URL || null;
