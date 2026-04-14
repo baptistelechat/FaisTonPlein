@@ -122,7 +122,7 @@ export async function generateRolling30Days({
         "Carburants disponibles", "Carburants indisponibles",
         "Carburants en rupture temporaire", "Carburants en rupture definitive",
         extraction_date
-      FROM read_parquet('${globPattern}', filename=true)
+      FROM read_parquet('${globPattern}', filename=true, union_by_name=true)
       WHERE regexp_extract(replace(filename, chr(92), '/'), 'code_departement=([^/]+)', 1) <> ''
       ORDER BY date
     ) TO '${destPath}'
