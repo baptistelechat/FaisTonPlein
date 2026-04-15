@@ -3,6 +3,8 @@ import {
   DEPT_CACHE_DB_NAME,
   DEPT_CACHE_DB_VERSION,
   DEPT_CACHE_STORE_NAME,
+  HF_ROLLING_BASE_URL,
+  ROLLING_CACHE_TTL_MS,
 } from "@/lib/constants";
 import type { AsyncDuckDB } from "@duckdb/duckdb-wasm";
 
@@ -92,4 +94,54 @@ export const registerCachedDeptInDuckDB = async (
     getDeptLocalFileName(dept),
     new Uint8Array(buffer),
   );
+};
+
+// ─── Rolling cache (TTL 24h) ───────────────────────────────────────────────
+
+export const getDeptRollingLocalFileName = (dept: string): string =>
+  `rolling_${dept}.parquet`;
+
+export const getRollingDeptCacheEntry = (
+  dept: string,
+): Promise<DeptCacheEntry | null> => getDeptCacheEntry(`rolling_${dept}`);
+
+export const setCachedRollingDeptEntry = (
+  dept: string,
+  buffer: ArrayBuffer,
+  size: number,
+): Promise<void> => setCachedDeptEntry(`rolling_${dept}`, buffer, size);
+
+export const isRollingCacheValid = (entry: DeptCacheEntry): boolean =>
+  Date.now() - entry.cachedAt < ROLLING_CACHE_TTL_MS;
+
+export const registerRollingCachedDeptInDuckDB = async (
+  db: AsyncDuckDB,
+  dept: string,
+  buffer: ArrayBuffer,
+): Promise<void> => {
+  await db.registerFileBuffer(
+    getDeptRollingLocalFileName(dept),
+    new Uint8Array(buffer),
+  );
+};
+
+/**
+ * Retourne la source Parquet rolling pour un département :
+ * - fichier local DuckDB VFS si le cache IndexedDB est valide (zéro appel réseau)
+ * - URL HuggingFace sinon (fallback)
+ */
+export const getRollingParquetSource = async (
+  db: AsyncDuckDB,
+  dept: string,
+): Promise<string> => {
+  const entry = await getRollingDeptCacheEntry(dept);
+  if (entry && isRollingCacheValid(entry)) {
+    try {
+      await registerRollingCachedDeptInDuckDB(db, dept, entry.buffer);
+      return getDeptRollingLocalFileName(dept);
+    } catch {
+      // Enregistrement échoué → fallback HF
+    }
+  }
+  return `${HF_ROLLING_BASE_URL}/code_departement=${dept}/data_0.parquet`;
 };

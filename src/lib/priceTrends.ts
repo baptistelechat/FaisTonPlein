@@ -1,6 +1,7 @@
 import type { AsyncDuckDB } from "@duckdb/duckdb-wasm";
-import { FUEL_TYPES, HF_ROLLING_BASE_URL } from "@/lib/constants";
+import { FUEL_TYPES } from "@/lib/constants";
 import type { FuelType } from "@/lib/constants";
+import { getRollingParquetSource } from "@/lib/deptCache";
 import type { Station } from "@/store/useAppStore";
 import { getDeptFromStationId } from "@/lib/utils";
 
@@ -17,13 +18,11 @@ export const fetchPriceTrends = async (
 ): Promise<Record<string, TrendDirection>> => {
   const depts = [...new Set(stations.map((s) => getDeptFromStationId(s.id)))];
 
-  // 1 fichier rolling par département — filtre les 7 derniers jours
-  const urlList = depts
-    .map(
-      (dept) =>
-        `'${HF_ROLLING_BASE_URL}/code_departement=${dept}/data_0.parquet'`,
-    )
-    .join(", ");
+  // 1 source rolling par département : cache local si disponible, HF sinon
+  const sources = await Promise.all(
+    depts.map((dept) => getRollingParquetSource(db, dept)),
+  );
+  const urlList = sources.map((s) => `'${s}'`).join(", ");
 
   const query = `
     SELECT

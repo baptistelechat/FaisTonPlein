@@ -160,6 +160,7 @@ export const useAppStore = create<AppStore>()(
         set({ nationalFranceAreaKm2 }),
 
       cachedDepts: {},
+      cachedRollingDepts: {},
       loadedDepts: [],
       downloadingDepts: [],
       progressByDept: {},
@@ -171,7 +172,18 @@ export const useAppStore = create<AppStore>()(
                 Object.entries(state.cachedDepts).filter(([k]) => k !== dept),
               ),
         })),
-      clearAllCachedDepts: () => set({ cachedDepts: {} }),
+      setCachedRollingDeptMeta: (dept, meta) =>
+        set((state) => ({
+          cachedRollingDepts: meta
+            ? { ...state.cachedRollingDepts, [dept]: meta }
+            : Object.fromEntries(
+                Object.entries(state.cachedRollingDepts).filter(
+                  ([k]) => k !== dept,
+                ),
+              ),
+        })),
+      clearAllCachedDepts: () =>
+        set({ cachedDepts: {}, cachedRollingDepts: {} }),
       setLoadedDepts: (depts) => set({ loadedDepts: depts }),
       setDownloadingDept: (dept, progress) =>
         set((state) => {
@@ -259,6 +271,7 @@ export const useAppStore = create<AppStore>()(
         listSortBy: state.listSortBy,
         distanceMode: state.distanceMode,
         cachedDepts: state.cachedDepts,
+        cachedRollingDepts: state.cachedRollingDepts,
       }),
       merge: (persistedState, currentState) => {
         const ps = persistedState as Partial<AppStore>;
@@ -303,6 +316,11 @@ export const useAppStore = create<AppStore>()(
           cachedDepts:
             ps.cachedDepts !== null && typeof ps.cachedDepts === "object"
               ? ps.cachedDepts
+              : {},
+          cachedRollingDepts:
+            ps.cachedRollingDepts !== null &&
+            typeof ps.cachedRollingDepts === "object"
+              ? ps.cachedRollingDepts
               : {},
         };
       },

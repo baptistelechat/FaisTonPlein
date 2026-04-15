@@ -75,6 +75,7 @@ export function SettingsBody() {
 
   const loadedDepts = useAppStore((s) => s.loadedDepts);
   const cachedDepts = useAppStore((s) => s.cachedDepts);
+  const cachedRollingDepts = useAppStore((s) => s.cachedRollingDepts);
   const { downloadingDepts, progressByDept, resetApp } = useDeptCache();
 
   const referenceLocation = useReferenceLocation();
@@ -270,21 +271,19 @@ export function SettingsBody() {
       </div>
 
       {loadedDepts.length > 0 ? (
-        <div className="flex flex-col gap-1.5">
+        <div className="flex flex-col gap-3">
           {loadedDepts.map((dept) => {
             const meta = cachedDepts[dept];
+            const rollingMeta = cachedRollingDepts[dept];
             const isLoading = downloadingDepts.includes(dept);
             const progress = progressByDept[dept] ?? 0;
             return (
-              <div
-                key={dept}
-                className="flex items-center justify-between gap-2"
-              >
-                <span className="text-muted-foreground font-mono text-xs">
+              <div key={dept} className="flex flex-col gap-1">
+                <span className="text-muted-foreground font-mono text-xs font-semibold">
                   Dept {dept}
                 </span>
                 {isLoading ? (
-                  <div className="flex flex-1 items-center gap-1.5">
+                  <div className="flex items-center gap-1.5">
                     <div className="bg-muted h-1 flex-1 overflow-hidden rounded-full">
                       <div
                         className="bg-primary h-full rounded-full transition-all duration-200"
@@ -295,15 +294,39 @@ export function SettingsBody() {
                       {Math.round(progress * 100)}%
                     </span>
                   </div>
-                ) : meta ? (
-                  <span className="text-muted-foreground text-xs">
-                    {formatCacheAge(meta.cachedAt)} •{" "}
-                    {Math.round(meta.size / 1024)} Ko
-                  </span>
                 ) : (
-                  <span className="text-muted-foreground text-xs opacity-50">
-                    Non mis en cache
-                  </span>
+                  <div className="flex flex-col gap-0.5 pl-1">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-muted-foreground text-xs opacity-60">
+                        Prix actuels
+                      </span>
+                      {meta ? (
+                        <span className="text-muted-foreground text-xs">
+                          {formatCacheAge(meta.cachedAt)} •{" "}
+                          {Math.round(meta.size / 1024)} Ko
+                        </span>
+                      ) : (
+                        <span className="text-muted-foreground text-xs opacity-40">
+                          Non mis en cache
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-muted-foreground text-xs opacity-60">
+                        Historique 30j
+                      </span>
+                      {rollingMeta ? (
+                        <span className="text-muted-foreground text-xs">
+                          {formatCacheAge(rollingMeta.cachedAt)} •{" "}
+                          {Math.round(rollingMeta.size / 1024)} Ko
+                        </span>
+                      ) : (
+                        <span className="text-muted-foreground text-xs opacity-40">
+                          Non mis en cache
+                        </span>
+                      )}
+                    </div>
+                  </div>
                 )}
               </div>
             );
@@ -339,9 +362,7 @@ export function SettingsBody() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Annuler</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={resetApp}
-            >
+            <AlertDialogAction onClick={resetApp}>
               Réinitialiser
             </AlertDialogAction>
           </AlertDialogFooter>

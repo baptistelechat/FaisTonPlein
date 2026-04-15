@@ -6,7 +6,9 @@ import { HF_LATEST_BASE_URL } from "@/lib/constants";
 import {
   getDeptCacheEntry,
   getDeptLocalFileName,
+  getRollingDeptCacheEntry,
   isCacheValid,
+  isRollingCacheValid,
   registerCachedDeptInDuckDB,
 } from "@/lib/deptCache";
 import { Station, useAppStore } from "@/store/useAppStore";
@@ -29,12 +31,14 @@ export const FuelDataLoader = () => {
     userLocation,
     setLoadedDepts,
   } = useAppStore();
-  const { cacheInBackground } = useDeptCache();
-  // Ref stable pour éviter que cacheInBackground (useCallback) dans le dep array
-  // ne déclenche un cleanup prématuré et bloque isLoading=true indéfiniment
+  const { cacheInBackground, cacheRollingInBackground } = useDeptCache();
+  // Refs stables pour éviter que les useCallback dans le dep array
+  // ne déclenchent un cleanup prématuré et bloquent isLoading=true indéfiniment
   const cacheInBackgroundRef = useRef(cacheInBackground);
+  const cacheRollingInBackgroundRef = useRef(cacheRollingInBackground);
   useEffect(() => {
     cacheInBackgroundRef.current = cacheInBackground;
+    cacheRollingInBackgroundRef.current = cacheRollingInBackground;
   });
   const [loadedDeptsKey, setLoadedDeptsKey] = useState("");
   const [locationAvailable, setLocationAvailable] = useState<boolean | null>(
@@ -175,7 +179,15 @@ export const FuelDataLoader = () => {
           for (const dept of departmentsToLoad) {
             const entry = await getDeptCacheEntry(dept);
             if (!entry || !isCacheValid(entry)) {
-              void cacheInBackgroundRef.current(dept); // fire-and-forget, parallèle
+              // Latest expiré → cacheInBackground gère latest + rolling en parallèle
+              void cacheInBackgroundRef.current(dept);
+            } else {
+              // Latest encore valide → vérifier rolling indépendamment
+              // (couvre les utilisateurs existants et les premiers démarrages post-déploiement)
+              const rollingEntry = await getRollingDeptCacheEntry(dept);
+              if (!rollingEntry || !isRollingCacheValid(rollingEntry)) {
+                void cacheRollingInBackgroundRef.current(dept);
+              }
             }
           }
 
