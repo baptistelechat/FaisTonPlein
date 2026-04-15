@@ -107,18 +107,18 @@ export async function generateRolling30Days({
     }
     await downloadFilesToLocal(hfRepo, hfToken, deptFiles, tempDir, 5);
 
-    // Dossier de sortie pour ce département (format Hive compatible)
-    const deptDestDir = path
-      .join(destBase, `code_departement=${dept}`)
+    // Fichier de sortie pour ce département (format Hive compatible)
+    // On cible un fichier explicite pour éviter le conflit DuckDB "is a directory"
+    const deptDestFile = path
+      .join(destBase, `code_departement=${dept}`, "part-0.parquet")
       .replace(/\\/g, "/");
-    fs.mkdirSync(deptDestDir, { recursive: true });
+    fs.mkdirSync(path.dirname(deptDestFile), { recursive: true });
 
     const globPattern = path.join(tempDir, "**/*.parquet").replace(/\\/g, "/");
 
     // Les fichiers daily ont 1 ligne/station/jour — on reconstruit la date
     // et on ajoute code_departement comme colonne littérale (plus de PARTITION_BY,
     // car on est déjà dans le bon sous-dossier → pas de chargement global)
-    // chr(92) = backslash — normalise le filename avant regexp pour Windows
     await runSQL(
       db,
       `
@@ -151,7 +151,7 @@ export async function generateRolling30Days({
           extraction_date
         FROM read_parquet('${globPattern}', union_by_name=true)
         ORDER BY date
-      ) TO '${deptDestDir}'
+      ) TO '${deptDestFile}'
       (FORMAT PARQUET, OVERWRITE_OR_IGNORE);
       `,
     );
