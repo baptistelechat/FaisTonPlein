@@ -34,7 +34,6 @@ export async function generateRolling30Days({
   );
 
   // Lister les fichiers daily consolidés des 30 derniers jours
-  // listParquetFiles lève une HubApiError (404) si le dossier n'existe pas encore → ignorer silencieusement
   const allFiles: string[] = [];
   for (let i = 0; i <= 29; i++) {
     const d = new Date(now);
@@ -62,91 +61,120 @@ export async function generateRolling30Days({
     chalk.gray(`   Found ${allFiles.length} daily files across 30 days`),
   );
 
-  // Télécharger localement
-  const tempDir = path.join(outputDir, "temp_rolling");
-  if (fs.existsSync(tempDir)) {
-    fs.rmSync(tempDir, { recursive: true, force: true });
+  // Regrouper les fichiers par département pour traiter un dept à la fois
+  // → évite de charger 2880 fichiers simultanément en mémoire (OOM sur RPi)
+  const hfPrefix = `hf://datasets/${hfRepo}/`;
+  const byDept = new Map<string, string[]>();
+  for (const file of allFiles) {
+    if (!file.startsWith(hfPrefix)) continue;
+    const relPath = file.slice(hfPrefix.length);
+    const match = relPath.match(/code_departement=([^/]+)/);
+    if (!match) continue;
+    const dept = match[1];
+    if (!byDept.has(dept)) byDept.set(dept, []);
+    byDept.get(dept)!.push(relPath);
   }
 
-  const hfPrefix = `hf://datasets/${hfRepo}/`;
-  const relativeFiles = allFiles
-    .filter((f) => f.startsWith(hfPrefix))
-    .map((f) => f.slice(hfPrefix.length));
-
-  console.log(chalk.gray(`   Downloading ${relativeFiles.length} files...`));
-  await downloadFilesToLocal(hfRepo, hfToken, relativeFiles, tempDir, 5);
-
-  // Les fichiers daily ont déjà 1 ligne/station/jour (AVG fait dans la consolidation daily)
-  // year/month/day sont des colonnes data, code_departement est dans le path
-  // → filename=true + regexp_extract pour récupérer code_departement sans conflit
-  // Toujours des forward slashes pour DuckDB (robuste Windows/Linux)
-  const destPath = path
-    .join(outputDir, "rolling", "30days")
-    .replace(/\\/g, "/");
-  fs.mkdirSync(destPath, { recursive: true });
-
-  const globPattern = path.join(tempDir, "**/*.parquet").replace(/\\/g, "/");
-
-  // Les fichiers daily ont 1 ligne/station/jour avec toutes les colonnes.
-  // On reconstruit la colonne date depuis year/month/day et on exclut les colonnes
-  // de partition redondantes (year/month/day) pour garder un schéma propre.
-  // chr(92) = backslash — normalise le filename avant regexp pour être robuste sur Windows
-  console.log(chalk.gray("   Running DuckDB consolidation..."));
-  await runSQL(
-    db,
-    `
-    COPY (
-      SELECT
-        id,
-        year || '-' || month || '-' || day AS date,
-        regexp_extract(replace(filename, chr(92), '/'), 'code_departement=([^/]+)', 1) AS code_departement,
-        -- Infos station
-        latitude, longitude, "Code postal", pop, "Adresse", "Ville", services,
-        "Automate 24-24 (oui/non)", "Services proposés", "horaires détaillés",
-        "Département", "Région", code_region,
-        -- Prix
-        "Prix Gazole", "Prix Gazole mis à jour le",
-        "Prix E10",    "Prix E10 mis à jour le",
-        "Prix SP95",   "Prix SP95 mis à jour le",
-        "Prix SP98",   "Prix SP98 mis à jour le",
-        "Prix E85",    "Prix E85 mis à jour le",
-        "Prix GPLc",   "Prix GPLc mis à jour le",
-        -- Rupture
-        "Début rupture gazole (si temporaire)", "Type rupture gazole",
-        "Début rupture e10 (si temporaire)",    "Type rupture e10",
-        "Début rupture sp95 (si temporaire)",   "Type rupture sp95",
-        "Début rupture sp98 (si temporaire)",   "Type rupture sp98",
-        "Début rupture e85 (si temporaire)",    "Type rupture e85",
-        "Début rupture GPLc (si temporaire)",   "Type rupture GPLc",
-        -- Disponibilité résumée
-        "Carburants disponibles", "Carburants indisponibles",
-        "Carburants en rupture temporaire", "Carburants en rupture definitive",
-        extraction_date
-      FROM read_parquet('${globPattern}', filename=true, union_by_name=true)
-      WHERE regexp_extract(replace(filename, chr(92), '/'), 'code_departement=([^/]+)', 1) <> ''
-      ORDER BY date
-    ) TO '${destPath}'
-    (FORMAT PARQUET, PARTITION_BY (code_departement), OVERWRITE_OR_IGNORE);
-    `,
+  const depts = [...byDept.keys()].sort();
+  console.log(
+    chalk.gray(
+      `   Processing ${depts.length} departments one by one (memory-efficient)...`,
+    ),
   );
+
+  // Repartir d'un dossier rolling vierge
+  const rollingDir = path.join(outputDir, "rolling");
+  if (fs.existsSync(rollingDir)) {
+    fs.rmSync(rollingDir, { recursive: true, force: true });
+  }
+  const destBase = path.join(rollingDir, "30days");
+  fs.mkdirSync(destBase, { recursive: true });
+
+  const tempDir = path.join(outputDir, "temp_rolling");
+
+  for (let di = 0; di < depts.length; di++) {
+    const dept = depts[di];
+    const deptFiles = byDept.get(dept)!;
+    console.log(
+      chalk.gray(
+        `   [${di + 1}/${depts.length}] dept ${dept} (${deptFiles.length} days)...`,
+      ),
+    );
+
+    // Télécharger seulement les ~30 fichiers de ce département
+    if (fs.existsSync(tempDir)) {
+      fs.rmSync(tempDir, { recursive: true, force: true });
+    }
+    await downloadFilesToLocal(hfRepo, hfToken, deptFiles, tempDir, 5);
+
+    // Dossier de sortie pour ce département (format Hive compatible)
+    const deptDestDir = path
+      .join(destBase, `code_departement=${dept}`)
+      .replace(/\\/g, "/");
+    fs.mkdirSync(deptDestDir, { recursive: true });
+
+    const globPattern = path.join(tempDir, "**/*.parquet").replace(/\\/g, "/");
+
+    // Les fichiers daily ont 1 ligne/station/jour — on reconstruit la date
+    // et on ajoute code_departement comme colonne littérale (plus de PARTITION_BY,
+    // car on est déjà dans le bon sous-dossier → pas de chargement global)
+    // chr(92) = backslash — normalise le filename avant regexp pour Windows
+    await runSQL(
+      db,
+      `
+      COPY (
+        SELECT
+          id,
+          year || '-' || month || '-' || day AS date,
+          '${dept}' AS code_departement,
+          -- Infos station
+          latitude, longitude, "Code postal", pop, "Adresse", "Ville", services,
+          "Automate 24-24 (oui/non)", "Services proposés", "horaires détaillés",
+          "Département", "Région", code_region,
+          -- Prix
+          "Prix Gazole", "Prix Gazole mis à jour le",
+          "Prix E10",    "Prix E10 mis à jour le",
+          "Prix SP95",   "Prix SP95 mis à jour le",
+          "Prix SP98",   "Prix SP98 mis à jour le",
+          "Prix E85",    "Prix E85 mis à jour le",
+          "Prix GPLc",   "Prix GPLc mis à jour le",
+          -- Rupture
+          "Début rupture gazole (si temporaire)", "Type rupture gazole",
+          "Début rupture e10 (si temporaire)",    "Type rupture e10",
+          "Début rupture sp95 (si temporaire)",   "Type rupture sp95",
+          "Début rupture sp98 (si temporaire)",   "Type rupture sp98",
+          "Début rupture e85 (si temporaire)",    "Type rupture e85",
+          "Début rupture GPLc (si temporaire)",   "Type rupture GPLc",
+          -- Disponibilité résumée
+          "Carburants disponibles", "Carburants indisponibles",
+          "Carburants en rupture temporaire", "Carburants en rupture definitive",
+          extraction_date
+        FROM read_parquet('${globPattern}', union_by_name=true)
+        ORDER BY date
+      ) TO '${deptDestDir}'
+      (FORMAT PARQUET, OVERWRITE_OR_IGNORE);
+      `,
+    );
+
+    // Cleanup du temp pour libérer le disque avant le département suivant
+    try {
+      await new Promise((resolve) =>
+        setTimeout(resolve, LOCK_RELEASE_DELAY_MS),
+      );
+      fs.rmSync(tempDir, {
+        recursive: true,
+        force: true,
+        maxRetries: 3,
+        retryDelay: 500,
+      });
+    } catch {
+      // Non-bloquant
+    }
+  }
 
   console.log(chalk.green("   ✅ Rolling aggregation done"));
 
-  // Cleanup temp
-  try {
-    await new Promise((resolve) => setTimeout(resolve, LOCK_RELEASE_DELAY_MS));
-    fs.rmSync(tempDir, {
-      recursive: true,
-      force: true,
-      maxRetries: 3,
-      retryDelay: 500,
-    });
-  } catch {
-    // Non-bloquant
-  }
-
-  // Upload
-  const rollingDir = path.join(outputDir, "rolling");
+  // Collecter tous les fichiers générés pour l'upload
   const filesToUpload: Array<{ path: string; content: Blob }> = [];
 
   function scanDir(dir: string) {
