@@ -3,8 +3,15 @@
 import { getDepartmentsInRadius } from "@/lib/departments";
 import { mapRawDataToStation, RawStationData } from "@/lib/mappers";
 import { HF_LATEST_BASE_URL } from "@/lib/constants";
+import {
+  getDeptCacheEntry,
+  getDeptLocalFileName,
+  isCacheValid,
+  registerCachedDeptInDuckDB,
+} from "@/lib/deptCache";
 import { Station, useAppStore } from "@/store/useAppStore";
-import { useEffect, useMemo, useState } from "react";
+import { useDeptCache } from "@/hooks/useDeptCache";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { useDuckDB } from "./DuckDBProvider";
 
@@ -20,7 +27,15 @@ export const FuelDataLoader = () => {
     searchLocation,
     searchRadius,
     userLocation,
+    setLoadedDepts,
   } = useAppStore();
+  const { cacheInBackground } = useDeptCache();
+  // Ref stable pour éviter que cacheInBackground (useCallback) dans le dep array
+  // ne déclenche un cleanup prématuré et bloque isLoading=true indéfiniment
+  const cacheInBackgroundRef = useRef(cacheInBackground);
+  useEffect(() => {
+    cacheInBackgroundRef.current = cacheInBackground;
+  });
   const [loadedDeptsKey, setLoadedDeptsKey] = useState("");
   const [locationAvailable, setLocationAvailable] = useState<boolean | null>(
     null,
@@ -94,9 +109,31 @@ export const FuelDataLoader = () => {
           })
           .catch(() => {});
 
-        // Charger tous les départements en parallèle
+        // Charger tous les départements en parallèle (cache IndexedDB ou HuggingFace)
+        let cacheHits = 0;
         const results = await Promise.allSettled(
           departmentsToLoad.map(async (dept) => {
+            const entry = await getDeptCacheEntry(dept);
+
+            if (entry && isCacheValid(entry)) {
+              // Cache valide (< 2h) : aucun appel réseau
+              cacheHits++;
+              try {
+                await registerCachedDeptInDuckDB(db, dept, entry.buffer);
+                const conn = await db.connect();
+                const res = await conn.query(
+                  `SELECT * FROM read_parquet('${getDeptLocalFileName(dept)}')`,
+                );
+                await conn.close();
+                return res
+                  .toArray()
+                  .map((r) => r.toJSON()) as unknown as RawStationData[];
+              } catch {
+                // Cache corrompu → fallback HuggingFace
+              }
+            }
+
+            // Pas de cache valide → comportement actuel (HuggingFace)
             const conn = await db.connect();
             const url = `${BASE}/code_departement=${dept}/data_0.parquet`;
             const res = await conn.query(
@@ -123,12 +160,29 @@ export const FuelDataLoader = () => {
         if (isMounted) {
           const stations = Array.from(stationMap.values());
           setStations(stations);
-          setLoadedDeptsKey(deptKey);
+          const fromCache = cacheHits === departmentsToLoad.length;
+          const label = fromCache ? "cache local" : selectedDepartment;
           toast.success(
             departmentsToLoad.length > 1
-              ? `${stations.length} stations chargées (${departmentsToLoad.length} depts)`
-              : `${stations.length} stations chargées (${selectedDepartment})`,
+              ? `${stations.length} stations chargées (${fromCache ? "cache local" : `${departmentsToLoad.length} depts`})`
+              : `${stations.length} stations chargées (${label})`,
           );
+
+          // Informer le store des depts actuellement chargés (pour l'UI Réglages)
+          setLoadedDepts(departmentsToLoad);
+
+          // Cacher en arrière-plan tous les depts sans cache valide
+          for (const dept of departmentsToLoad) {
+            const entry = await getDeptCacheEntry(dept);
+            if (!entry || !isCacheValid(entry)) {
+              void cacheInBackgroundRef.current(dept); // fire-and-forget, parallèle
+            }
+          }
+
+          // setLoadedDeptsKey EN DERNIER : son changement déclenche le cleanup
+          // du useEffect (isMounted=false). S'il était appelé avant les await
+          // ci-dessus, le finally ne pouvait plus appeler setIsLoading(false).
+          setLoadedDeptsKey(deptKey);
         }
       } catch (err) {
         if (isMounted) {
@@ -159,6 +213,7 @@ export const FuelDataLoader = () => {
     departmentsToLoad,
     setNationalStationsCount,
     setNationalFranceAreaKm2,
+    setLoadedDepts,
   ]);
 
   if (dbError) {

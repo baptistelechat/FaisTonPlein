@@ -1,0 +1,95 @@
+import {
+  CACHE_MAX_AGE_MS,
+  DEPT_CACHE_DB_NAME,
+  DEPT_CACHE_DB_VERSION,
+  DEPT_CACHE_STORE_NAME,
+} from "@/lib/constants";
+import type { AsyncDuckDB } from "@duckdb/duckdb-wasm";
+
+export type DeptCacheEntry = {
+  dept: string;
+  buffer: ArrayBuffer;
+  cachedAt: number;
+  size: number;
+};
+
+const openCacheDB = (): Promise<IDBDatabase> =>
+  new Promise((resolve, reject) => {
+    const req = indexedDB.open(DEPT_CACHE_DB_NAME, DEPT_CACHE_DB_VERSION);
+    req.onupgradeneeded = (e) => {
+      const db = (e.target as IDBOpenDBRequest).result;
+      if (!db.objectStoreNames.contains(DEPT_CACHE_STORE_NAME)) {
+        db.createObjectStore(DEPT_CACHE_STORE_NAME, { keyPath: "dept" });
+      }
+    };
+    req.onsuccess = (e) => resolve((e.target as IDBOpenDBRequest).result);
+    req.onerror = () => reject(req.error);
+  });
+
+export const getDeptCacheEntry = async (
+  dept: string,
+): Promise<DeptCacheEntry | null> => {
+  const idb = await openCacheDB();
+  return new Promise((resolve) => {
+    const tx = idb.transaction(DEPT_CACHE_STORE_NAME, "readonly");
+    const req = tx.objectStore(DEPT_CACHE_STORE_NAME).get(dept);
+    req.onsuccess = () => resolve((req.result as DeptCacheEntry) ?? null);
+    req.onerror = () => resolve(null);
+  });
+};
+
+export const setCachedDeptEntry = async (
+  dept: string,
+  buffer: ArrayBuffer,
+  size: number,
+): Promise<void> => {
+  const idb = await openCacheDB();
+  return new Promise((resolve, reject) => {
+    const tx = idb.transaction(DEPT_CACHE_STORE_NAME, "readwrite");
+    tx.objectStore(DEPT_CACHE_STORE_NAME).put({
+      dept,
+      buffer,
+      cachedAt: Date.now(),
+      size,
+    });
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+  });
+};
+
+export const clearDeptCache = async (dept: string): Promise<void> => {
+  const idb = await openCacheDB();
+  return new Promise((resolve, reject) => {
+    const tx = idb.transaction(DEPT_CACHE_STORE_NAME, "readwrite");
+    tx.objectStore(DEPT_CACHE_STORE_NAME).delete(dept);
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+  });
+};
+
+export const clearAllDeptCache = async (): Promise<void> => {
+  const idb = await openCacheDB();
+  return new Promise((resolve, reject) => {
+    const tx = idb.transaction(DEPT_CACHE_STORE_NAME, "readwrite");
+    tx.objectStore(DEPT_CACHE_STORE_NAME).clear();
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+  });
+};
+
+export const isCacheValid = (entry: DeptCacheEntry): boolean =>
+  Date.now() - entry.cachedAt < CACHE_MAX_AGE_MS;
+
+export const getDeptLocalFileName = (dept: string): string =>
+  `latest_${dept}.parquet`;
+
+export const registerCachedDeptInDuckDB = async (
+  db: AsyncDuckDB,
+  dept: string,
+  buffer: ArrayBuffer,
+): Promise<void> => {
+  await db.registerFileBuffer(
+    getDeptLocalFileName(dept),
+    new Uint8Array(buffer),
+  );
+};
