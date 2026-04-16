@@ -121,7 +121,7 @@ export async function generateRolling30Days({
         // Fichier de sortie pour ce département (format Hive compatible)
         // On cible un fichier explicite pour éviter le conflit DuckDB "is a directory"
         const deptDestFile = path
-          .join(destBase, `code_departement=${dept}`, "part-0.parquet")
+          .join(destBase, `code_departement=${dept}`, "data_0.parquet")
           .replace(/\\/g, "/");
         fs.mkdirSync(path.dirname(deptDestFile), { recursive: true });
 

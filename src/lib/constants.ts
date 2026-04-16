@@ -69,7 +69,6 @@ export const DEPT_CACHE_DB_NAME = "faistonplein-cache";
 export const DEPT_CACHE_STORE_NAME = "dept-parquet";
 export const DEPT_CACHE_DB_VERSION = 1;
 export const CACHE_MAX_AGE_MS = 2 * 60 * 60 * 1000; // 2h — aligné sur la fréquence de mise à jour HuggingFace
-export const ROLLING_CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 24h — données historiques quotidiennes
 
 export const VEHICLE_PRESETS: VehiclePreset[] = [
   {

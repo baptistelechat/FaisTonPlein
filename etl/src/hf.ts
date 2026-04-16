@@ -41,7 +41,10 @@ function scanDirectory(
       files.push(...scanDirectory(fullPath, baseDir));
     } else {
       const relPath = path.relative(baseDir, fullPath).replace(/\\/g, "/");
-      files.push({ path: relPath, content: new Blob([fs.readFileSync(fullPath)]) });
+      files.push({
+        path: relPath,
+        content: new Blob([fs.readFileSync(fullPath)]),
+      });
     }
   }
   return files;
@@ -62,7 +65,12 @@ export async function uploadDirectory(
     path: `${prefix}/${f.path}`,
   }));
 
-  await hub.uploadFiles({ repo, credentials: { accessToken }, files, commitTitle });
+  await hub.uploadFiles({
+    repo,
+    credentials: { accessToken },
+    files,
+    commitTitle,
+  });
 }
 
 export async function uploadFilesWithRetry(args: {
@@ -108,8 +116,8 @@ export async function listParquetFiles(
   for await (const fileInfo of hub.listFiles({
     repo,
     credentials: { accessToken },
-    path: normalizedPrefix,  // filtre côté serveur
-    recursive: true,         // liste les sous-dossiers (défaut = false)
+    path: normalizedPrefix, // filtre côté serveur
+    recursive: true, // liste les sous-dossiers (défaut = false)
   })) {
     const filePath = String(fileInfo?.path ?? "");
     if (filePath.endsWith(".parquet")) {
@@ -128,15 +136,25 @@ async function downloadFileWithRetry(
   accessToken: string,
   relPath: string,
 ): Promise<Buffer> {
-  for (let attempt = 0; attempt <= RATE_LIMIT_RETRY_DELAYS_MS.length; attempt++) {
+  for (
+    let attempt = 0;
+    attempt <= RATE_LIMIT_RETRY_DELAYS_MS.length;
+    attempt++
+  ) {
     try {
-      const response = await hub.downloadFile({ repo, credentials: { accessToken }, path: relPath });
+      const response = await hub.downloadFile({
+        repo,
+        credentials: { accessToken },
+        path: relPath,
+      });
       if (!response) throw new Error(`Empty response for ${relPath}`);
       return Buffer.from(await response.arrayBuffer());
     } catch (err: unknown) {
       const is429 =
         (err instanceof Error && err.message.includes("429")) ||
-        (typeof err === "object" && err !== null && (err as { statusCode?: number }).statusCode === 429);
+        (typeof err === "object" &&
+          err !== null &&
+          (err as { statusCode?: number }).statusCode === 429);
 
       if (is429 && attempt < RATE_LIMIT_RETRY_DELAYS_MS.length) {
         const baseDelay = RATE_LIMIT_RETRY_DELAYS_MS[attempt];
@@ -172,7 +190,9 @@ export async function downloadFilesToLocal(
 
   const worker = async (workerIndex: number) => {
     // Décalage de démarrage pour éviter le burst initial (tous les workers à T=0)
-    await new Promise((resolve) => setTimeout(resolve, workerIndex * REQUEST_DELAY_MS));
+    await new Promise((resolve) =>
+      setTimeout(resolve, workerIndex * REQUEST_DELAY_MS),
+    );
 
     while (queue.length > 0) {
       const relPath = queue.shift();
@@ -189,6 +209,8 @@ export async function downloadFilesToLocal(
     }
   };
 
-  await Promise.all(Array.from({ length: Math.max(1, maxConcurrency) }, (_, i) => worker(i)));
+  await Promise.all(
+    Array.from({ length: Math.max(1, maxConcurrency) }, (_, i) => worker(i)),
+  );
   return downloaded;
 }

@@ -4,7 +4,6 @@ import {
   DEPT_CACHE_DB_VERSION,
   DEPT_CACHE_STORE_NAME,
   HF_ROLLING_BASE_URL,
-  ROLLING_CACHE_TTL_MS,
 } from "@/lib/constants";
 import type { AsyncDuckDB } from "@duckdb/duckdb-wasm";
 
@@ -111,8 +110,20 @@ export const setCachedRollingDeptEntry = (
   size: number,
 ): Promise<void> => setCachedDeptEntry(`rolling_${dept}`, buffer, size);
 
-export const isRollingCacheValid = (entry: DeptCacheEntry): boolean =>
-  Date.now() - entry.cachedAt < ROLLING_CACHE_TTL_MS;
+/**
+ * Le cache rolling est valide uniquement s'il a été téléchargé aujourd'hui
+ * (même date calendaire). L'ETL génère de nouvelles données quotidiennement,
+ * donc tout cache d'un jour précédent est potentiellement obsolète.
+ */
+export const isRollingCacheValid = (entry: DeptCacheEntry): boolean => {
+  const cachedDate = new Date(entry.cachedAt);
+  const now = new Date();
+  return (
+    cachedDate.getFullYear() === now.getFullYear() &&
+    cachedDate.getMonth() === now.getMonth() &&
+    cachedDate.getDate() === now.getDate()
+  );
+};
 
 export const registerRollingCachedDeptInDuckDB = async (
   db: AsyncDuckDB,
