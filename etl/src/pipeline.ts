@@ -14,7 +14,9 @@ export function sendUptimeHeartbeat(status: "up" | "down", msg: string) {
     url.searchParams.set("status", status);
     url.searchParams.set("msg", msg);
     fetch(url.toString()).catch(() => {
-      console.warn(chalk.yellow("⚠️ Uptime Kuma heartbeat failed (non-blocking)"));
+      console.warn(
+        chalk.yellow("⚠️ Uptime Kuma heartbeat failed (non-blocking)"),
+      );
     });
   } catch {
     // URL invalide, non-bloquant
@@ -88,11 +90,16 @@ export async function runPipeline() {
       await runConsolidationService();
       // Rolling 30j : après la consolidation daily (fichier du jour déjà sur HF)
       // Non-bloquant : un échec du rolling ne doit pas marquer le pipeline DOWN
-      console.log(chalk.blue("✅ Consolidation done, generating Rolling 30-day files..."));
+      console.log(
+        chalk.blue("✅ Consolidation done, generating Rolling 30-day files..."),
+      );
       try {
         await runRollingService();
       } catch (rollingError) {
-        console.error(chalk.red("⚠️ Rolling 30d failed (non-blocking):"), rollingError);
+        console.error(
+          chalk.red("⚠️ Rolling 30d failed (non-blocking):"),
+          rollingError,
+        );
       }
     } else {
       console.log(
@@ -106,7 +113,8 @@ export async function runPipeline() {
     sendUptimeHeartbeat("up", "OK");
   } catch (error) {
     console.error(chalk.red("❌ Pipeline failed:"), error);
-    const msg = error instanceof Error ? error.message.slice(0, 100) : "Pipeline failed";
+    const msg =
+      error instanceof Error ? error.message.slice(0, 100) : "Pipeline failed";
     sendUptimeHeartbeat("down", msg);
   }
 }
