@@ -114,7 +114,7 @@ export const FuelDataLoader = () => {
           .catch(() => {});
 
         // Charger tous les départements en parallèle (cache IndexedDB ou HuggingFace)
-        let cacheHits = 0;
+        // let cacheHits = 0;
         const results = await Promise.allSettled(
           departmentsToLoad.map(async (dept) => {
             const entry = await getDeptCacheEntry(dept);
@@ -171,13 +171,13 @@ export const FuelDataLoader = () => {
         if (isMounted) {
           const stations = Array.from(stationMap.values());
           setStations(stations);
-          const fromCache = cacheHits === departmentsToLoad.length;
-          const label = fromCache ? "cache local" : selectedDepartment;
-          toast.success(
-            departmentsToLoad.length > 1
-              ? `${stations.length} stations chargées (${fromCache ? "cache local" : `${departmentsToLoad.length} depts`})`
-              : `${stations.length} stations chargées (${label})`,
-          );
+          // const fromCache = cacheHits === departmentsToLoad.length;
+          // const label = fromCache ? "cache local" : selectedDepartment;
+          // toast.success(
+          //   departmentsToLoad.length > 1
+          //     ? `${stations.length} stations chargées (${fromCache ? "cache local" : `${departmentsToLoad.length} depts`})`
+          //     : `${stations.length} stations chargées (${label})`,
+          // );
 
           // Informer le store des depts actuellement chargés (pour l'UI Réglages)
           setLoadedDepts(departmentsToLoad);
