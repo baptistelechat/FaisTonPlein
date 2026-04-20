@@ -1,3 +1,4 @@
+import { AppLogo } from "@/components/AppLogo";
 import { FuelTypeSelector } from "@/components/FuelTypeSelector";
 import InteractiveMap from "@/components/InteractiveMap";
 import { SearchBar } from "@/components/SearchBar";
@@ -49,6 +50,13 @@ export function DesktopLayout() {
       {/* Map Area */}
       <div className="relative flex-1">
         <InteractiveMap>
+          {/* App Logo */}
+          <div className="pointer-events-none absolute top-0 left-0 z-20 p-4 pt-6">
+            <div className="pointer-events-auto">
+              <AppLogo showName={true} />
+            </div>
+          </div>
+
           {/* Floating Header */}
           <div className="pointer-events-none absolute top-0 right-0 left-0 z-20 flex flex-col items-center gap-3 p-4 pt-6">
             <div className="pointer-events-auto w-full max-w-md rounded-full shadow-2xl">
