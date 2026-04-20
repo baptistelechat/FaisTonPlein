@@ -1,5 +1,6 @@
 import { AppLogo } from "@/components/AppLogo";
 import { FuelTypeSelector } from "@/components/FuelTypeSelector";
+import { InstallButton } from "@/components/InstallButton";
 import InteractiveMap from "@/components/InteractiveMap";
 import { SearchPanel } from "@/components/SearchPanel";
 import { StationDetail } from "@/components/StationDetail";
@@ -80,7 +81,10 @@ export function MobileLayout() {
           <div className="pointer-events-none absolute top-0 right-0 left-0 z-20 flex flex-col items-center gap-3 p-4">
             {/* Logo + Search Trigger */}
             <div className="pointer-events-auto flex w-full max-w-md items-center gap-2 px-4">
-              <AppLogo showName={false} />
+              <div className="flex flex-col items-center gap-1">
+                <AppLogo showName={false} />
+                <InstallButton variant="icon" />
+              </div>
               <div className="flex-1">
                 <Button
                   variant="outline"

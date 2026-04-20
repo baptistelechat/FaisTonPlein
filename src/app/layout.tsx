@@ -1,5 +1,6 @@
 import { DuckDBProvider } from "@/components/DuckDBProvider";
 import { FuelDataLoader } from "@/components/FuelDataLoader";
+import { ServiceWorkerRegistration } from "@/components/ServiceWorkerRegistration";
 import { cn } from "@/lib/utils";
 import type { Metadata } from "next";
 import { Manrope, Space_Grotesk } from "next/font/google";
@@ -73,6 +74,7 @@ export default function RootLayout({
           "bg-background text-foreground font-sans antialiased",
         )}
       >
+        <ServiceWorkerRegistration />
         <DuckDBProvider>
           <FuelDataLoader />
           {children}

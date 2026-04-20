@@ -114,14 +114,12 @@ export const FuelDataLoader = () => {
           .catch(() => {});
 
         // Charger tous les départements en parallèle (cache IndexedDB ou HuggingFace)
-        // let cacheHits = 0;
         const results = await Promise.allSettled(
           departmentsToLoad.map(async (dept) => {
             const entry = await getDeptCacheEntry(dept);
 
             if (entry && isCacheValid(entry)) {
               // Cache valide (< 2h) : aucun appel réseau
-              cacheHits++;
               try {
                 await registerCachedDeptInDuckDB(db, dept, entry.buffer);
                 const conn = await db.connect();
@@ -137,7 +135,6 @@ export const FuelDataLoader = () => {
                 }
               } catch {
                 // Cache corrompu → fallback HuggingFace
-                cacheHits--;
               }
             }
 

@@ -27,25 +27,27 @@ export function StationListHeader({
 }: StationListHeaderProps) {
   return (
     <div className="flex flex-col gap-2 p-4 pb-3">
-      <div className="flex flex-col gap-1">
-        <h2 className="text-lg font-bold">
-          {listSortBy === "price"
-            ? "Les plus économiques"
-            : listSortBy === "real-cost"
-              ? "Meilleur rapport coût/trajet"
-              : "Autour de moi"}
-        </h2>
-        {majLabel && (
-          <span
-            className={cn(
-              "flex items-center gap-1 text-[11px]",
-              isDataStale ? "text-red-700" : "text-muted-foreground",
-            )}
-          >
-            <Clock className="size-3" />
-            {`Mise à jour : ${majLabel}`}
-          </span>
-        )}
+      <div className="flex items-start justify-between gap-2">
+        <div className="flex min-w-0 flex-col gap-1">
+          <h2 className="text-lg font-bold">
+            {listSortBy === "price"
+              ? "Les plus économiques"
+              : listSortBy === "real-cost"
+                ? "Meilleur rapport coût/trajet"
+                : "Autour de moi"}
+          </h2>
+          {majLabel && (
+            <span
+              className={cn(
+                "flex items-center gap-1 text-[11px]",
+                isDataStale ? "text-red-700" : "text-muted-foreground",
+              )}
+            >
+              <Clock className="size-3" />
+              {`Mise à jour : ${majLabel}`}
+            </span>
+          )}
+        </div>
       </div>
       <div className="flex items-center gap-2 pr-3">
         <div className="flex flex-1 flex-col gap-2">

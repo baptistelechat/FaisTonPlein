@@ -1,5 +1,6 @@
 import { AppLogo } from "@/components/AppLogo";
 import { FuelTypeSelector } from "@/components/FuelTypeSelector";
+import { InstallButton } from "@/components/InstallButton";
 import InteractiveMap from "@/components/InteractiveMap";
 import { SearchBar } from "@/components/SearchBar";
 import { StationDetail } from "@/components/StationDetail";
@@ -50,10 +51,11 @@ export function DesktopLayout() {
       {/* Map Area */}
       <div className="relative flex-1">
         <InteractiveMap>
-          {/* App Logo */}
+          {/* App Logo + Install */}
           <div className="pointer-events-none absolute top-0 left-0 z-20 p-4 pt-6">
-            <div className="pointer-events-auto">
+            <div className="pointer-events-auto flex flex-col items-start gap-2">
               <AppLogo showName={true} />
+              <InstallButton variant="full" />
             </div>
           </div>
 
