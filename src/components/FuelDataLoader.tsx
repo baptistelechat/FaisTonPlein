@@ -125,28 +125,35 @@ export const FuelDataLoader = () => {
               try {
                 await registerCachedDeptInDuckDB(db, dept, entry.buffer);
                 const conn = await db.connect();
-                const res = await conn.query(
-                  `SELECT * FROM read_parquet('${getDeptLocalFileName(dept)}')`,
-                );
-                await conn.close();
-                return res
-                  .toArray()
-                  .map((r) => r.toJSON()) as unknown as RawStationData[];
+                try {
+                  const res = await conn.query(
+                    `SELECT * FROM read_parquet('${getDeptLocalFileName(dept)}')`,
+                  );
+                  return res
+                    .toArray()
+                    .map((r) => r.toJSON()) as unknown as RawStationData[];
+                } finally {
+                  await conn.close();
+                }
               } catch {
                 // Cache corrompu → fallback HuggingFace
+                cacheHits--;
               }
             }
 
             // Pas de cache valide → comportement actuel (HuggingFace)
             const conn = await db.connect();
-            const url = `${BASE}/code_departement=${dept}/data_0.parquet`;
-            const res = await conn.query(
-              `SELECT * FROM read_parquet('${url}')`,
-            );
-            await conn.close();
-            return res
-              .toArray()
-              .map((r) => r.toJSON()) as unknown as RawStationData[];
+            try {
+              const url = `${BASE}/code_departement=${dept}/data_0.parquet`;
+              const res = await conn.query(
+                `SELECT * FROM read_parquet('${url}')`,
+              );
+              return res
+                .toArray()
+                .map((r) => r.toJSON()) as unknown as RawStationData[];
+            } finally {
+              await conn.close();
+            }
           }),
         );
 

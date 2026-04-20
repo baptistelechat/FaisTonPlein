@@ -1,6 +1,6 @@
 # Story 4.1 : Cache Départemental
 
-**Status:** review
+**Status:** done
 
 ## Story
 
@@ -564,6 +564,23 @@ claude-sonnet-4-6
 - `src/hooks/useDeptCache.ts` (créé)
 - `src/components/FuelDataLoader.tsx` (modifié — intégration cache)
 - `src/components/StationList/components/StationListSettings/components/SettingsBody.tsx` (modifié — section "Données hors ligne")
+
+### Review Findings
+
+- [x] [Review][Decision] D1 — `downloadingDepts`/`progressByDept` dans le store Zustand — **accepté** (nécessaire pour observabilité multi-composant)
+- [x] [Review][Decision] D2 — `resetApp` (reset complet) au lieu de "Tout vider" — **accepté**
+- [x] [Review][Decision] D3 — Rolling cache 30j ajouté hors scope — **accepté** comme enhancement intégré
+- [x] [Review][Patch] P1 — `conn.close()` dans finally (path cache + HF) [src/components/FuelDataLoader.tsx]
+- [x] [Review][Patch] P2 — `cacheHits--` dans catch si fallback HF déclenché [src/components/FuelDataLoader.tsx]
+- [x] [Review][Patch] P3 — `reader.cancel()` sur erreur mid-stream [src/lib/deptDownload.ts]
+- [x] [Review][Patch] P4 — Guard `isNaN(total) || total <= 0` avant lecture du stream [src/lib/deptDownload.ts]
+- [x] [Review][Patch] P5 — try/catch autour de `clearAllDeptCache()` dans `resetApp` [src/hooks/useDeptCache.ts]
+- [x] [Review][Patch] P6 — `openCacheDB()` singleton promise (connexion IDB réutilisée) [src/lib/deptCache.ts]
+- [x] [Review][Patch] P7 — `isRollingCacheValid` utilise `getUTC*` (cohérence timezone) [src/lib/deptCache.ts]
+- [x] [Review][Defer] W1 — Injection SQL via `dept` dans requête DuckDB — risque théorique, `dept` est interne et contrôlé [src/components/FuelDataLoader.tsx:133] — deferred, pre-existing
+- [x] [Review][Defer] W2 — Downloads en arrière-plan sans AbortController — si le composant se démonte, `registerFileBuffer` peut être appelé après nettoyage [src/hooks/useDeptCache.ts:35] — deferred, pre-existing
+- [x] [Review][Defer] W3 — Toast Sonner rendu avant `window.location.reload()` non garanti (event loop) [src/hooks/useDeptCache.ts:117] — deferred, impact UX mineur
+- [x] [Review][Defer] W4 — `isCacheValid` : age négatif si horloge système recule (clock skew) → cache marqué valide [src/lib/deptCache.ts:82] — deferred, cas extrême
 
 ## Change Log
 

@@ -14,18 +14,27 @@ export type DeptCacheEntry = {
   size: number;
 };
 
-const openCacheDB = (): Promise<IDBDatabase> =>
-  new Promise((resolve, reject) => {
-    const req = indexedDB.open(DEPT_CACHE_DB_NAME, DEPT_CACHE_DB_VERSION);
-    req.onupgradeneeded = (e) => {
-      const db = (e.target as IDBOpenDBRequest).result;
-      if (!db.objectStoreNames.contains(DEPT_CACHE_STORE_NAME)) {
-        db.createObjectStore(DEPT_CACHE_STORE_NAME, { keyPath: "dept" });
-      }
-    };
-    req.onsuccess = (e) => resolve((e.target as IDBOpenDBRequest).result);
-    req.onerror = () => reject(req.error);
-  });
+let dbPromise: Promise<IDBDatabase> | null = null;
+
+const openCacheDB = (): Promise<IDBDatabase> => {
+  if (!dbPromise) {
+    dbPromise = new Promise((resolve, reject) => {
+      const req = indexedDB.open(DEPT_CACHE_DB_NAME, DEPT_CACHE_DB_VERSION);
+      req.onupgradeneeded = (e) => {
+        const db = (e.target as IDBOpenDBRequest).result;
+        if (!db.objectStoreNames.contains(DEPT_CACHE_STORE_NAME)) {
+          db.createObjectStore(DEPT_CACHE_STORE_NAME, { keyPath: "dept" });
+        }
+      };
+      req.onsuccess = (e) => resolve((e.target as IDBOpenDBRequest).result);
+      req.onerror = () => {
+        dbPromise = null;
+        reject(req.error);
+      };
+    });
+  }
+  return dbPromise;
+};
 
 export const getDeptCacheEntry = async (
   dept: string,
@@ -119,9 +128,9 @@ export const isRollingCacheValid = (entry: DeptCacheEntry): boolean => {
   const cachedDate = new Date(entry.cachedAt);
   const now = new Date();
   return (
-    cachedDate.getFullYear() === now.getFullYear() &&
-    cachedDate.getMonth() === now.getMonth() &&
-    cachedDate.getDate() === now.getDate()
+    cachedDate.getUTCFullYear() === now.getUTCFullYear() &&
+    cachedDate.getUTCMonth() === now.getUTCMonth() &&
+    cachedDate.getUTCDate() === now.getUTCDate()
   );
 };
 

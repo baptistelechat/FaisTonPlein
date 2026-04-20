@@ -112,7 +112,11 @@ export function useDeptCache() {
   );
 
   const resetApp = useCallback(async () => {
-    await clearAllDeptCache();
+    try {
+      await clearAllDeptCache();
+    } catch {
+      // IDB peut échouer (quota, mode privé) — continuer quand même
+    }
     clearAllCachedDepts();
     localStorage.removeItem("faistonplein-preferences");
     toast.info("Réinitialisation…");

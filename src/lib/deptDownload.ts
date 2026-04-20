@@ -14,16 +14,27 @@ export const downloadDeptParquet = async (
   }
 
   const total = parseInt(contentLength, 10);
+  if (isNaN(total) || total <= 0) {
+    onProgress(0.5);
+    const buffer = await response.arrayBuffer();
+    onProgress(1);
+    return buffer;
+  }
   const reader = response.body.getReader();
   const chunks: Uint8Array[] = [];
   let received = 0;
 
-  while (true) {
-    const { done, value } = await reader.read();
-    if (done) break;
-    chunks.push(value);
-    received += value.length;
-    onProgress(received / total);
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      chunks.push(value);
+      received += value.length;
+      onProgress(received / total);
+    }
+  } catch (err) {
+    reader.cancel();
+    throw err;
   }
 
   const buffer = new ArrayBuffer(received);
