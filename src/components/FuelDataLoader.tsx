@@ -3,8 +3,17 @@
 import { getDepartmentsInRadius } from "@/lib/departments";
 import { mapRawDataToStation, RawStationData } from "@/lib/mappers";
 import { HF_LATEST_BASE_URL } from "@/lib/constants";
+import {
+  getDeptCacheEntry,
+  getDeptLocalFileName,
+  getRollingDeptCacheEntry,
+  isCacheValid,
+  isRollingCacheValid,
+  registerCachedDeptInDuckDB,
+} from "@/lib/deptCache";
 import { Station, useAppStore } from "@/store/useAppStore";
-import { useEffect, useMemo, useState } from "react";
+import { useDeptCache } from "@/hooks/useDeptCache";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { useDuckDB } from "./DuckDBProvider";
 
@@ -20,7 +29,17 @@ export const FuelDataLoader = () => {
     searchLocation,
     searchRadius,
     userLocation,
+    setLoadedDepts,
   } = useAppStore();
+  const { cacheInBackground, cacheRollingInBackground } = useDeptCache();
+  // Refs stables pour éviter que les useCallback dans le dep array
+  // ne déclenchent un cleanup prématuré et bloquent isLoading=true indéfiniment
+  const cacheInBackgroundRef = useRef(cacheInBackground);
+  const cacheRollingInBackgroundRef = useRef(cacheRollingInBackground);
+  useEffect(() => {
+    cacheInBackgroundRef.current = cacheInBackground;
+    cacheRollingInBackgroundRef.current = cacheRollingInBackground;
+  });
   const [loadedDeptsKey, setLoadedDeptsKey] = useState("");
   const [locationAvailable, setLocationAvailable] = useState<boolean | null>(
     null,
@@ -94,18 +113,44 @@ export const FuelDataLoader = () => {
           })
           .catch(() => {});
 
-        // Charger tous les départements en parallèle
+        // Charger tous les départements en parallèle (cache IndexedDB ou HuggingFace)
         const results = await Promise.allSettled(
           departmentsToLoad.map(async (dept) => {
+            const entry = await getDeptCacheEntry(dept);
+
+            if (entry && isCacheValid(entry)) {
+              // Cache valide (< 2h) : aucun appel réseau
+              try {
+                await registerCachedDeptInDuckDB(db, dept, entry.buffer);
+                const conn = await db.connect();
+                try {
+                  const res = await conn.query(
+                    `SELECT * FROM read_parquet('${getDeptLocalFileName(dept)}')`,
+                  );
+                  return res
+                    .toArray()
+                    .map((r) => r.toJSON()) as unknown as RawStationData[];
+                } finally {
+                  await conn.close();
+                }
+              } catch {
+                // Cache corrompu → fallback HuggingFace
+              }
+            }
+
+            // Pas de cache valide → comportement actuel (HuggingFace)
             const conn = await db.connect();
-            const url = `${BASE}/code_departement=${dept}/data_0.parquet`;
-            const res = await conn.query(
-              `SELECT * FROM read_parquet('${url}')`,
-            );
-            await conn.close();
-            return res
-              .toArray()
-              .map((r) => r.toJSON()) as unknown as RawStationData[];
+            try {
+              const url = `${BASE}/code_departement=${dept}/data_0.parquet`;
+              const res = await conn.query(
+                `SELECT * FROM read_parquet('${url}')`,
+              );
+              return res
+                .toArray()
+                .map((r) => r.toJSON()) as unknown as RawStationData[];
+            } finally {
+              await conn.close();
+            }
           }),
         );
 
@@ -123,12 +168,37 @@ export const FuelDataLoader = () => {
         if (isMounted) {
           const stations = Array.from(stationMap.values());
           setStations(stations);
+          // const fromCache = cacheHits === departmentsToLoad.length;
+          // const label = fromCache ? "cache local" : selectedDepartment;
+          // toast.success(
+          //   departmentsToLoad.length > 1
+          //     ? `${stations.length} stations chargées (${fromCache ? "cache local" : `${departmentsToLoad.length} depts`})`
+          //     : `${stations.length} stations chargées (${label})`,
+          // );
+
+          // Informer le store des depts actuellement chargés (pour l'UI Réglages)
+          setLoadedDepts(departmentsToLoad);
+
+          // Cacher en arrière-plan tous les depts sans cache valide
+          for (const dept of departmentsToLoad) {
+            const entry = await getDeptCacheEntry(dept);
+            if (!entry || !isCacheValid(entry)) {
+              // Latest expiré → cacheInBackground gère latest + rolling en parallèle
+              void cacheInBackgroundRef.current(dept);
+            } else {
+              // Latest encore valide → vérifier rolling indépendamment
+              // (couvre les utilisateurs existants et les premiers démarrages post-déploiement)
+              const rollingEntry = await getRollingDeptCacheEntry(dept);
+              if (!rollingEntry || !isRollingCacheValid(rollingEntry)) {
+                void cacheRollingInBackgroundRef.current(dept);
+              }
+            }
+          }
+
+          // setLoadedDeptsKey EN DERNIER : son changement déclenche le cleanup
+          // du useEffect (isMounted=false). S'il était appelé avant les await
+          // ci-dessus, le finally ne pouvait plus appeler setIsLoading(false).
           setLoadedDeptsKey(deptKey);
-          toast.success(
-            departmentsToLoad.length > 1
-              ? `${stations.length} stations chargées (${departmentsToLoad.length} depts)`
-              : `${stations.length} stations chargées (${selectedDepartment})`,
-          );
         }
       } catch (err) {
         if (isMounted) {
@@ -159,6 +229,7 @@ export const FuelDataLoader = () => {
     departmentsToLoad,
     setNationalStationsCount,
     setNationalFranceAreaKm2,
+    setLoadedDepts,
   ]);
 
   if (dbError) {

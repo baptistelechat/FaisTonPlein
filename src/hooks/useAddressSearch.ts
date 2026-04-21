@@ -1,9 +1,8 @@
-'use client';
+"use client";
 
-import { searchAddresses, type SearchResult } from '@/lib/api-adresse';
-import { useAppStore } from '@/store/useAppStore';
-import { useRef, useState } from 'react';
-import { toast } from 'sonner';
+import { searchAddresses, type SearchResult } from "@/lib/api-adresse";
+import { useAppStore } from "@/store/useAppStore";
+import { useRef, useState } from "react";
 
 interface UseAddressSearchOptions {
   onSelect?: () => void;
@@ -57,7 +56,7 @@ export const useAddressSearch = (
         const data = await searchAddresses(query);
         setResults(data);
       } catch (error) {
-        console.error('Search error:', error);
+        console.error("Search error:", error);
         useAppStore.getState().setIsApiAdresseUnavailable(true);
       } finally {
         setIsLoading(false);
@@ -69,15 +68,11 @@ export const useAddressSearch = (
     isSelectionRef.current = true;
 
     setUserLocation(null);
-    setSearchQuery('');
+    setSearchQuery("");
     setResults([]);
 
-    if (item.properties?.label) {
-      toast.success(`Positionnée sur : ${item.properties.label}`);
-    }
-
     if (item.properties?.context) {
-      const deptCode = item.properties.context.split(',')[0].trim();
+      const deptCode = item.properties.context.split(",")[0].trim();
       if (deptCode) setSelectedDepartment(deptCode);
     }
 

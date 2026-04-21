@@ -230,9 +230,9 @@
 
 **Critères d'Acceptation :**
 
-- [ ] Téléchargement automatique (ou proposé) au premier lancement.
-- [ ] Stockage local (IndexedDB via DuckDB).
-- [ ] Indicateur de progression du téléchargement.
+- [x] Téléchargement automatique (ou proposé) au premier lancement.
+- [x] Stockage local (IndexedDB via DuckDB).
+- [x] Indicateur de progression du téléchargement.
 
 ### US-04-02 : Consultation Offline
 

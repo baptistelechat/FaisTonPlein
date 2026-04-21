@@ -112,4 +112,21 @@ export type AppStore = {
 
   nationalFranceAreaKm2: number | null;
   setNationalFranceAreaKm2: (area: number) => void;
+
+  cachedDepts: Record<string, { cachedAt: number; size: number }>;
+  cachedRollingDepts: Record<string, { cachedAt: number; size: number }>;
+  loadedDepts: string[];
+  downloadingDepts: string[];
+  progressByDept: Record<string, number>;
+  setCachedDeptMeta: (
+    dept: string,
+    meta: { cachedAt: number; size: number } | null,
+  ) => void;
+  setCachedRollingDeptMeta: (
+    dept: string,
+    meta: { cachedAt: number; size: number } | null,
+  ) => void;
+  clearAllCachedDepts: () => void;
+  setLoadedDepts: (depts: string[]) => void;
+  setDownloadingDept: (dept: string, progress: number | null) => void;
 };

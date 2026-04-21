@@ -159,6 +159,54 @@ export const useAppStore = create<AppStore>()(
       setNationalFranceAreaKm2: (nationalFranceAreaKm2) =>
         set({ nationalFranceAreaKm2 }),
 
+      cachedDepts: {},
+      cachedRollingDepts: {},
+      loadedDepts: [],
+      downloadingDepts: [],
+      progressByDept: {},
+      setCachedDeptMeta: (dept, meta) =>
+        set((state) => ({
+          cachedDepts: meta
+            ? { ...state.cachedDepts, [dept]: meta }
+            : Object.fromEntries(
+                Object.entries(state.cachedDepts).filter(([k]) => k !== dept),
+              ),
+        })),
+      setCachedRollingDeptMeta: (dept, meta) =>
+        set((state) => ({
+          cachedRollingDepts: meta
+            ? { ...state.cachedRollingDepts, [dept]: meta }
+            : Object.fromEntries(
+                Object.entries(state.cachedRollingDepts).filter(
+                  ([k]) => k !== dept,
+                ),
+              ),
+        })),
+      clearAllCachedDepts: () =>
+        set({ cachedDepts: {}, cachedRollingDepts: {} }),
+      setLoadedDepts: (depts) => set({ loadedDepts: depts }),
+      setDownloadingDept: (dept, progress) =>
+        set((state) => {
+          if (progress === null) {
+            return {
+              progressByDept: Object.fromEntries(
+                Object.entries(state.progressByDept).filter(
+                  ([k]) => k !== dept,
+                ),
+              ),
+              downloadingDepts: state.downloadingDepts.filter(
+                (d) => d !== dept,
+              ),
+            };
+          }
+          return {
+            progressByDept: { ...state.progressByDept, [dept]: progress },
+            downloadingDepts: state.downloadingDepts.includes(dept)
+              ? state.downloadingDepts
+              : [...state.downloadingDepts, dept],
+          };
+        }),
+
       vehicleType: null,
       tankCapacity: 0,
       consumption: 0,
@@ -222,6 +270,8 @@ export const useAppStore = create<AppStore>()(
         fillHabit: state.fillHabit,
         listSortBy: state.listSortBy,
         distanceMode: state.distanceMode,
+        cachedDepts: state.cachedDepts,
+        cachedRollingDepts: state.cachedRollingDepts,
       }),
       merge: (persistedState, currentState) => {
         const ps = persistedState as Partial<AppStore>;
@@ -263,6 +313,15 @@ export const useAppStore = create<AppStore>()(
             : 1.0,
           listSortBy: restoredSort,
           distanceMode: ps.distanceMode === "crow-fly" ? "crow-fly" : "road",
+          cachedDepts:
+            ps.cachedDepts !== null && typeof ps.cachedDepts === "object"
+              ? ps.cachedDepts
+              : {},
+          cachedRollingDepts:
+            ps.cachedRollingDepts !== null &&
+            typeof ps.cachedRollingDepts === "object"
+              ? ps.cachedRollingDepts
+              : {},
         };
       },
     },

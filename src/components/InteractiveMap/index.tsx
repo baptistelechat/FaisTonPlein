@@ -373,15 +373,15 @@ export default function InteractiveMap({
         center: [longitude, latitude],
         zoom: 14,
       }));
-      toast.success("Position trouvée !", { id: "geo-success" });
+      // toast.success("Position trouvée !", { id: "geo-success" });
       try {
         const result = await reverseGeocode(longitude, latitude);
         if (result?.properties?.context) {
           const deptCode = result.properties.context.split(",")[0].trim();
           setSelectedDepartment(deptCode);
-          toast.success(`Département détecté : ${deptCode}`, {
-            id: "geo-dept",
-          });
+          // toast.success(`Département détecté : ${deptCode}`, {
+          //   id: "geo-dept",
+          // });
         }
       } catch (error) {
         console.error("Failed to detect department", error);

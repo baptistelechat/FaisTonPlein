@@ -9,6 +9,7 @@
     "dev": "ts-node index.ts",
     "manual": "ts-node src/manual-run.ts",
     "consolidate": "ts-node src/manual-consolidate.ts",
+    "rolling": "ts-node src/manual-rolling.ts",
     "import-history": "ts-node src/scripts/import-history.ts"
   },
   "dependencies": {

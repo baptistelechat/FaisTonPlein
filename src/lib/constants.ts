@@ -65,6 +65,11 @@ export const HF_DATASET_BASE =
 export const HF_LATEST_BASE_URL = `${HF_DATASET_BASE}/latest`;
 export const HF_ROLLING_BASE_URL = `${HF_DATASET_BASE}/rolling/30days`;
 
+export const DEPT_CACHE_DB_NAME = "faistonplein-cache";
+export const DEPT_CACHE_STORE_NAME = "dept-parquet";
+export const DEPT_CACHE_DB_VERSION = 1;
+export const CACHE_MAX_AGE_MS = 2 * 60 * 60 * 1000; // 2h — aligné sur la fréquence de mise à jour HuggingFace
+
 export const VEHICLE_PRESETS: VehiclePreset[] = [
   {
     type: "citadine",

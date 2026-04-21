@@ -1,4 +1,6 @@
+import { AppLogo } from "@/components/AppLogo";
 import { FuelTypeSelector } from "@/components/FuelTypeSelector";
+import { InstallButton } from "@/components/InstallButton";
 import InteractiveMap from "@/components/InteractiveMap";
 import { SearchPanel } from "@/components/SearchPanel";
 import { StationDetail } from "@/components/StationDetail";
@@ -15,12 +17,8 @@ import { useEffect, useLayoutEffect, useRef, useState } from "react";
 export function MobileLayout() {
   useRoadDistances();
   usePriceTrends();
-  const {
-    selectedStation,
-    setSelectedStation,
-    searchQuery,
-    triggerFitToList,
-  } = useAppStore();
+  const { selectedStation, setSelectedStation, searchQuery, triggerFitToList } =
+    useAppStore();
   const [snap, setSnap] = useState<number | string | null>(
     DRAWER_SNAP_POINTS.DEFAULT,
   );
@@ -81,18 +79,24 @@ export function MobileLayout() {
         <InteractiveMap mobileDrawerSnap={snap}>
           {/* Floating Header (Mobile) */}
           <div className="pointer-events-none absolute top-0 right-0 left-0 z-20 flex flex-col items-center gap-3 p-4">
-            {/* Search Trigger Button */}
-            <div className="pointer-events-auto w-full max-w-md px-4">
-              <Button
-                variant="outline"
-                onClick={() => setSearchPanelOpen(true)}
-                className="bg-background/80 text-muted-foreground hover:bg-background w-full justify-start gap-2 rounded-md border shadow-md backdrop-blur-md"
-              >
-                <Search className="h-4 w-4 shrink-0" />
-                <span className="truncate">
-                  {searchQuery || "Rechercher une ville..."}
-                </span>
-              </Button>
+            {/* Logo + Search Trigger */}
+            <div className="pointer-events-auto flex w-full max-w-md items-center gap-2 px-4">
+              <div className="flex flex-col items-center gap-1">
+                <AppLogo showName={false} />
+                <InstallButton variant="icon" />
+              </div>
+              <div className="flex-1">
+                <Button
+                  variant="outline"
+                  onClick={() => setSearchPanelOpen(true)}
+                  className="bg-background/80 text-muted-foreground hover:bg-background w-full justify-start gap-2 rounded-md border shadow-md backdrop-blur-md"
+                >
+                  <Search className="h-4 w-4 shrink-0" />
+                  <span className="truncate">
+                    {searchQuery || "Rechercher une ville..."}
+                  </span>
+                </Button>
+              </div>
             </div>
             <div className="flex flex-col items-center gap-2">
               <FuelTypeSelector className="justify-center" />
