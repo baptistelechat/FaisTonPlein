@@ -1,5 +1,5 @@
 generated: 2026-03-10
-last_updated: 2026-04-20 # us-04-01 done
+last_updated: 2026-04-21 # epic-4-retrospective done
 project: FaisTonPlein
 project_key: FTP
 tracking_system: file-system
@@ -69,5 +69,5 @@ development_status:
   # Epic 4: Résilience (Offline)
   epic-4-resilience-offline: in-progress
   us-04-01-cache-departemental: done
-  us-04-02-consultation-offline: backlog
-  epic-4-retrospective: optional
+  us-04-02-consultation-offline: aborted
+  epic-4-retrospective: done
