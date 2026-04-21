@@ -1,0 +1,73 @@
+generated: 2026-03-10
+last_updated: 2026-04-21 # epic-4-retrospective done
+project: FaisTonPlein
+project_key: FTP
+tracking_system: file-system
+story_location: "_bmad-output/docs/stories"
+
+# STATUS DEFINITIONS:
+# ==================
+# Epic Status:
+#   - backlog: Epic not yet started
+#   - in-progress: Epic actively being worked on
+#   - done: All stories in epic completed
+#
+# Epic Status Transitions:
+#   - backlog → in-progress: Automatically when first story is created (via create-story)
+#   - in-progress → done: Manually when all stories reach 'done' status
+#
+# Story Status:
+#   - backlog: Story only exists in epic file
+#   - ready-for-dev: Story file created in stories folder
+#   - in-progress: Developer actively working on implementation
+#   - review: Ready for code review (via Dev's code-review workflow)
+#   - done: Story completed
+#
+# Retrospective Status:
+#   - optional: Can be completed but not required
+#   - done: Retrospective has been completed
+#
+# WORKFLOW NOTES:
+# ===============
+# - Epic transitions to 'in-progress' automatically when first story is created
+# - Stories can be worked in parallel if team capacity allows
+# - SM typically creates next story after previous one is 'done' to incorporate learnings
+# - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
+
+development_status:
+  # Epic 0: Fondations Techniques
+  epic-0-fondations-techniques: done
+  us-00-01-pipeline-etl: done
+  us-00-02-integration-duckdb: done
+  us-00-03-consolidation-historique: done
+  us-00-04-recuperation-historique: done
+  epic-0-retrospective: done
+
+  # Epic 1: Exploration Géographique
+  epic-1-exploration-geographique: in-progress
+  us-01-01-carte-interactive: done
+  us-01-02-liste-des-stations: done
+  us-01-03-detail-d-une-station: done
+  us-01-04-filtre-carburant: done
+  epic-1-retrospective: done
+
+  # Epic 2: Comparaison Économique
+  epic-2-comparaison-economique: in-progress
+  us-02-01-prix-a-jour-et-fraicheur: done
+  us-02-02-calcul-du-cout-du-plein: done
+  us-02-03-tri-intelligent-prix-distance: done
+  us-02-04-distances-routieres-osrm: done
+  epic-2-retrospective: done
+
+  # Epic 3: Intelligence & Analyse
+  epic-3-intelligence-analyse: in-progress
+  us-03-01-indicateur-de-tendance: done
+  us-03-02-mode-analyste: done
+  us-03-03-graphique-historique: done
+  epic-3-retrospective: done
+
+  # Epic 4: Résilience (Offline)
+  epic-4-resilience-offline: in-progress
+  us-04-01-cache-departemental: done
+  us-04-02-consultation-offline: aborted
+  epic-4-retrospective: done
