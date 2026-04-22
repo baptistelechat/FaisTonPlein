@@ -67,7 +67,22 @@ development_status:
   epic-3-retrospective: done
 
   # Epic 4: Résilience (Offline)
-  epic-4-resilience-offline: in-progress
+  epic-4-resilience-offline: done
   us-04-01-cache-departemental: done
   us-04-02-consultation-offline: aborted
   epic-4-retrospective: done
+
+  # Epic 5: Observabilité & Santé de l'Application
+  epic-5-observabilite-sante: backlog
+  us-05-01-route-sante-etl: backlog
+  us-05-02-integration-posthog: backlog
+  us-05-03-tracking-erreurs-silencieuses: backlog
+  epic-5-retrospective: optional
+
+  # Epic 6: Analytics Comportemental & Conformité RGPD
+  epic-6-analytics-comportemental: backlog
+  us-06-01-evenements-conversion: backlog
+  us-06-02-evenements-comportement: backlog
+  us-06-03-beacon-api-fin-session: backlog
+  us-06-04-page-confidentialite-rgpd: backlog
+  epic-6-retrospective: optional

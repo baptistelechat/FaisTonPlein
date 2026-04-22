@@ -6,7 +6,7 @@
 **Version :** 1.0
 **Source :** [PRD](../planning/prd-faistonplein.md)
 
-***
+---
 
 ## E00 - Fondations Techniques
 
@@ -66,7 +66,7 @@
 - [x] Conversion et intégration dans le pipeline existant (Parquet + HuggingFace).
 - [x] Gestion des cas limites (fichiers corrompus, jours manquants).
 
-***
+---
 
 ## E01 - Exploration Géographique
 
@@ -122,7 +122,7 @@
 - [x] La carte et la liste se mettent à jour instantanément.
 - [x] Le choix est sauvegardé pour les prochaines sessions.
 
-***
+---
 
 ## E02 - Comparaison Économique
 
@@ -177,7 +177,7 @@
 - [x] Fallback silencieux vers Haversine/cercle si les APIs sont indisponibles.
 - [x] Indicateur discret `~` sur les distances Haversine temporaires en mode route.
 
-***
+---
 
 ## E03 - Intelligence & Analyse
 
@@ -216,7 +216,7 @@
 - [x] Graphique linéaire interactif (Recharts).
 - [x] Affichage des points de données au survol.
 
-***
+---
 
 ## E04 - Résilience (Offline)
 
@@ -242,7 +242,138 @@
 
 **Critères d'Acceptation :**
 
-- [ ] L'application se lance sans réseau.
-- [ ] Accès complet à la carte et liste (données en cache).
-- [ ] Indicateur "Mode Hors Ligne".
+- [x] L'application se lance sans réseau.
+- [x] Accès complet à la carte et liste (données en cache).
+- [x] Indicateur "Mode Hors Ligne".
 
+---
+
+## E05 - Observabilité & Santé de l'Application
+
+**Objectif :** Permettre à Baptiste de savoir en temps réel si l'application et ses données sont saines, et de détecter les erreurs silencieuses qui affectent les utilisateurs sans qu'ils les signalent.
+
+**Stack :** PostHog Cloud EU (sans cookie, RGPD-safe) + Uptime Kuma (existant, étendu)
+
+**Contraintes :**
+
+- Cookieless — aucun cookie déposé
+- EU-hosted — données hébergées dans l'Union Européenne
+- Pas de bannière de consentement requise
+- Session Replay PostHog désactivé (risque RGPD)
+- 1 seul outil complémentaire à Uptime Kuma
+
+### US-05-01 : Route de Santé ETL (`/api/health`)
+
+**En tant que** développeur,
+**Je veux** exposer une route `/api/health` sur l'application Next.js,
+**Afin de** permettre à Uptime Kuma de vérifier non seulement que l'app répond, mais que les données ETL sont fraîches et cohérentes.
+
+**Critères d'Acceptation :**
+
+- [ ] Route GET `/api/health` créée dans Next.js (Route Handler).
+- [ ] La réponse retourne un JSON avec : `{ status, lastETLUpdate, stationsCount, errorRateLast30min, timestamp }`.
+- [ ] `status` vaut `"healthy"` si `lastETLUpdate < 2h`, sinon `"degraded"`.
+- [ ] `lastETLUpdate` est récupéré depuis les métadonnées du dernier fichier Parquet chargé (ou localStorage si disponible côté client — à arbitrer côté serveur).
+- [ ] `stationsCount` reflète le nombre de stations actuellement en mémoire / disponibles.
+- [ ] La route répond en < 200ms (pas de requête DuckDB lourde).
+- [ ] Uptime Kuma est configuré pour monitorer cette URL avec une alerte si `status === "degraded"` ou si la route est injoignable.
+- [ ] La route est accessible publiquement (pas d'authentification) mais ne retourne aucune donnée personnelle.
+
+### US-05-02 : Intégration PostHog Cloud EU
+
+**En tant que** développeur,
+**Je veux** intégrer PostHog Cloud EU dans l'application Next.js,
+**Afin de** disposer d'une plateforme centrale pour l'analytics, le tracking d'erreurs et les Core Web Vitals, sans cookie et conforme RGPD.
+
+**Critères d'Acceptation :**
+
+- [ ] Compte PostHog créé sur la région EU (eu.posthog.com).
+- [ ] Package `posthog-js` installé et initialisé dans un Provider Next.js (`PostHogProvider`).
+- [ ] Configuration `posthog.init` avec : `persistence: 'memory'` (pas de cookie ni localStorage pour l'identité), `autocapture: false` (contrôle total des events), `disable_session_recording: true` (session replay désactivé).
+- [ ] Le Provider est monté côté client uniquement (`'use client'`) et wrappé autour du layout sans bloquer le SSR.
+- [ ] Aucun cookie n'est déposé dans le navigateur suite à l'initialisation (vérifiable via DevTools → Application → Cookies).
+- [ ] Les données arrivent dans le dashboard PostHog EU (vérification d'au moins 1 session enregistrée en dev).
+- [ ] La clé API PostHog est stockée dans une variable d'environnement `NEXT_PUBLIC_POSTHOG_KEY` (jamais en dur dans le code).
+- [ ] Le script PostHog ne dégrade pas le LCP ni le TTI (vérification via Lighthouse avant/après).
+
+### US-05-03 : Tracking des Erreurs Silencieuses
+
+**En tant que** développeur,
+**Je veux** capturer automatiquement les erreurs JavaScript silencieuses (DuckDB-WASM, Web Worker, runtime),
+**Afin de** rendre visibles les pannes qui touchent des utilisateurs sans qu'ils les signalent.
+
+**Critères d'Acceptation :**
+
+- [ ] Un `ErrorBoundary` React global capture les erreurs de rendu et les envoie à PostHog via `posthog.captureException()`.
+- [ ] Les erreurs non catchées (`window.onerror`, `unhandledrejection`) sont interceptées et envoyées à PostHog.
+- [ ] Les erreurs DuckDB-WASM sont catchées dans le Web Worker et postées au thread principal via `postMessage`, puis envoyées à PostHog avec le contexte `{ errorType: 'duckdb', department, query }`.
+- [ ] Les erreurs de chargement des fichiers Parquet (fetch Hugging Face échoué) sont capturées avec le contexte `{ department, url, httpStatus }`.
+- [ ] Chaque erreur capturée inclut : `errorType`, `message`, `browser`, `os`, `deviceType` (mobile/desktop).
+- [ ] Aucune donnée personnelle (IP, user-agent complet, position) n'est incluse dans les erreurs envoyées.
+- [ ] Dans le dashboard PostHog, un filtre "Error tracking" permet de voir les erreurs groupées par type et fréquence.
+
+---
+
+## E06 - Analytics Comportemental & Conformité RGPD
+
+**Objectif :** Baptiste comprend ce que font réellement les utilisateurs (conversion, modes de tri, abandons, profil réseau, PWA vs web), et les utilisateurs français peuvent consulter et faire confiance aux pratiques de l'application.
+
+**Prérequis :** E05 terminé (PostHog installé et opérationnel)
+
+### US-06-01 : Événements de Conversion (Navigation Lancée)
+
+**En tant que** développeur,
+**Je veux** tracker le clic sur les boutons "Ouvrir dans Google Maps" et "Ouvrir dans Waze",
+**Afin de** mesurer le taux de conversion réel de l'application (l'utilisateur a trouvé sa station et se prépare à y aller).
+
+**Critères d'Acceptation :**
+
+- [ ] Un event PostHog `navigation_launched` est envoyé lors de chaque clic sur les boutons de navigation.
+- [ ] L'event inclut les propriétés : `destination` (`"google_maps"` ou `"waze"`), `fuelType` (carburant sélectionné au moment du clic), `sortMode` (mode de tri actif), `sessionDurationMs` (durée de la session au moment du clic).
+- [ ] L'event ne contient aucune donnée de position GPS ni identifiant de station (adresse textuelle uniquement si nécessaire).
+- [ ] Le dashboard PostHog affiche le taux de sessions ayant déclenché au moins un `navigation_launched`.
+- [ ] Un funnel PostHog est configuré : `session_start` → `station_detail_viewed` → `navigation_launched`.
+
+### US-06-02 : Événements de Comportement Utilisateur
+
+**En tant que** développeur,
+**Je veux** tracker les choix de mode de tri, de carburant, la source de session et l'état de géolocalisation,
+**Afin de** comprendre quelles fonctionnalités sont réellement utilisées et prioriser les évolutions produit.
+
+**Critères d'Acceptation :**
+
+- [ ] Event `mode_selected` envoyé à chaque changement de mode de tri, avec la propriété `mode` (`"cheapest"` | `"nearest"` | `"cost_per_trip"`).
+- [ ] Event `fuel_selected` envoyé à chaque changement de carburant, avec la propriété `fuelType` (`"Gazole"` | `"E10"` | `"SP95"` | etc.).
+- [ ] Event `session_start` enrichi avec la propriété `session_source` : `"pwa"` si `window.matchMedia('(display-mode: standalone)').matches`, sinon `"browser"`.
+- [ ] Event `session_start` enrichi avec `geoloc_status` : `"granted"` | `"denied"` | `"not_requested"` selon l'état de la permission géolocalisation.
+- [ ] Event `session_start` enrichi avec `network_quality` : valeur de `navigator.connection?.effectiveType` (`"4g"` | `"3g"` | `"2g"` | `"slow-2g"` | `"unknown"`).
+- [ ] Aucun des events ne contient de coordonnées GPS, d'adresse IP ou de donnée permettant d'identifier l'utilisateur.
+- [ ] Les events sont visibles et filtrables dans le dashboard PostHog.
+
+### US-06-03 : Beacon API — Fin de Session
+
+**En tant que** développeur,
+**Je veux** envoyer un event `session_ended` au moment où l'utilisateur quitte la page,
+**Afin de** distinguer les sessions "succès" (navigation lancée) des abandons, même en cas de fermeture brutale.
+
+**Critères d'Acceptation :**
+
+- [ ] Un handler `visibilitychange` (+ `beforeunload` en fallback) envoie l'event via `navigator.sendBeacon()` à la fermeture de la page.
+- [ ] L'event `session_ended` inclut : `navigationLaunched` (boolean), `lastMode` (mode actif), `lastFuelType` (carburant actif), `sessionDurationMs`, `stationDetailOpened` (boolean).
+- [ ] `navigator.sendBeacon()` est utilisé en priorité (fonctionne même si la page se ferme) ; fallback sur `fetch` si non disponible.
+- [ ] L'event arrive bien dans PostHog même si l'utilisateur ferme l'onglet immédiatement après un clic navigation (testé manuellement).
+- [ ] Dans PostHog, il est possible de filtrer les sessions `navigationLaunched: false` pour identifier les abandons purs.
+
+### US-06-04 : Page Confidentialité & Transparence RGPD
+
+**En tant qu'** utilisateur de FaisTonPlein,
+**Je veux** accéder à une page expliquant clairement quelles données sont collectées, par quel outil et pourquoi,
+**Afin de** comprendre et faire confiance aux pratiques de l'application.
+
+**Critères d'Acceptation :**
+
+- [ ] Une page `/confidentialite` est créée en tant que Server Component Next.js (accessible sans JavaScript activé).
+- [ ] La page explique : (1) qu'aucune donnée personnelle n'est collectée, (2) que PostHog Cloud EU est l'outil utilisé, (3) quels événements anonymes sont trackés et leur finalité, (4) qu'aucun cookie n'est déposé, (5) comment contacter Baptiste pour toute question.
+- [ ] Un lien vers `/confidentialite` est présent dans le footer ou le menu de l'application.
+- [ ] La page est rédigée en français, en langage clair et accessible (pas de jargon juridique).
+- [ ] La page mentionne explicitement que les données sont hébergées dans l'Union Européenne (PostHog EU).
