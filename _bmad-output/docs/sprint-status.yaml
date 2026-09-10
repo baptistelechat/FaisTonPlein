@@ -73,8 +73,8 @@ development_status:
   epic-4-retrospective: done
 
   # Epic 5: Observabilité & Santé de l'Application
-  epic-5-observabilite-sante: backlog
-  us-05-01-route-sante-etl: backlog
+  epic-5-observabilite-sante: in-progress
+  us-05-01-route-sante-etl: in-progress # code fait + testé, monitor Uptime Kuma à brancher manuellement une fois déployé
   us-05-02-integration-posthog: backlog
   us-05-03-tracking-erreurs-silencieuses: backlog
   epic-5-retrospective: optional

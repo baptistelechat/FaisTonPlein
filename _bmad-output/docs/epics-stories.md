@@ -270,14 +270,16 @@
 
 **Critères d'Acceptation :**
 
-- [ ] Route GET `/api/health` créée dans Next.js (Route Handler).
-- [ ] La réponse retourne un JSON avec : `{ status, lastETLUpdate, stationsCount, errorRateLast30min, timestamp }`.
-- [ ] `status` vaut `"healthy"` si `lastETLUpdate < 2h`, sinon `"degraded"`.
-- [ ] `lastETLUpdate` est récupéré depuis les métadonnées du dernier fichier Parquet chargé (ou localStorage si disponible côté client — à arbitrer côté serveur).
-- [ ] `stationsCount` reflète le nombre de stations actuellement en mémoire / disponibles.
-- [ ] La route répond en < 200ms (pas de requête DuckDB lourde).
-- [ ] Uptime Kuma est configuré pour monitorer cette URL avec une alerte si `status === "degraded"` ou si la route est injoignable.
-- [ ] La route est accessible publiquement (pas d'authentification) mais ne retourne aucune donnée personnelle.
+- [x] Route GET `/api/health` créée dans Next.js (Route Handler).
+- [x] La réponse retourne un JSON avec : `{ status, lastETLUpdate, stationsCount, errorRateLast30min, timestamp }`.
+- [x] `status` vaut `"healthy"` si `lastETLUpdate < 2h`, sinon `"degraded"`.
+- [x] `lastETLUpdate` est récupéré depuis `metadata.json` publié par l'ETL sur Hugging Face (fetch serveur, pas de DuckDB).
+- [x] `stationsCount` reflète le nombre de stations actuellement en mémoire / disponibles (`total_stations` de `metadata.json`).
+- [x] La route répond en < 200ms (pas de requête DuckDB lourde) — testé en local (`next start`), réponse immédiate.
+- [ ] Uptime Kuma est configuré pour monitorer cette URL avec une alerte si `status === "degraded"` ou si la route est injoignable. **→ en attente de déploiement + config manuelle Uptime Kuma (hors périmètre autonome)**
+- [x] La route est accessible publiquement (pas d'authentification) mais ne retourne aucune donnée personnelle.
+
+`errorRateLast30min` retourne `null` en attendant US-05-03 (pas de source de données d'erreur avant l'intégration PostHog).
 
 ### US-05-02 : Intégration PostHog Cloud EU
 
