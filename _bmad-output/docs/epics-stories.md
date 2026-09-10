@@ -352,6 +352,8 @@
 - [x] Aucune donnée personnelle dans les events.
 - [ ] Events visibles et filtrables dans le dashboard PostHog. **→ à vérifier une fois du volume réel accumulé (hors code)**
 
+**Extension au-delà du périmètre initial (2026-09-10)** : audit comparatif vs le tracking d'ifecho (projet PostHog partagé) — 17 events supplémentaires ajoutés pour couvrir le panneau Réglages (rayon, autoroutes, tracé, rupture, mode distance, véhicule, habitude de plein), le résultat réel de la demande de géolocalisation, la recherche d'adresse (échec/zéro résultat/sélection), la réinitialisation de l'app, l'échec global de chargement, le cycle d'installation PWA et le sélecteur de plage du graphique de prix. Commit `fd613f2`.
+
 ### US-06-03 : Beacon API — Fin de Session
 
 **En tant que** développeur,
