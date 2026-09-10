@@ -1,4 +1,5 @@
 "use client";
+import analytics from "@/lib/analytics";
 import { useInstallPrompt } from "@/hooks/useInstallPrompt";
 import { Download } from "lucide-react";
 
@@ -11,10 +12,15 @@ export function InstallButton({ variant = "icon" }: InstallButtonProps) {
 
   if (!canInstall) return null;
 
+  const handleInstall = () => {
+    analytics.pwaInstallClicked();
+    install();
+  };
+
   if (variant === "full") {
     return (
       <button
-        onClick={install}
+        onClick={handleInstall}
         aria-label="Installer l'application FaisTonPlein"
         title="Installer l'application"
         className="group bg-primary/90 hover:bg-primary hover:shadow-primary/30 flex cursor-pointer items-center gap-2 rounded-xl px-3 py-2 shadow-lg backdrop-blur-md transition-all duration-200 hover:shadow-xl active:scale-95"
@@ -29,7 +35,7 @@ export function InstallButton({ variant = "icon" }: InstallButtonProps) {
 
   return (
     <button
-      onClick={install}
+      onClick={handleInstall}
       aria-label="Installer l'application FaisTonPlein"
       title="Installer l'application"
       className="group bg-primary/90 hover:bg-primary hover:shadow-primary/30 flex cursor-pointer items-center justify-center rounded-xl p-2 shadow-lg backdrop-blur-md transition-all duration-200 hover:shadow-xl active:scale-95"

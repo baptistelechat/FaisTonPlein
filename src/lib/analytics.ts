@@ -50,6 +50,91 @@ const analytics = {
     posthog.capture("fuel_selected", { fuelType });
   },
 
+  searchRadiusChanged: (radius: number, source: "header" | "settings") => {
+    if (!isEnabled()) return;
+    posthog.capture("search_radius_changed", { radius, source });
+  },
+
+  highwayToggle: (enabled: boolean) => {
+    if (!isEnabled()) return;
+    posthog.capture("highway_toggle", { enabled });
+  },
+
+  routeToggle: (enabled: boolean) => {
+    if (!isEnabled()) return;
+    posthog.capture("route_toggle", { enabled });
+  },
+
+  ruptureToggle: (enabled: boolean) => {
+    if (!isEnabled()) return;
+    posthog.capture("rupture_toggle", { enabled });
+  },
+
+  distanceModeSelected: (mode: string) => {
+    if (!isEnabled()) return;
+    posthog.capture("distance_mode_selected", { mode });
+  },
+
+  vehicleSelected: (vehicleType: string | null) => {
+    if (!isEnabled()) return;
+    posthog.capture("vehicle_selected", { vehicleType });
+  },
+
+  fillHabitSelected: (habit: number) => {
+    if (!isEnabled()) return;
+    posthog.capture("fill_habit_selected", { habit });
+  },
+
+  geolocResult: (granted: boolean) => {
+    if (!isEnabled()) return;
+    posthog.capture("geoloc_result", { granted });
+  },
+
+  addressSearchFailed: () => {
+    if (!isEnabled()) return;
+    posthog.capture("address_search_failed");
+  },
+
+  addressSearchNoResults: () => {
+    if (!isEnabled()) return;
+    posthog.capture("address_search_no_results");
+  },
+
+  addressSelected: () => {
+    if (!isEnabled()) return;
+    posthog.capture("address_selected");
+  },
+
+  appReset: () => {
+    if (!isEnabled()) return;
+    posthog.capture("app_reset");
+  },
+
+  dataLoadFailed: () => {
+    if (!isEnabled()) return;
+    posthog.capture("data_load_failed", { scope: "global" });
+  },
+
+  pwaInstallBannerShown: () => {
+    if (!isEnabled()) return;
+    posthog.capture("pwa_install_banner_shown");
+  },
+
+  pwaInstallClicked: () => {
+    if (!isEnabled()) return;
+    posthog.capture("pwa_install_clicked");
+  },
+
+  pwaInstalled: () => {
+    if (!isEnabled()) return;
+    posthog.capture("pwa_installed");
+  },
+
+  priceHistoryRangeChanged: (days: number) => {
+    if (!isEnabled()) return;
+    posthog.capture("price_history_range_changed", { days });
+  },
+
   /**
    * Envoyé à la fermeture de la page via navigator.sendBeacon (fallback fetch keepalive)
    * pour survivre à une fermeture brutale — posthog.capture() n'est pas fiable dans ce cas.

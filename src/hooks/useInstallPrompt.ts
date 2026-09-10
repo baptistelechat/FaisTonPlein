@@ -1,4 +1,5 @@
 "use client";
+import analytics from "@/lib/analytics";
 import { useEffect, useState } from "react";
 
 interface BeforeInstallPromptEvent extends Event {
@@ -25,9 +26,13 @@ export function useInstallPrompt() {
     const onBeforeInstall = (e: Event) => {
       e.preventDefault();
       setPromptEvent(e as BeforeInstallPromptEvent);
+      analytics.pwaInstallBannerShown();
     };
 
-    const onInstalled = () => setPromptEvent(null);
+    const onInstalled = () => {
+      setPromptEvent(null);
+      analytics.pwaInstalled();
+    };
 
     window.addEventListener("beforeinstallprompt", onBeforeInstall);
     window.addEventListener("appinstalled", onInstalled);

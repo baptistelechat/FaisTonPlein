@@ -1,5 +1,6 @@
 "use client";
 
+import analytics from "@/lib/analytics";
 import { searchAddresses, type SearchResult } from "@/lib/api-adresse";
 import { useAppStore } from "@/store/useAppStore";
 import { useRef, useState } from "react";
@@ -55,9 +56,11 @@ export const useAddressSearch = (
       try {
         const data = await searchAddresses(query);
         setResults(data);
+        if (data.length === 0) analytics.addressSearchNoResults();
       } catch (error) {
         console.error("Search error:", error);
         useAppStore.getState().setIsApiAdresseUnavailable(true);
+        analytics.addressSearchFailed();
       } finally {
         setIsLoading(false);
       }
@@ -66,6 +69,7 @@ export const useAddressSearch = (
 
   const handleSelect = (item: SearchResult) => {
     isSelectionRef.current = true;
+    analytics.addressSelected();
 
     setUserLocation(null);
     setSearchQuery("");

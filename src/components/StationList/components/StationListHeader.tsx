@@ -91,7 +91,10 @@ export function StationListHeader({
                 key={option.value}
                 variant={searchRadius === option.value ? "default" : "outline"}
                 className="cursor-pointer"
-                onClick={() => setSearchRadius(option.value)}
+                onClick={() => {
+                  setSearchRadius(option.value);
+                  analytics.searchRadiusChanged(option.value, "header");
+                }}
               >
                 {option.label}
               </Badge>

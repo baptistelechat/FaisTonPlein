@@ -1,5 +1,6 @@
 "use client";
 
+import analytics from "@/lib/analytics";
 import { getDepartmentsInRadius } from "@/lib/departments";
 import { captureError } from "@/lib/errorTracking";
 import { mapRawDataToStation, RawStationData } from "@/lib/mappers";
@@ -55,8 +56,14 @@ export const FuelDataLoader = () => {
     }
 
     navigator.geolocation.getCurrentPosition(
-      () => setLocationAvailable(true),
-      () => setLocationAvailable(false),
+      () => {
+        setLocationAvailable(true);
+        analytics.geolocResult(true);
+      },
+      () => {
+        setLocationAvailable(false);
+        analytics.geolocResult(false);
+      },
     );
   }, []);
 
@@ -213,6 +220,7 @@ export const FuelDataLoader = () => {
         if (isMounted) {
           console.error("Failed to load fuel data:", err);
           toast.error(`Erreur lors du chargement des données carburant`);
+          analytics.dataLoadFailed();
         }
       } finally {
         if (isMounted) setIsLoading(false);
