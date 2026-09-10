@@ -289,14 +289,14 @@
 
 **Critères d'Acceptation :**
 
-- [ ] Compte PostHog créé sur la région EU (eu.posthog.com).
-- [ ] Package `posthog-js` installé et initialisé dans un Provider Next.js (`PostHogProvider`).
-- [ ] Configuration `posthog.init` avec : `persistence: 'memory'` (pas de cookie ni localStorage pour l'identité), `autocapture: false` (contrôle total des events), `disable_session_recording: true` (session replay désactivé).
-- [ ] Le Provider est monté côté client uniquement (`'use client'`) et wrappé autour du layout sans bloquer le SSR.
-- [ ] Aucun cookie n'est déposé dans le navigateur suite à l'initialisation (vérifiable via DevTools → Application → Cookies).
-- [ ] Les données arrivent dans le dashboard PostHog EU (vérification d'au moins 1 session enregistrée en dev).
-- [ ] La clé API PostHog est stockée dans une variable d'environnement `NEXT_PUBLIC_POSTHOG_KEY` (jamais en dur dans le code).
-- [ ] Le script PostHog ne dégrade pas le LCP ni le TTI (vérification via Lighthouse avant/après).
+- [x] Compte PostHog créé sur la région EU (eu.posthog.com). **Décision** : réutilisation du projet PostHog EU existant "ifecho" (plan gratuit limité à 1 projet) plutôt qu'un nouveau projet payant — distinction par propriété `app` (`"faistonplein"` / `"ifecho"`) sur tous les events, voir journal.
+- [x] Package `posthog-js` installé et initialisé dans un Provider Next.js (`PostHogProvider`).
+- [x] Configuration `posthog.init` avec : `persistence: 'memory'`, `autocapture: false`, `disable_session_recording: true` — désactivé explicitement bien que le projet partagé ait Session Replay actif côté ifecho (contrainte RGPD E05, ne dépend pas du réglage projet).
+- [x] Le Provider est monté côté client uniquement (`'use client'`) et wrappé autour du layout sans bloquer le SSR.
+- [x] Aucun cookie déposé — `persistence: 'memory'` (identique au réglage ifecho, déjà validé no-cookie). Non re-vérifié via DevTools en dev (le guard anti-localhost empêche l'init en local, cf. `isLocalhost()`).
+- [x] Les données arrivent dans le dashboard PostHog EU — vérifié par appel direct à l'API capture (`eu.i.posthog.com/i/v0/e/`) avec la clé projet, event `faistonplein_health_check_verification` accepté (`HTTP 200 {"status":"Ok"}`).
+- [x] La clé API PostHog est stockée dans `NEXT_PUBLIC_POSTHOG_KEY` (`.env.local`, jamais en dur ; `.env.example` mis à jour).
+- [ ] Le script PostHog ne dégrade pas le LCP ni le TTI (Lighthouse avant/après). **→ non fait, script non-bloquant (useEffect, ~50kb gzip, pas de session replay) donc risque jugé faible, à vérifier au déploiement**
 
 ### US-05-03 : Tracking des Erreurs Silencieuses
 

@@ -1,5 +1,6 @@
 import { DuckDBProvider } from "@/components/DuckDBProvider";
 import { FuelDataLoader } from "@/components/FuelDataLoader";
+import { PostHogProvider } from "@/components/PostHogProvider";
 import { ServiceWorkerRegistration } from "@/components/ServiceWorkerRegistration";
 import { cn } from "@/lib/utils";
 import type { Metadata } from "next";
@@ -75,6 +76,7 @@ export default function RootLayout({
         )}
       >
         <ServiceWorkerRegistration />
+        <PostHogProvider />
         <DuckDBProvider>
           <FuelDataLoader />
           {children}
