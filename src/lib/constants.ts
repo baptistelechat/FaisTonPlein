@@ -69,6 +69,10 @@ export const DEPT_CACHE_DB_NAME = "faistonplein-cache";
 export const DEPT_CACHE_STORE_NAME = "dept-parquet";
 export const DEPT_CACHE_DB_VERSION = 1;
 export const CACHE_MAX_AGE_MS = 2 * 60 * 60 * 1000; // 2h — aligné sur la fréquence de mise à jour HuggingFace
+// ETL cron = "0 */2 * * *" (toutes les 2h) : réutiliser CACHE_MAX_AGE_MS tel quel pour la
+// fraîcheur du /api/health ferait basculer en "degraded" à chaque cycle, juste avant le run.
+// Marge de 30 min pour absorber la durée du run ETL + le jitter du cron.
+export const HEALTH_STALE_THRESHOLD_MS = CACHE_MAX_AGE_MS + 30 * 60 * 1000; // 2h30
 
 export const VEHICLE_PRESETS: VehiclePreset[] = [
   {

@@ -1,4 +1,4 @@
-import { CACHE_MAX_AGE_MS, HF_LATEST_BASE_URL } from "@/lib/constants";
+import { HEALTH_STALE_THRESHOLD_MS, HF_LATEST_BASE_URL } from "@/lib/constants";
 import { NextResponse } from "next/server";
 
 interface HealthMetadata {
@@ -17,7 +17,8 @@ export async function GET() {
 
     const metadata: HealthMetadata = await res.json();
     const isStale =
-      Date.now() - new Date(metadata.last_updated).getTime() > CACHE_MAX_AGE_MS;
+      Date.now() - new Date(metadata.last_updated).getTime() >
+      HEALTH_STALE_THRESHOLD_MS;
 
     return NextResponse.json({
       status: isStale ? "degraded" : "healthy",
