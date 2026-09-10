@@ -294,9 +294,9 @@
 - [x] Configuration `posthog.init` avec : `persistence: 'memory'`, `autocapture: false`, `disable_session_recording: true` — désactivé explicitement bien que le projet partagé ait Session Replay actif côté ifecho (contrainte RGPD E05, ne dépend pas du réglage projet).
 - [x] Le Provider est monté côté client uniquement (`'use client'`) et wrappé autour du layout sans bloquer le SSR.
 - [x] Aucun cookie déposé — `persistence: 'memory'` (identique au réglage ifecho, déjà validé no-cookie). Non re-vérifié via DevTools en dev (le guard anti-localhost empêche l'init en local, cf. `isLocalhost()`).
-- [x] Les données arrivent dans le dashboard PostHog EU — vérifié par appel direct à l'API capture (`eu.i.posthog.com/i/v0/e/`) avec la clé projet, event `faistonplein_health_check_verification` accepté (`HTTP 200 {"status":"Ok"}`).
+- [x] Les données arrivent dans le dashboard PostHog EU — **bug critique trouvé et corrigé en cours de route** : `Cross-Origin-Embedder-Policy: require-corp` (`next.config.ts`, nécessaire pour DuckDB-WASM) bloquait silencieusement 100% des requêtes PostHog (`net::ERR_BLOCKED_BY_RESPONSE`), sans aucune erreur applicative visible — aurait cassé tout Epic 5/6 en prod sans que rien ne le signale. Corrigé en passant à `credentialless` (voir [LRN-005](../../.claude/memory/learnings/LRN-005.md)). Vérifié après coup : 41 events réels reçus via un test app complet (session_start, fuel_selected, mode_selected, station_detail_viewed, navigation_launched, session_ended), tous avec `$host: localhost:PORT`, tous exclus par défaut par le filtre PostHog.
 - [x] La clé API PostHog est stockée dans `NEXT_PUBLIC_POSTHOG_KEY` (`.env.local`, jamais en dur ; `.env.example` mis à jour).
-- [ ] Le script PostHog ne dégrade pas le LCP ni le TTI (Lighthouse avant/après). **→ non fait, script non-bloquant (useEffect, ~50kb gzip, pas de session replay) donc risque jugé faible, à vérifier au déploiement**
+- [ ] Le script PostHog ne dégrade pas le LCP ni le TTI (Lighthouse avant/après). **→ non fait, validé par Baptiste comme non-bloquant**
 
 ### US-05-03 : Tracking des Erreurs Silencieuses
 
