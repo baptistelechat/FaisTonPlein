@@ -374,8 +374,8 @@
 
 **Critères d'Acceptation :**
 
-- [ ] Une page `/confidentialite` est créée en tant que Server Component Next.js (accessible sans JavaScript activé).
-- [ ] La page explique : (1) qu'aucune donnée personnelle n'est collectée, (2) que PostHog Cloud EU est l'outil utilisé, (3) quels événements anonymes sont trackés et leur finalité, (4) qu'aucun cookie n'est déposé, (5) comment contacter Baptiste pour toute question.
-- [ ] Un lien vers `/confidentialite` est présent dans le footer ou le menu de l'application.
-- [ ] La page est rédigée en français, en langage clair et accessible (pas de jargon juridique).
-- [ ] La page mentionne explicitement que les données sont hébergées dans l'Union Européenne (PostHog EU).
+- [x] Page `/confidentialite` en Server Component Next.js (confirmé : `○` prerendered statique au build, aucun `"use client"`).
+- [x] La page couvre les 5 points requis (données collectées, PostHog Cloud EU, événements trackés + finalité, absence de cookie, contact).
+- [x] Lien vers `/confidentialite` ajouté dans le panneau Réglages (`SettingsBody.tsx`) — pas de footer/menu traditionnel dans cette app (carte plein écran), c'est le seul point de navigation secondaire existant.
+- [x] Français, langage clair, pas de jargon juridique.
+- [x] Mention explicite de l'hébergement UE (PostHog Cloud EU).

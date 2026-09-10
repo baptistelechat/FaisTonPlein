@@ -40,6 +40,7 @@ import {
   Van,
   Zap,
 } from "lucide-react";
+import Link from "next/link";
 import { useMemo } from "react";
 import { VehicleInputs } from "./VehicleInputs";
 
@@ -368,6 +369,14 @@ export function SettingsBody() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <Separator />
+      <Link
+        href="/confidentialite"
+        className="text-muted-foreground hover:text-foreground self-start text-xs underline-offset-2 hover:underline"
+      >
+        Confidentialité
+      </Link>
     </div>
   );
 }

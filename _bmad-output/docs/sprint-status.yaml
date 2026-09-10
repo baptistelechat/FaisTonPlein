@@ -84,5 +84,5 @@ development_status:
   us-06-01-evenements-conversion: in-progress # code fait, dashboard/funnel PostHog à construire
   us-06-02-evenements-comportement: in-progress # code fait, dashboard PostHog à construire
   us-06-03-beacon-api-fin-session: in-progress # code fait, vérification fermeture d'onglet en conditions réelles à faire au déploiement
-  us-06-04-page-confidentialite-rgpd: backlog
+  us-06-04-page-confidentialite-rgpd: done
   epic-6-retrospective: optional
