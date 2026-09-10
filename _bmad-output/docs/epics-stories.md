@@ -330,11 +330,11 @@
 
 **Critères d'Acceptation :**
 
-- [ ] Un event PostHog `navigation_launched` est envoyé lors de chaque clic sur les boutons de navigation.
-- [ ] L'event inclut les propriétés : `destination` (`"google_maps"` ou `"waze"`), `fuelType` (carburant sélectionné au moment du clic), `sortMode` (mode de tri actif), `sessionDurationMs` (durée de la session au moment du clic).
-- [ ] L'event ne contient aucune donnée de position GPS ni identifiant de station (adresse textuelle uniquement si nécessaire).
-- [ ] Le dashboard PostHog affiche le taux de sessions ayant déclenché au moins un `navigation_launched`.
-- [ ] Un funnel PostHog est configuré : `session_start` → `station_detail_viewed` → `navigation_launched`.
+- [x] Un event PostHog `navigation_launched` est envoyé lors de chaque clic sur les boutons de navigation (`StationDetailActions.tsx`, point pivot `handleNavigate` commun aux deux boutons).
+- [x] L'event inclut les propriétés : `destination`, `fuelType`, `sortMode`, `sessionDurationMs`.
+- [x] L'event ne contient aucune donnée de position GPS ni identifiant de station.
+- [ ] Le dashboard PostHog affiche le taux de sessions ayant déclenché au moins un `navigation_launched`. **→ dashboard PostHog à construire (hors code), en attente de volume d'events réel**
+- [x] `station_detail_viewed` est bien émis (`StationDetail/index.tsx`, `useEffect` sur `selectedStationId`) pour le funnel `session_start` → `station_detail_viewed` → `navigation_launched` — funnel lui-même à configurer dans PostHog (hors code).
 
 ### US-06-02 : Événements de Comportement Utilisateur
 
@@ -344,13 +344,13 @@
 
 **Critères d'Acceptation :**
 
-- [ ] Event `mode_selected` envoyé à chaque changement de mode de tri, avec la propriété `mode` (`"cheapest"` | `"nearest"` | `"cost_per_trip"`).
-- [ ] Event `fuel_selected` envoyé à chaque changement de carburant, avec la propriété `fuelType` (`"Gazole"` | `"E10"` | `"SP95"` | etc.).
-- [ ] Event `session_start` enrichi avec la propriété `session_source` : `"pwa"` si `window.matchMedia('(display-mode: standalone)').matches`, sinon `"browser"`.
-- [ ] Event `session_start` enrichi avec `geoloc_status` : `"granted"` | `"denied"` | `"not_requested"` selon l'état de la permission géolocalisation.
-- [ ] Event `session_start` enrichi avec `network_quality` : valeur de `navigator.connection?.effectiveType` (`"4g"` | `"3g"` | `"2g"` | `"slow-2g"` | `"unknown"`).
-- [ ] Aucun des events ne contient de coordonnées GPS, d'adresse IP ou de donnée permettant d'identifier l'utilisateur.
-- [ ] Les events sont visibles et filtrables dans le dashboard PostHog.
+- [x] Event `mode_selected` envoyé à chaque changement de mode de tri, propriété `mode`. **Adapté** : valeurs réelles du store `"price" | "distance" | "real-cost"` (pas `cheapest/nearest/cost_per_trip` comme supposé initialement — mapping non nécessaire, les valeurs du store sont déjà lisibles).
+- [x] Event `fuel_selected` envoyé à chaque changement de carburant (`FuelTypeSelector.tsx`), propriété `fuelType`.
+- [x] Event `session_start` enrichi avec `session_source` (`window.matchMedia('(display-mode: standalone)')`, `PostHogProvider.tsx`).
+- [x] Event `session_start` enrichi avec `geoloc_status` via `navigator.permissions.query({name: "geolocation"})` (Permissions API — plus fiable que l'état `locationAvailable` de `FuelDataLoader.tsx` qui ne distingue pas denied/not_requested ; composants restés indépendants, pas de prop drilling).
+- [x] Event `session_start` enrichi avec `network_quality` (`navigator.connection?.effectiveType`, fallback `"unknown"`).
+- [x] Aucune donnée personnelle dans les events.
+- [ ] Events visibles et filtrables dans le dashboard PostHog. **→ à vérifier une fois du volume réel accumulé (hors code)**
 
 ### US-06-03 : Beacon API — Fin de Session
 
@@ -360,11 +360,11 @@
 
 **Critères d'Acceptation :**
 
-- [ ] Un handler `visibilitychange` (+ `beforeunload` en fallback) envoie l'event via `navigator.sendBeacon()` à la fermeture de la page.
-- [ ] L'event `session_ended` inclut : `navigationLaunched` (boolean), `lastMode` (mode actif), `lastFuelType` (carburant actif), `sessionDurationMs`, `stationDetailOpened` (boolean).
-- [ ] `navigator.sendBeacon()` est utilisé en priorité (fonctionne même si la page se ferme) ; fallback sur `fetch` si non disponible.
-- [ ] L'event arrive bien dans PostHog même si l'utilisateur ferme l'onglet immédiatement après un clic navigation (testé manuellement).
-- [ ] Dans PostHog, il est possible de filtrer les sessions `navigationLaunched: false` pour identifier les abandons purs.
+- [x] Handler `visibilitychange` (`document.visibilityState === "hidden"`) + `beforeunload` en fallback, tous deux dans `PostHogProvider.tsx`.
+- [x] L'event `session_ended` inclut `navigationLaunched`, `lastMode`, `lastFuelType`, `sessionDurationMs`, `stationDetailOpened` (état interne tenu dans `src/lib/analytics.ts`, lu depuis le store Zustand via `useAppStore.getState()` au moment de l'envoi).
+- [x] `navigator.sendBeacon()` utilisé en priorité (payload construit manuellement au format capture PostHog, bypass du SDK pour ce cas précis — la fiabilité à la fermeture prime), fallback `fetch(..., {keepalive: true})`.
+- [ ] Vérifié manuellement en conditions réelles (fermeture d'onglet juste après un clic navigation). **→ non testable de façon fiable en environnement de dev automatisé, à valider au déploiement.** Le endpoint et le format de payload sont corrects (vérifiés par un appel `curl` direct réussi lors de US-05-02).
+- [ ] Filtre `navigationLaunched: false` dans PostHog. **→ dashboard PostHog à construire (hors code)**
 
 ### US-06-04 : Page Confidentialité & Transparence RGPD
 

@@ -1,6 +1,7 @@
 "use client";
 
 import { Badge } from "@/components/ui/badge";
+import analytics from "@/lib/analytics";
 import { RADIUS_OPTIONS } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 import { Calculator, Clock, Euro, Route } from "lucide-react";
@@ -25,6 +26,11 @@ export function StationListHeader({
   majLabel,
   isDataStale,
 }: StationListHeaderProps) {
+  const handleSort = (mode: "price" | "distance" | "real-cost") => {
+    setListSortBy(mode);
+    analytics.modeSelected(mode);
+  };
+
   return (
     <div className="flex flex-col gap-2 p-4 pb-3">
       <div className="flex items-start justify-between gap-2">
@@ -55,7 +61,7 @@ export function StationListHeader({
             <Badge
               variant={listSortBy === "distance" ? "default" : "outline"}
               className="cursor-pointer"
-              onClick={() => setListSortBy("distance")}
+              onClick={() => handleSort("distance")}
             >
               <Route className="size-4" />
               Distance
@@ -63,7 +69,7 @@ export function StationListHeader({
             <Badge
               variant={listSortBy === "price" ? "default" : "outline"}
               className="cursor-pointer"
-              onClick={() => setListSortBy("price")}
+              onClick={() => handleSort("price")}
             >
               <Euro className="size-4" />
               Prix
@@ -72,7 +78,7 @@ export function StationListHeader({
               <Badge
                 variant={listSortBy === "real-cost" ? "default" : "outline"}
                 className="cursor-pointer"
-                onClick={() => setListSortBy("real-cost")}
+                onClick={() => handleSort("real-cost")}
               >
                 <Calculator className="size-4" />
                 Coût/trajet

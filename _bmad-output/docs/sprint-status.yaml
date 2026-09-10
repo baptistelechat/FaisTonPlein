@@ -80,9 +80,9 @@ development_status:
   epic-5-retrospective: optional
 
   # Epic 6: Analytics Comportemental & Conformité RGPD
-  epic-6-analytics-comportemental: backlog
-  us-06-01-evenements-conversion: backlog
-  us-06-02-evenements-comportement: backlog
-  us-06-03-beacon-api-fin-session: backlog
+  epic-6-analytics-comportemental: in-progress
+  us-06-01-evenements-conversion: in-progress # code fait, dashboard/funnel PostHog à construire
+  us-06-02-evenements-comportement: in-progress # code fait, dashboard PostHog à construire
+  us-06-03-beacon-api-fin-session: in-progress # code fait, vérification fermeture d'onglet en conditions réelles à faire au déploiement
   us-06-04-page-confidentialite-rgpd: backlog
   epic-6-retrospective: optional

@@ -1,6 +1,7 @@
 "use client";
 
 import { Badge } from "@/components/ui/badge";
+import analytics from "@/lib/analytics";
 import { FUEL_TYPES } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 import { useAppStore } from "@/store/useAppStore";
@@ -57,7 +58,10 @@ export function FuelTypeSelector({ className }: FuelTypeSelectorProps) {
           <Badge
             key={fuel.type}
             variant="secondary"
-            onClick={() => setSelectedFuel(fuel.type)}
+            onClick={() => {
+              setSelectedFuel(fuel.type);
+              analytics.fuelSelected(fuel.type);
+            }}
             className={cn(
               "font-heading text-muted-foreground cursor-pointer px-3 py-1.5 text-sm shadow-sm backdrop-blur-md transition-all",
               isSelected

@@ -5,10 +5,12 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { useFilteredStats } from "@/hooks/useFilteredStats";
 import { usePriceHistory } from "@/hooks/usePriceHistory";
 import { useStationName } from "@/hooks/useStationName";
+import analytics from "@/lib/analytics";
 import { DRAWER_SNAP_POINTS } from "@/lib/constants";
 import { cn, getStationDistance } from "@/lib/utils";
 import { useAppStore } from "@/store/useAppStore";
 import { CreditCard } from "lucide-react";
+import { useEffect } from "react";
 import { PriceCard } from "./components/PriceCard";
 import { StationDetailActions } from "./components/StationDetailActions";
 import { StationDetailHeader } from "./components/StationDetailHeader";
@@ -42,6 +44,10 @@ export function StationDetail({ mobileDrawerSnap }: StationDetailProps) {
   const isBestRealCost =
     selectedStationId !== null &&
     bestRealCostStationIds.includes(selectedStationId);
+
+  useEffect(() => {
+    if (selectedStationId) analytics.stationDetailViewed();
+  }, [selectedStationId]);
 
   const { name: stationName, isLoading: nameIsLoading } =
     useStationName(selectedStation);
