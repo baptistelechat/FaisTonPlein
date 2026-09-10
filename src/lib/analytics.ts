@@ -65,10 +65,9 @@ const analytics = {
       properties: {
         distinct_id: posthog.get_distinct_id(),
         app: "faistonplein",
-        // register()-only côté SDK, sans effet sur ce beacon manuel — répété ici
-        ...(process.env.NEXT_PUBLIC_POSTHOG_DEBUG === "true" && {
-          test_mode: true,
-        }),
+        // $host non auto-attaché ici (beacon manuel, hors SDK) — nécessaire pour
+        // que le filtre PostHog "Internal and test users" (Host ≠ ...) s'applique
+        $host: window.location.host,
         navigationLaunched: navigationWasLaunched,
         stationDetailOpened: stationDetailWasOpened,
         lastMode: props.lastMode,

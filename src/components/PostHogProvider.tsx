@@ -53,11 +53,6 @@ export function PostHogProvider() {
     });
     // même projet PostHog qu'ifecho — distingue les events par app
     posthog.register({ app: "faistonplein" });
-    if (process.env.NEXT_PUBLIC_POSTHOG_DEBUG === "true") {
-      // marque tout event de cette session comme test — à exclure des dashboards
-      // via le filtre PostHog "Internal and test users" (test_mode = true)
-      posthog.register({ test_mode: true });
-    }
 
     const sessionSource = getSessionSource();
     const networkQuality = getNetworkQuality();
