@@ -12,7 +12,7 @@ Décision prise : garder `sprint-status.yaml` et BMAD le temps de terminer Epic 
 
 - [BDR-003](decisions/BDR-003.md) — stack analytics PostHog Cloud EU + Uptime Kuma
 - [BDR-004](decisions/BDR-004.md) — abandon progressif de BMAD après clôture Epic 5/6
-- [BLK-001](blockers/BLK-001.md) — monitoring ETL, objet direct de l'Epic 5
+- [ZBLK-001](archive/blockers/ZBLK-001.md) — monitoring ETL, objet direct de l'Epic 5
 
 ---
 
@@ -26,3 +26,15 @@ Seul point encore ouvert : le déploiement effectif de la branche `analytics` (p
 
 - [BLK-004](blockers/BLK-004.md) — bug COEP bloquant PostHog en silence
 - [BLK-005](blockers/BLK-005.md) — collision d'events avec ifecho faussant le dashboard
+
+---
+
+Diagnostic et fix des faux positifs Uptime Kuma sur `/api/health`, remontés par Baptiste via une capture Telegram. Deux causes cumulées trouvées : un seuil de staleness égal à la fréquence du cron ETL combiné au cache Next 5min de la route (flapping Down/Up en ~5min), et l'instance RPi self-hosted (`pm2: faistonplein`) 24 commits en retard — antérieure même à la création de la route, d'où le 404 initial. Le fix (déjà écrit dans le working tree, jamais commité) a été vérifié (lint/build OK) puis pushé sur `main` (`67d1886`). Le RPi a ensuite été resynchronisé : `git pull`, upgrade pnpm global 8.15.1 → 10.30.3 (lockfile local en `9.0`, incompatible avec l'ancien pnpm), `pnpm install`, `pnpm build`, `pm2 restart` — `/api/health` vérifié `200 healthy` en direct. Découverte annexe : ce process RPi tourne en réalité `next dev --experimental-https`, pas un build de prod.
+
+`BLK-001` (monitoring ETL, reporté depuis Epic 0) marqué résolu et archivé en [ZBLK-001](archive/blockers/ZBLK-001.md). Trois patterns extraits ([LRN-008](learnings/LRN-008.md), [LRN-009](learnings/LRN-009.md), [LRN-010](learnings/LRN-010.md)) et une décision ([BDR-007](decisions/BDR-007.md)) — tous gardés en local à la demande de Baptiste plutôt que promus en mémoire globale, malgré leur portée générique.
+
+**Entrées clés :**
+
+- [ZBLK-001](archive/blockers/ZBLK-001.md) — monitoring ETL, enfin résolu
+- [LRN-007](learnings/LRN-007.md) — diagnostic complet du double faux positif
+- [BDR-007](decisions/BDR-007.md) — upgrade pnpm global RPi plutôt que régénérer le lockfile
