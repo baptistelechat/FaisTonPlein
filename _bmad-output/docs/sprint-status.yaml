@@ -72,17 +72,20 @@ development_status:
   us-04-02-consultation-offline: aborted
   epic-4-retrospective: done
 
-  # Epic 5: Observabilité & Santé de l'Application
-  epic-5-observabilite-sante: in-progress
-  us-05-01-route-sante-etl: in-progress # code fait + testé, monitor Uptime Kuma à brancher manuellement une fois déployé
-  us-05-02-integration-posthog: in-progress # code fait + event test vérifié, Lighthouse avant/après en attente
+  # Epic 5: Observabilité & Santé de l'Application — code 100% terminé, seule l'activation
+  # post-déploiement reste à faire (rien à coder, juste pousser en prod)
+  epic-5-observabilite-sante: done
+  us-05-01-route-sante-etl: done # monitor Uptime Kuma créé (groupe FaisTonPlein) mais EN PAUSE — à réactiver une fois déployé (404 tant que non pushé)
+  us-05-02-integration-posthog: done # bug COEP trouvé et corrigé (bloquait 100% des requêtes PostHog) ; Lighthouse explicitement non-bloquant, validé par Baptiste
   us-05-03-tracking-erreurs-silencieuses: done
   epic-5-retrospective: optional
 
-  # Epic 6: Analytics Comportemental & Conformité RGPD
-  epic-6-analytics-comportemental: in-progress
-  us-06-01-evenements-conversion: in-progress # code fait, dashboard/funnel PostHog à construire
-  us-06-02-evenements-comportement: in-progress # code fait, dashboard PostHog à construire
-  us-06-03-beacon-api-fin-session: in-progress # code fait, vérification fermeture d'onglet en conditions réelles à faire au déploiement
+  # Epic 6: Analytics Comportemental & Conformité RGPD — code 100% terminé (23 events,
+  # dashboard PostHog construit en 7 sections/26 tiles), vues vides tant qu'il n'y a pas
+  # de vrai trafic (normal, rien n'est déployé)
+  epic-6-analytics-comportemental: done
+  us-06-01-evenements-conversion: done # dashboard construit (project 207198, id 944492)
+  us-06-02-evenements-comportement: done # étendu à 17 events (audit vs ifecho), dashboard construit
+  us-06-03-beacon-api-fin-session: done # mécanisme vérifié (session_ended livré via sendBeacon pendant les tests) ; validation "fermeture d'onglet en prod" à faire au déploiement
   us-06-04-page-confidentialite-rgpd: done
   epic-6-retrospective: optional
