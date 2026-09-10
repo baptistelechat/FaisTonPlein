@@ -1,6 +1,7 @@
 "use client";
 
 import { getDepartmentsInRadius } from "@/lib/departments";
+import { captureError } from "@/lib/errorTracking";
 import { mapRawDataToStation, RawStationData } from "@/lib/mappers";
 import { HF_LATEST_BASE_URL } from "@/lib/constants";
 import {
@@ -156,14 +157,22 @@ export const FuelDataLoader = () => {
 
         // Fusionner tous les résultats, dédupliquer par id
         const stationMap = new Map<string, Station>();
-        for (const result of results) {
+        results.forEach((result, i) => {
+          const dept = departmentsToLoad[i];
           if (result.status === "fulfilled") {
             for (const raw of result.value) {
               const station = mapRawDataToStation(raw);
               stationMap.set(station.id, station);
             }
+          } else {
+            // Cache ET HuggingFace ont échoué pour ce département — erreur silencieuse sinon
+            captureError(result.reason, {
+              errorType: "duckdb_query",
+              department: dept,
+              url: `${BASE}/code_departement=${dept}/data_0.parquet`,
+            });
           }
-        }
+        });
 
         if (isMounted) {
           const stations = Array.from(stationMap.values());

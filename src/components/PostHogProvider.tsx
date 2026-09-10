@@ -31,6 +31,8 @@ export function PostHogProvider() {
       capture_pageleave: true,
       // projet PostHog partagé avec ifecho (Session Replay actif côté projet) — désactivé explicitement ici, contrainte RGPD E05
       disable_session_recording: true,
+      // capture automatique des erreurs non gérées (window.onerror / unhandledrejection) — US-05-03
+      capture_exceptions: true,
     });
     // même projet PostHog qu'ifecho — distingue les events par app
     posthog.register({ app: "faistonplein" });

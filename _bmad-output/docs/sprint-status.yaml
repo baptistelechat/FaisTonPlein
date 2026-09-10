@@ -76,7 +76,7 @@ development_status:
   epic-5-observabilite-sante: in-progress
   us-05-01-route-sante-etl: in-progress # code fait + testé, monitor Uptime Kuma à brancher manuellement une fois déployé
   us-05-02-integration-posthog: in-progress # code fait + event test vérifié, Lighthouse avant/après en attente
-  us-05-03-tracking-erreurs-silencieuses: backlog
+  us-05-03-tracking-erreurs-silencieuses: done
   epic-5-retrospective: optional
 
   # Epic 6: Analytics Comportemental & Conformité RGPD

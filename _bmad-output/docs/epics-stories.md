@@ -306,13 +306,13 @@
 
 **Critères d'Acceptation :**
 
-- [ ] Un `ErrorBoundary` React global capture les erreurs de rendu et les envoie à PostHog via `posthog.captureException()`.
-- [ ] Les erreurs non catchées (`window.onerror`, `unhandledrejection`) sont interceptées et envoyées à PostHog.
-- [ ] Les erreurs DuckDB-WASM sont catchées dans le Web Worker et postées au thread principal via `postMessage`, puis envoyées à PostHog avec le contexte `{ errorType: 'duckdb', department, query }`.
-- [ ] Les erreurs de chargement des fichiers Parquet (fetch Hugging Face échoué) sont capturées avec le contexte `{ department, url, httpStatus }`.
-- [ ] Chaque erreur capturée inclut : `errorType`, `message`, `browser`, `os`, `deviceType` (mobile/desktop).
-- [ ] Aucune donnée personnelle (IP, user-agent complet, position) n'est incluse dans les erreurs envoyées.
-- [ ] Dans le dashboard PostHog, un filtre "Error tracking" permet de voir les erreurs groupées par type et fréquence.
+- [x] Un `ErrorBoundary` React global capture les erreurs de rendu et les envoie à PostHog via `posthog.captureException()`.
+- [x] Les erreurs non catchées (`window.onerror`, `unhandledrejection`) sont interceptées et envoyées à PostHog — via l'option native `capture_exceptions: true` de posthog-js plutôt que du câblage manuel (ifecho s'appuie sur le même mécanisme).
+- [x] **Adapté à l'architecture réelle** : `@duckdb/duckdb-wasm` gère son propre Web Worker interne (pas de worker custom) et expose une API à base de promesses — les erreurs sont donc catchées côté `Promise.allSettled` dans `FuelDataLoader.tsx` (département qui échoue à la fois en cache ET en HuggingFace) avec le contexte `{ errorType: 'duckdb_query', department, url }`, plus `errorType: 'duckdb_init'` pour un échec d'initialisation globale.
+- [x] Les erreurs de chargement Parquet sont couvertes par le même point de capture (`duckdb_query`, contexte `department` + `url` reconstruite) — `httpStatus` non disponible séparément : DuckDB-WASM fait le fetch en interne (range-requests), le statut HTTP n'est pas exposé distinctement du message d'erreur.
+- [x] `errorType`, `message` passés explicitement à chaque capture. `browser`, `os`, `deviceType` : propriétés `$browser`/`$os`/`$device_type` auto-capturées nativement par PostHog sur tout event (cf. [LRN mémoire ifecho sur les propriétés natives PostHog]) — pas de code dupliqué pour les recalculer.
+- [x] Aucune donnée personnelle incluse : seuls `errorType`, `department`, `url`, `message` de l'erreur sont transmis.
+- [ ] Filtre "Error tracking" dans le dashboard PostHog groupé par type/fréquence. **→ à vérifier une fois du volume d'events réel accumulé (dashboard PostHog, hors code)**
 
 ---
 
