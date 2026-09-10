@@ -4,9 +4,9 @@ const nextConfig: NextConfig = {
   images: {
     remotePatterns: [
       {
-        protocol: 'https',
-        hostname: 'www.google.com',
-        pathname: '/s2/favicons',
+        protocol: "https",
+        hostname: "www.google.com",
+        pathname: "/s2/favicons",
       },
     ],
   },
@@ -21,7 +21,10 @@ const nextConfig: NextConfig = {
           },
           {
             key: "Cross-Origin-Embedder-Policy",
-            value: "require-corp",
+            // credentialless (pas require-corp) : garde SharedArrayBuffer pour DuckDB-WASM
+            // sans bloquer les requêtes cross-origin no-cors vers PostHog (qui n'envoie pas
+            // de header Cross-Origin-Resource-Policy — require-corp les bloquait silencieusement)
+            value: "credentialless",
           },
         ],
       },
