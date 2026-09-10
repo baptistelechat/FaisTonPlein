@@ -1,5 +1,6 @@
 "use client";
 
+import analytics from "@/lib/analytics";
 import { ChartLine, TrendingDown, TrendingUp } from "lucide-react";
 import { useState } from "react";
 import {
@@ -182,7 +183,11 @@ export function PriceHistoryChart({
 
         <Select
           value={timeRange}
-          onValueChange={(v) => setTimeRange(v as TimeRange)}
+          onValueChange={(v) => {
+            if (!v) return;
+            setTimeRange(v as TimeRange);
+            analytics.priceHistoryRangeChanged(parseInt(v, 10));
+          }}
         >
           <SelectTrigger
             className="h-7 w-28 rounded-md text-xs"

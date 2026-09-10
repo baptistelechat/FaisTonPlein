@@ -1,6 +1,8 @@
 "use client";
 
+import analytics from "@/lib/analytics";
 import { getDepartmentsInRadius } from "@/lib/departments";
+import { captureError } from "@/lib/errorTracking";
 import { mapRawDataToStation, RawStationData } from "@/lib/mappers";
 import { HF_LATEST_BASE_URL } from "@/lib/constants";
 import {
@@ -54,8 +56,14 @@ export const FuelDataLoader = () => {
     }
 
     navigator.geolocation.getCurrentPosition(
-      () => setLocationAvailable(true),
-      () => setLocationAvailable(false),
+      () => {
+        setLocationAvailable(true);
+        analytics.geolocResult(true);
+      },
+      () => {
+        setLocationAvailable(false);
+        analytics.geolocResult(false);
+      },
     );
   }, []);
 
@@ -156,14 +164,22 @@ export const FuelDataLoader = () => {
 
         // Fusionner tous les résultats, dédupliquer par id
         const stationMap = new Map<string, Station>();
-        for (const result of results) {
+        results.forEach((result, i) => {
+          const dept = departmentsToLoad[i];
           if (result.status === "fulfilled") {
             for (const raw of result.value) {
               const station = mapRawDataToStation(raw);
               stationMap.set(station.id, station);
             }
+          } else {
+            // Cache ET HuggingFace ont échoué pour ce département — erreur silencieuse sinon
+            captureError(result.reason, {
+              errorType: "duckdb_query",
+              department: dept,
+              url: `${BASE}/code_departement=${dept}/data_0.parquet`,
+            });
           }
-        }
+        });
 
         if (isMounted) {
           const stations = Array.from(stationMap.values());
@@ -204,6 +220,7 @@ export const FuelDataLoader = () => {
         if (isMounted) {
           console.error("Failed to load fuel data:", err);
           toast.error(`Erreur lors du chargement des données carburant`);
+          analytics.dataLoadFailed();
         }
       } finally {
         if (isMounted) setIsLoading(false);

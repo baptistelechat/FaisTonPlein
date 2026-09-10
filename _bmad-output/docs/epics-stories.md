@@ -6,7 +6,7 @@
 **Version :** 1.0
 **Source :** [PRD](../planning/prd-faistonplein.md)
 
-***
+---
 
 ## E00 - Fondations Techniques
 
@@ -66,7 +66,7 @@
 - [x] Conversion et intégration dans le pipeline existant (Parquet + HuggingFace).
 - [x] Gestion des cas limites (fichiers corrompus, jours manquants).
 
-***
+---
 
 ## E01 - Exploration Géographique
 
@@ -122,7 +122,7 @@
 - [x] La carte et la liste se mettent à jour instantanément.
 - [x] Le choix est sauvegardé pour les prochaines sessions.
 
-***
+---
 
 ## E02 - Comparaison Économique
 
@@ -177,7 +177,7 @@
 - [x] Fallback silencieux vers Haversine/cercle si les APIs sont indisponibles.
 - [x] Indicateur discret `~` sur les distances Haversine temporaires en mode route.
 
-***
+---
 
 ## E03 - Intelligence & Analyse
 
@@ -216,7 +216,7 @@
 - [x] Graphique linéaire interactif (Recharts).
 - [x] Affichage des points de données au survol.
 
-***
+---
 
 ## E04 - Résilience (Offline)
 
@@ -242,7 +242,142 @@
 
 **Critères d'Acceptation :**
 
-- [ ] L'application se lance sans réseau.
-- [ ] Accès complet à la carte et liste (données en cache).
-- [ ] Indicateur "Mode Hors Ligne".
+- [x] L'application se lance sans réseau.
+- [x] Accès complet à la carte et liste (données en cache).
+- [x] Indicateur "Mode Hors Ligne".
 
+---
+
+## E05 - Observabilité & Santé de l'Application
+
+**Objectif :** Permettre à Baptiste de savoir en temps réel si l'application et ses données sont saines, et de détecter les erreurs silencieuses qui affectent les utilisateurs sans qu'ils les signalent.
+
+**Stack :** PostHog Cloud EU (sans cookie, RGPD-safe) + Uptime Kuma (existant, étendu)
+
+**Contraintes :**
+
+- Cookieless — aucun cookie déposé
+- EU-hosted — données hébergées dans l'Union Européenne
+- Pas de bannière de consentement requise
+- Session Replay PostHog désactivé (risque RGPD)
+- 1 seul outil complémentaire à Uptime Kuma
+
+### US-05-01 : Route de Santé ETL (`/api/health`)
+
+**En tant que** développeur,
+**Je veux** exposer une route `/api/health` sur l'application Next.js,
+**Afin de** permettre à Uptime Kuma de vérifier non seulement que l'app répond, mais que les données ETL sont fraîches et cohérentes.
+
+**Critères d'Acceptation :**
+
+- [x] Route GET `/api/health` créée dans Next.js (Route Handler).
+- [x] La réponse retourne un JSON avec : `{ status, lastETLUpdate, stationsCount, errorRateLast30min, timestamp }`.
+- [x] `status` vaut `"healthy"` si `lastETLUpdate < 2h`, sinon `"degraded"`.
+- [x] `lastETLUpdate` est récupéré depuis `metadata.json` publié par l'ETL sur Hugging Face (fetch serveur, pas de DuckDB).
+- [x] `stationsCount` reflète le nombre de stations actuellement en mémoire / disponibles (`total_stations` de `metadata.json`).
+- [x] La route répond en < 200ms (pas de requête DuckDB lourde) — testé en local (`next start`), réponse immédiate.
+- [ ] Uptime Kuma est configuré pour monitorer cette URL avec une alerte si `status === "degraded"` ou si la route est injoignable. **→ en attente de déploiement + config manuelle Uptime Kuma (hors périmètre autonome)**
+- [x] La route est accessible publiquement (pas d'authentification) mais ne retourne aucune donnée personnelle.
+
+`errorRateLast30min` retourne `null` en attendant US-05-03 (pas de source de données d'erreur avant l'intégration PostHog).
+
+### US-05-02 : Intégration PostHog Cloud EU
+
+**En tant que** développeur,
+**Je veux** intégrer PostHog Cloud EU dans l'application Next.js,
+**Afin de** disposer d'une plateforme centrale pour l'analytics, le tracking d'erreurs et les Core Web Vitals, sans cookie et conforme RGPD.
+
+**Critères d'Acceptation :**
+
+- [x] Compte PostHog créé sur la région EU (eu.posthog.com). **Décision** : réutilisation du projet PostHog EU existant "ifecho" (plan gratuit limité à 1 projet) plutôt qu'un nouveau projet payant — distinction par propriété `app` (`"faistonplein"` / `"ifecho"`) sur tous les events, voir journal.
+- [x] Package `posthog-js` installé et initialisé dans un Provider Next.js (`PostHogProvider`).
+- [x] Configuration `posthog.init` avec : `persistence: 'memory'`, `autocapture: false`, `disable_session_recording: true` — désactivé explicitement bien que le projet partagé ait Session Replay actif côté ifecho (contrainte RGPD E05, ne dépend pas du réglage projet).
+- [x] Le Provider est monté côté client uniquement (`'use client'`) et wrappé autour du layout sans bloquer le SSR.
+- [x] Aucun cookie déposé — `persistence: 'memory'` (identique au réglage ifecho, déjà validé no-cookie). Non re-vérifié via DevTools en dev (le guard anti-localhost empêche l'init en local, cf. `isLocalhost()`).
+- [x] Les données arrivent dans le dashboard PostHog EU — **bug critique trouvé et corrigé en cours de route** : `Cross-Origin-Embedder-Policy: require-corp` (`next.config.ts`, nécessaire pour DuckDB-WASM) bloquait silencieusement 100% des requêtes PostHog (`net::ERR_BLOCKED_BY_RESPONSE`), sans aucune erreur applicative visible — aurait cassé tout Epic 5/6 en prod sans que rien ne le signale. Corrigé en passant à `credentialless` (voir [LRN-005](../../.claude/memory/learnings/LRN-005.md)). Vérifié après coup : 41 events réels reçus via un test app complet (session_start, fuel_selected, mode_selected, station_detail_viewed, navigation_launched, session_ended), tous avec `$host: localhost:PORT`, tous exclus par défaut par le filtre PostHog.
+- [x] La clé API PostHog est stockée dans `NEXT_PUBLIC_POSTHOG_KEY` (`.env.local`, jamais en dur ; `.env.example` mis à jour).
+- [ ] Le script PostHog ne dégrade pas le LCP ni le TTI (Lighthouse avant/après). **→ non fait, validé par Baptiste comme non-bloquant**
+
+### US-05-03 : Tracking des Erreurs Silencieuses
+
+**En tant que** développeur,
+**Je veux** capturer automatiquement les erreurs JavaScript silencieuses (DuckDB-WASM, Web Worker, runtime),
+**Afin de** rendre visibles les pannes qui touchent des utilisateurs sans qu'ils les signalent.
+
+**Critères d'Acceptation :**
+
+- [x] Un `ErrorBoundary` React global capture les erreurs de rendu et les envoie à PostHog via `posthog.captureException()`.
+- [x] Les erreurs non catchées (`window.onerror`, `unhandledrejection`) sont interceptées et envoyées à PostHog — via l'option native `capture_exceptions: true` de posthog-js plutôt que du câblage manuel (ifecho s'appuie sur le même mécanisme).
+- [x] **Adapté à l'architecture réelle** : `@duckdb/duckdb-wasm` gère son propre Web Worker interne (pas de worker custom) et expose une API à base de promesses — les erreurs sont donc catchées côté `Promise.allSettled` dans `FuelDataLoader.tsx` (département qui échoue à la fois en cache ET en HuggingFace) avec le contexte `{ errorType: 'duckdb_query', department, url }`, plus `errorType: 'duckdb_init'` pour un échec d'initialisation globale.
+- [x] Les erreurs de chargement Parquet sont couvertes par le même point de capture (`duckdb_query`, contexte `department` + `url` reconstruite) — `httpStatus` non disponible séparément : DuckDB-WASM fait le fetch en interne (range-requests), le statut HTTP n'est pas exposé distinctement du message d'erreur.
+- [x] `errorType`, `message` passés explicitement à chaque capture. `browser`, `os`, `deviceType` : propriétés `$browser`/`$os`/`$device_type` auto-capturées nativement par PostHog sur tout event (cf. [LRN mémoire ifecho sur les propriétés natives PostHog]) — pas de code dupliqué pour les recalculer.
+- [x] Aucune donnée personnelle incluse : seuls `errorType`, `department`, `url`, `message` de l'erreur sont transmis.
+- [ ] Filtre "Error tracking" dans le dashboard PostHog groupé par type/fréquence. **→ à vérifier une fois du volume d'events réel accumulé (dashboard PostHog, hors code)**
+
+---
+
+## E06 - Analytics Comportemental & Conformité RGPD
+
+**Objectif :** Baptiste comprend ce que font réellement les utilisateurs (conversion, modes de tri, abandons, profil réseau, PWA vs web), et les utilisateurs français peuvent consulter et faire confiance aux pratiques de l'application.
+
+**Prérequis :** E05 terminé (PostHog installé et opérationnel)
+
+### US-06-01 : Événements de Conversion (Navigation Lancée)
+
+**En tant que** développeur,
+**Je veux** tracker le clic sur les boutons "Ouvrir dans Google Maps" et "Ouvrir dans Waze",
+**Afin de** mesurer le taux de conversion réel de l'application (l'utilisateur a trouvé sa station et se prépare à y aller).
+
+**Critères d'Acceptation :**
+
+- [x] Un event PostHog `navigation_launched` est envoyé lors de chaque clic sur les boutons de navigation (`StationDetailActions.tsx`, point pivot `handleNavigate` commun aux deux boutons).
+- [x] L'event inclut les propriétés : `destination`, `fuelType`, `sortMode`, `sessionDurationMs`.
+- [x] L'event ne contient aucune donnée de position GPS ni identifiant de station.
+- [ ] Le dashboard PostHog affiche le taux de sessions ayant déclenché au moins un `navigation_launched`. **→ dashboard PostHog à construire (hors code), en attente de volume d'events réel**
+- [x] `station_detail_viewed` est bien émis (`StationDetail/index.tsx`, `useEffect` sur `selectedStationId`) pour le funnel `session_start` → `station_detail_viewed` → `navigation_launched` — funnel lui-même à configurer dans PostHog (hors code).
+
+### US-06-02 : Événements de Comportement Utilisateur
+
+**En tant que** développeur,
+**Je veux** tracker les choix de mode de tri, de carburant, la source de session et l'état de géolocalisation,
+**Afin de** comprendre quelles fonctionnalités sont réellement utilisées et prioriser les évolutions produit.
+
+**Critères d'Acceptation :**
+
+- [x] Event `mode_selected` envoyé à chaque changement de mode de tri, propriété `mode`. **Adapté** : valeurs réelles du store `"price" | "distance" | "real-cost"` (pas `cheapest/nearest/cost_per_trip` comme supposé initialement — mapping non nécessaire, les valeurs du store sont déjà lisibles).
+- [x] Event `fuel_selected` envoyé à chaque changement de carburant (`FuelTypeSelector.tsx`), propriété `fuelType`.
+- [x] Event `session_start` enrichi avec `session_source` (`window.matchMedia('(display-mode: standalone)')`, `PostHogProvider.tsx`).
+- [x] Event `session_start` enrichi avec `geoloc_status` via `navigator.permissions.query({name: "geolocation"})` (Permissions API — plus fiable que l'état `locationAvailable` de `FuelDataLoader.tsx` qui ne distingue pas denied/not_requested ; composants restés indépendants, pas de prop drilling).
+- [x] Event `session_start` enrichi avec `network_quality` (`navigator.connection?.effectiveType`, fallback `"unknown"`).
+- [x] Aucune donnée personnelle dans les events.
+- [ ] Events visibles et filtrables dans le dashboard PostHog. **→ à vérifier une fois du volume réel accumulé (hors code)**
+
+**Extension au-delà du périmètre initial (2026-09-10)** : audit comparatif vs le tracking d'ifecho (projet PostHog partagé) — 17 events supplémentaires ajoutés pour couvrir le panneau Réglages (rayon, autoroutes, tracé, rupture, mode distance, véhicule, habitude de plein), le résultat réel de la demande de géolocalisation, la recherche d'adresse (échec/zéro résultat/sélection), la réinitialisation de l'app, l'échec global de chargement, le cycle d'installation PWA et le sélecteur de plage du graphique de prix. Commit `fd613f2`.
+
+### US-06-03 : Beacon API — Fin de Session
+
+**En tant que** développeur,
+**Je veux** envoyer un event `session_ended` au moment où l'utilisateur quitte la page,
+**Afin de** distinguer les sessions "succès" (navigation lancée) des abandons, même en cas de fermeture brutale.
+
+**Critères d'Acceptation :**
+
+- [x] Handler `visibilitychange` (`document.visibilityState === "hidden"`) + `beforeunload` en fallback, tous deux dans `PostHogProvider.tsx`.
+- [x] L'event `session_ended` inclut `navigationLaunched`, `lastMode`, `lastFuelType`, `sessionDurationMs`, `stationDetailOpened` (état interne tenu dans `src/lib/analytics.ts`, lu depuis le store Zustand via `useAppStore.getState()` au moment de l'envoi).
+- [x] `navigator.sendBeacon()` utilisé en priorité (payload construit manuellement au format capture PostHog, bypass du SDK pour ce cas précis — la fiabilité à la fermeture prime), fallback `fetch(..., {keepalive: true})`.
+- [ ] Vérifié manuellement en conditions réelles (fermeture d'onglet juste après un clic navigation). **→ non testable de façon fiable en environnement de dev automatisé, à valider au déploiement.** Le endpoint et le format de payload sont corrects (vérifiés par un appel `curl` direct réussi lors de US-05-02).
+- [ ] Filtre `navigationLaunched: false` dans PostHog. **→ dashboard PostHog à construire (hors code)**
+
+### US-06-04 : Page Confidentialité & Transparence RGPD
+
+**En tant qu'** utilisateur de FaisTonPlein,
+**Je veux** accéder à une page expliquant clairement quelles données sont collectées, par quel outil et pourquoi,
+**Afin de** comprendre et faire confiance aux pratiques de l'application.
+
+**Critères d'Acceptation :**
+
+- [x] Page `/confidentialite` en Server Component Next.js (confirmé : `○` prerendered statique au build, aucun `"use client"`).
+- [x] La page couvre les 5 points requis (données collectées, PostHog Cloud EU, événements trackés + finalité, absence de cookie, contact).
+- [x] Lien vers `/confidentialite` ajouté dans le panneau Réglages (`SettingsBody.tsx`) — pas de footer/menu traditionnel dans cette app (carte plein écran), c'est le seul point de navigation secondaire existant.
+- [x] Français, langage clair, pas de jargon juridique.
+- [x] Mention explicite de l'hébergement UE (PostHog Cloud EU).

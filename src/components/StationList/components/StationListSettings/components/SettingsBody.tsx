@@ -1,6 +1,7 @@
 "use client";
 
 import { FuelTypeSelector } from "@/components/FuelTypeSelector";
+import analytics from "@/lib/analytics";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -40,6 +41,7 @@ import {
   Van,
   Zap,
 } from "lucide-react";
+import Link from "next/link";
 import { useMemo } from "react";
 import { VehicleInputs } from "./VehicleInputs";
 
@@ -114,7 +116,10 @@ export function SettingsBody() {
             key={option.value}
             variant={searchRadius === option.value ? "default" : "outline"}
             className="cursor-pointer"
-            onClick={() => setSearchRadius(option.value)}
+            onClick={() => {
+              setSearchRadius(option.value);
+              analytics.searchRadiusChanged(option.value, "settings");
+            }}
           >
             {option.label}
           </Badge>
@@ -141,7 +146,10 @@ export function SettingsBody() {
           <Switch
             id="highway-switch-settings"
             checked={showHighwayStations}
-            onCheckedChange={setShowHighwayStations}
+            onCheckedChange={(checked) => {
+              setShowHighwayStations(checked);
+              analytics.highwayToggle(checked);
+            }}
             disabled={!hasHighwayInRadius}
           />
         </div>
@@ -156,7 +164,10 @@ export function SettingsBody() {
           <Switch
             id="route-switch-settings"
             checked={showRoute}
-            onCheckedChange={setShowRoute}
+            onCheckedChange={(checked) => {
+              setShowRoute(checked);
+              analytics.routeToggle(checked);
+            }}
           />
         </div>
         <div className="flex items-center gap-2">
@@ -170,7 +181,10 @@ export function SettingsBody() {
           <Switch
             id="rupture-switch-settings"
             checked={showRuptureStations}
-            onCheckedChange={setShowRuptureStations}
+            onCheckedChange={(checked) => {
+              setShowRuptureStations(checked);
+              analytics.ruptureToggle(checked);
+            }}
           />
         </div>
       </div>
@@ -187,7 +201,10 @@ export function SettingsBody() {
         ).map(({ value, label, icon: Icon }) => (
           <button
             key={value}
-            onClick={() => setDistanceMode(value)}
+            onClick={() => {
+              setDistanceMode(value);
+              analytics.distanceModeSelected(value);
+            }}
             className={cn(
               "flex items-center gap-1.5 rounded-lg border p-2 text-left text-xs transition-all",
               distanceMode === value
@@ -221,7 +238,11 @@ export function SettingsBody() {
           return (
             <button
               key={preset.type}
-              onClick={() => setVehicleType(isSelected ? null : preset.type)}
+              onClick={() => {
+                const next = isSelected ? null : preset.type;
+                setVehicleType(next);
+                analytics.vehicleSelected(next);
+              }}
               className={cn(
                 "flex flex-col items-start gap-0.5 rounded-lg border p-2 text-left text-xs transition-all",
                 isSelected
@@ -256,7 +277,10 @@ export function SettingsBody() {
                 key={option.value}
                 variant={fillHabit === option.value ? "default" : "outline"}
                 className="cursor-pointer"
-                onClick={() => setFillHabit(option.value as FillHabit)}
+                onClick={() => {
+                  setFillHabit(option.value as FillHabit);
+                  analytics.fillHabitSelected(option.value);
+                }}
               >
                 {option.label}
               </Badge>
@@ -368,6 +392,14 @@ export function SettingsBody() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <Separator />
+      <Link
+        href="/confidentialite"
+        className="text-muted-foreground hover:text-foreground self-start text-xs underline-offset-2 hover:underline"
+      >
+        Confidentialité
+      </Link>
     </div>
   );
 }

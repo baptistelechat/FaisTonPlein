@@ -1,6 +1,7 @@
 "use client";
 
 import * as duckdb from "@duckdb/duckdb-wasm";
+import { captureError } from "@/lib/errorTracking";
 import React, { createContext, useContext, useEffect, useState } from "react";
 
 interface DuckDBContextType {
@@ -65,6 +66,7 @@ export const DuckDBProvider = ({ children }: { children: React.ReactNode }) => {
         }
       } catch (err) {
         console.error("Failed to initialize DuckDB", err);
+        captureError(err, { errorType: "duckdb_init" });
         if (isMounted) {
           setError(err instanceof Error ? err : new Error("Unknown error"));
           setIsLoading(false);

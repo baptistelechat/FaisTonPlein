@@ -2,6 +2,7 @@
 
 import { useCallback } from "react";
 import { toast } from "sonner";
+import analytics from "@/lib/analytics";
 import { useDuckDB } from "@/components/DuckDBProvider";
 import { useAppStore } from "@/store/useAppStore";
 import { HF_LATEST_BASE_URL, HF_ROLLING_BASE_URL } from "@/lib/constants";
@@ -112,6 +113,7 @@ export function useDeptCache() {
   );
 
   const resetApp = useCallback(async () => {
+    analytics.appReset();
     try {
       await clearAllDeptCache();
     } catch {

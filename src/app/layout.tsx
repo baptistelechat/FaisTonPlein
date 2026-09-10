@@ -1,5 +1,7 @@
 import { DuckDBProvider } from "@/components/DuckDBProvider";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { FuelDataLoader } from "@/components/FuelDataLoader";
+import { PostHogProvider } from "@/components/PostHogProvider";
 import { ServiceWorkerRegistration } from "@/components/ServiceWorkerRegistration";
 import { cn } from "@/lib/utils";
 import type { Metadata } from "next";
@@ -75,10 +77,13 @@ export default function RootLayout({
         )}
       >
         <ServiceWorkerRegistration />
-        <DuckDBProvider>
-          <FuelDataLoader />
-          {children}
-        </DuckDBProvider>
+        <PostHogProvider />
+        <ErrorBoundary>
+          <DuckDBProvider>
+            <FuelDataLoader />
+            {children}
+          </DuckDBProvider>
+        </ErrorBoundary>
       </body>
     </html>
   );
