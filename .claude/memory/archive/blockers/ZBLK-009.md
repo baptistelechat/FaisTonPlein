@@ -1,12 +1,12 @@
 ---
-id: BLK-009
+id: ZBLK-009
 type: blocker
 date: 2026-09-23
 tags:
   [satori, flexbox, react-fragment, og-image, layout, silent-failure, next-og]
 ---
 
-# BLK-009 — og:image générée illisible : 6 tuiles superposées sur une ligne
+# ZBLK-009 — og:image générée illisible : 6 tuiles superposées sur une ligne
 
 | Friction                                                                                                                                                                                                 | Cause réelle                                                                                                                                                                                                                                                                                                                            | Solution                                                                                                                                                             | Statut |
 | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
@@ -18,5 +18,5 @@ Voir aussi GLRN-293 (les écarts Satori/navigateur) et GLRN-296 (vérifier le re
 
 ## Références
 
-- [BDR-009](../decisions/BDR-009.md) — l'og:image concernée
-- [BLK-008](../blockers/BLK-008.md) — l'autre blocage de la même mise en place
+- [BDR-009](../../decisions/BDR-009.md) — l'og:image concernée
+- [ZBLK-008](ZBLK-008.md) — l'autre blocage de la même mise en place

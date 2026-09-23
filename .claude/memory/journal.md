@@ -38,6 +38,7 @@ Diagnostic et fix des faux positifs Uptime Kuma sur `/api/health`, remontés par
 - [ZBLK-001](archive/blockers/ZBLK-001.md) — monitoring ETL, enfin résolu
 - [LRN-007](learnings/LRN-007.md) — diagnostic complet du double faux positif
 - [BDR-007](decisions/BDR-007.md) — upgrade pnpm global RPi plutôt que régénérer le lockfile
+
 ## 2026-09-23
 
 Baptiste constate que son dashboard PostHog est resté entièrement vide depuis le déploiement des Epics 5/6, treize jours plus tôt. Le rituel de démarrage a immédiatement remonté les deux blocages PostHog de cette session-là — le COEP `require-corp` et la collision d'events avec ifecho — mais les deux ont été écartés par vérification directe : le header servi en production est bien `credentialless`, et la propriété `app: "faistonplein"` est bien attachée aux events.
@@ -64,7 +65,7 @@ Deuxième session de la journée, sur un tout autre sujet : le prix du carburant
 
 Cinq itérations de moodboard ont été nécessaires pour converger, chacune corrigeant une erreur de ma part. La v1 proposait six templates ogimagecn ; la v2, des hybrides Stat×Logo et Stat×Product ; la v3 a introduit l'idée de Baptiste — reprendre la forme des **totems de station-service**, l'objet que tout automobiliste sait lire sans explication et qui affiche nativement plusieurs carburants, ce qui réglait au passage le fait que se focaliser sur le Gazole écarte les conducteurs E10, E85 ou GPL. Baptiste m'a repris deux fois avec raison : j'avais d'abord inventé des codes couleur « carburant » à partir de ses photos au lieu d'utiliser ceux du projet, puis, après avoir trouvé la bonne source (`FUEL_TYPES` + `resolveHex(color, 500)`), j'avais quand même dévié en écartant SP95 et SP98 d'une nuance alors que le projet les traite identiquement.
 
-L'implémentation a buté sur trois pièges, tous documentés. Le build cassait sur le chargement des polices, avec un message de Turbopack trompeur qui parlait de `fetch` alors que rien ne partait sur le réseau ([BLK-008](blockers/BLK-008.md)). Puis l'image sortait valide, aux bonnes dimensions, mais totalement illisible : Satori aplatit mal les Fragments React et n'applique pas `flex: 1` ([BLK-009](blockers/BLK-009.md)) — un échec parfaitement silencieux, que lint, build et contrôle des dimensions laissaient passer. Le troisième, moins visible, tenait à Tailwind v4 qui ne publie plus qu'en `oklch` et a rebasé ses hex par rapport à la v3.
+L'implémentation a buté sur trois pièges, tous documentés. Le build cassait sur le chargement des polices, avec un message de Turbopack trompeur qui parlait de `fetch` alors que rien ne partait sur le réseau ([ZBLK-008](archive/blockers/ZBLK-008.md)). Puis l'image sortait valide, aux bonnes dimensions, mais totalement illisible : Satori aplatit mal les Fragments React et n'applique pas `flex: 1` ([ZBLK-009](archive/blockers/ZBLK-009.md)) — un échec parfaitement silencieux, que lint, build et contrôle des dimensions laissaient passer. Le troisième, moins visible, tenait à Tailwind v4 qui ne publie plus qu'en `oklch` et a rebasé ses hex par rapport à la v3.
 
 Le point le plus instructif de la session est méthodologique. J'avais validé le layout dans un navigateur, mesures à l'appui, et j'aurais livré une image cassée sans un build de vérification lancé avec des données mockées. C'est cette vérification qui a aussi révélé que les vrais prix étaient très loin de mes placeholders (2,406 € de gazole contre 1,842 € simulé) et qu'un cas limite existait : une variation nulle s'affichait en flèche rouge de hausse, désormais rendue par un `=` neutre.
 
@@ -73,4 +74,17 @@ Reste la décision produit, tranchée par Baptiste et mieux formulée par lui qu
 **Entrées clés :**
 
 - [BDR-009](decisions/BDR-009.md) — og:image dynamique comme canal de diffusion de la donnée
-- [BLK-009](blockers/BLK-009.md) — l'échec silencieux de Satori, invisible à tous les contrôles automatiques
+- [ZBLK-009](archive/blockers/ZBLK-009.md) — l'échec silencieux de Satori, invisible à tous les contrôles automatiques
+
+---
+
+Troisième session de la journée, enchaînée directement sur la précédente : Baptiste demande de vérifier l'og:image en production via un outil de debug social — et elle affiche le fallback (« Trouvez la station-service la moins chère... ») au lieu des 6 tuiles. Diagnostic en deux temps. D'abord la donnée : `metadata.json` publié sur Hugging Face ne contenait ni `fuel_stats` ni `fuel_history`, seulement les 4 champs de base — le run ETL qui l'avait produit tournait forcément avec le code d'avant [BDR-009](decisions/BDR-009.md). Confirmé par `git log` côté RPi : 13 jours de retard, bloqué sur le commit du 10 septembre, exactement le pattern déjà documenté par [LRN-009](learnings/LRN-009.md).
+
+Déploiement RPi classique en apparence — `git pull` (fast-forward propre, 36 fichiers) puis `pm2 restart` — mais un contrôle de vérification a révélé un second niveau de staleness indépendant du premier : `etl/dist/` est gitignoré et datait du 17 avril, donc le pull n'avait rien changé au code réellement exécuté par pm2. Rebuild (`pnpm build`) puis nouveau restart ([BLK-010](blockers/BLK-010.md)). Un run manuel déclenché ensuite pour vérifier a confirmé `fuel_stats` correctement publié — mais a révélé un effet de bord inattendu : `fuel_history` était retombé à 1 seul jour. Le run intermédiaire du 12h00 (code périmé) avait écrasé d'un coup les 27 jours amorcés le matin même, en réécrivant tout `metadata.json` sans ce champ. `bootstrap-og-history.ts --upload` relancé pour restaurer l'historique en ~1 minute.
+
+Baptiste a ensuite demandé si ce scénario pouvait se reproduire, sachant qu'il ne vérifie pas l'og:image au quotidien. Réponse tranchée en distinguant clairement ce qui est robuste (les tuiles de prix, recalculées à chaque run depuis le CSV brut) de ce qui est fragile (les flèches d'évolution, dépendantes d'une lecture réussie du `metadata.json` du run précédent). Sur validation de Baptiste, fix codé : `transform.ts` distingue désormais « historique absent/illisible » de « historique vide mais légitime » et ne déclenche la reconstruction automatique depuis `rolling/30days` que dans le premier cas — `bootstrap-og-history.ts` simplifié pour réutiliser la même fonction plutôt que dupliquer la logique ([BDR-011](decisions/BDR-011.md)).
+
+**Entrées clés :**
+
+- [BLK-010](blockers/BLK-010.md) — le second niveau de staleness (dist/ compilé) qui a failli faire déclarer le déploiement terminé à tort
+- [BDR-011](decisions/BDR-011.md) — le fallback qui referme la fragilité de fuel_history
