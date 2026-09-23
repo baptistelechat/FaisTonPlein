@@ -1,11 +1,11 @@
 ---
-id: BLK-010
+id: ZBLK-010
 type: blocker
 date: 2026-09-23
 tags: [pm2, rpi, dist, gitignore, tsc, deployment, etl]
 ---
 
-# BLK-010 — pm2 restart après git pull, l'ETL a continué de tourner sur un dist/ compilé périmé
+# ZBLK-010 — pm2 restart après git pull, l'ETL a continué de tourner sur un dist/ compilé périmé
 
 | Friction                                                                                                                                                                                                                                        | Cause réelle                                                                                                                                                                              | Solution                                                                                                                                          | Statut |
 | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
@@ -16,4 +16,4 @@ Détecté avant d'annoncer le déploiement terminé, grâce à une vérification
 ## Références
 
 - Voir aussi GLRN-299 (mémoire globale) — le pattern généralisé extrait de cet incident
-- [BDR-011](../decisions/BDR-011.md) — le fix de fond côté fuel_history, révélé par ce même déploiement
+- [BDR-011](../../decisions/BDR-011.md) — le fix de fond côté fuel_history, révélé par ce même déploiement

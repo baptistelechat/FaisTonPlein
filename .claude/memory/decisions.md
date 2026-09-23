@@ -17,3 +17,6 @@ register: decisions
 | [BDR-009](decisions/BDR-009.md) | 2026-09-23 | og:image dynamique alimentée par l'ETL plutôt qu'un PNG statique                         | #og-image #viralite #etl #metadata-json #next-og #partage             | actif  |
 | [BDR-010](decisions/BDR-010.md) | 2026-09-23 | Historique glissant cumulatif dans metadata.json, un point par jour                      | #etl #historique #metadata-json #rolling #duckdb #amorcage            | actif  |
 | [BDR-011](decisions/BDR-011.md) | 2026-09-23 | Fallback fuel_history : reconstruction depuis rolling/30days plutôt que reset silencieux | #og-image #etl #fuel-history #resilience #fallback #rolling           | actif  |
+| [BDR-012](decisions/BDR-012.md) | 2026-09-23 | Retrait de GrepAI du projet, `dev` réduit à `next dev`                                   | #grepai #tooling #dev-script #concurrently #cleanup                   | actif  |
+| [BDR-013](decisions/BDR-013.md) | 2026-09-23 | Totem des prix nationaux : desktop seul, logique partagée avec og:image | #national-prices #totem #og-image #desktop #mobile #shared-logic | actif  |
+| [BDR-014](decisions/BDR-014.md) | 2026-09-23 | FuelBadge unique (teinte 600 + blanc), resolveHex centralisé | #fuel-badge #design-system #resolvehex #contrast #reuse | actif  |

@@ -16,3 +16,4 @@ register: learnings
 | [LRN-008](learnings/LRN-008.md) | 2026-09-10 | Seuil de staleness cron doit avoir une marge, jamais == l'intervalle nominal        | #monitoring #health-check #cron #cache #revalidate #false-positive                       |
 | [LRN-009](learnings/LRN-009.md) | 2026-09-10 | Instance self-hosted à côté du cloud = angle mort de diagnostic monitoring          | #monitoring #self-hosted #rpi #deployment-drift #diagnosis #blind-spot                   |
 | [LRN-010](learnings/LRN-010.md) | 2026-09-10 | Wrapper `docker-monitor` NAS NOPASSWD limité à ps/stats/logs/inspect/version/images | #nas #docker #sudo #docker-monitor #uptime-kuma #readonly-audit                          |
+| [LRN-011](learnings/LRN-011.md) | 2026-09-23 | Deux rendus de « €/L » : PriceCard vs StationCard | #price-card #station-card #unit-style #consistency |

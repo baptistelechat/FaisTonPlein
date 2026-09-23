@@ -80,11 +80,34 @@ Reste la décision produit, tranchée par Baptiste et mieux formulée par lui qu
 
 Troisième session de la journée, enchaînée directement sur la précédente : Baptiste demande de vérifier l'og:image en production via un outil de debug social — et elle affiche le fallback (« Trouvez la station-service la moins chère... ») au lieu des 6 tuiles. Diagnostic en deux temps. D'abord la donnée : `metadata.json` publié sur Hugging Face ne contenait ni `fuel_stats` ni `fuel_history`, seulement les 4 champs de base — le run ETL qui l'avait produit tournait forcément avec le code d'avant [BDR-009](decisions/BDR-009.md). Confirmé par `git log` côté RPi : 13 jours de retard, bloqué sur le commit du 10 septembre, exactement le pattern déjà documenté par [LRN-009](learnings/LRN-009.md).
 
-Déploiement RPi classique en apparence — `git pull` (fast-forward propre, 36 fichiers) puis `pm2 restart` — mais un contrôle de vérification a révélé un second niveau de staleness indépendant du premier : `etl/dist/` est gitignoré et datait du 17 avril, donc le pull n'avait rien changé au code réellement exécuté par pm2. Rebuild (`pnpm build`) puis nouveau restart ([BLK-010](blockers/BLK-010.md)). Un run manuel déclenché ensuite pour vérifier a confirmé `fuel_stats` correctement publié — mais a révélé un effet de bord inattendu : `fuel_history` était retombé à 1 seul jour. Le run intermédiaire du 12h00 (code périmé) avait écrasé d'un coup les 27 jours amorcés le matin même, en réécrivant tout `metadata.json` sans ce champ. `bootstrap-og-history.ts --upload` relancé pour restaurer l'historique en ~1 minute.
+Déploiement RPi classique en apparence — `git pull` (fast-forward propre, 36 fichiers) puis `pm2 restart` — mais un contrôle de vérification a révélé un second niveau de staleness indépendant du premier : `etl/dist/` est gitignoré et datait du 17 avril, donc le pull n'avait rien changé au code réellement exécuté par pm2. Rebuild (`pnpm build`) puis nouveau restart ([ZBLK-010](archive/blockers/ZBLK-010.md)). Un run manuel déclenché ensuite pour vérifier a confirmé `fuel_stats` correctement publié — mais a révélé un effet de bord inattendu : `fuel_history` était retombé à 1 seul jour. Le run intermédiaire du 12h00 (code périmé) avait écrasé d'un coup les 27 jours amorcés le matin même, en réécrivant tout `metadata.json` sans ce champ. `bootstrap-og-history.ts --upload` relancé pour restaurer l'historique en ~1 minute.
 
 Baptiste a ensuite demandé si ce scénario pouvait se reproduire, sachant qu'il ne vérifie pas l'og:image au quotidien. Réponse tranchée en distinguant clairement ce qui est robuste (les tuiles de prix, recalculées à chaque run depuis le CSV brut) de ce qui est fragile (les flèches d'évolution, dépendantes d'une lecture réussie du `metadata.json` du run précédent). Sur validation de Baptiste, fix codé : `transform.ts` distingue désormais « historique absent/illisible » de « historique vide mais légitime » et ne déclenche la reconstruction automatique depuis `rolling/30days` que dans le premier cas — `bootstrap-og-history.ts` simplifié pour réutiliser la même fonction plutôt que dupliquer la logique ([BDR-011](decisions/BDR-011.md)).
 
 **Entrées clés :**
 
-- [BLK-010](blockers/BLK-010.md) — le second niveau de staleness (dist/ compilé) qui a failli faire déclarer le déploiement terminé à tort
+- [ZBLK-010](archive/blockers/ZBLK-010.md) — le second niveau de staleness (dist/ compilé) qui a failli faire déclarer le déploiement terminé à tort
 - [BDR-011](decisions/BDR-011.md) — le fallback qui referme la fragilité de fuel_history
+
+---
+
+Session courte de nettoyage : Baptiste demande de retirer GrepAI, qu'il n'utilise plus ([BDR-012](decisions/BDR-012.md)). Le script `dev` lançait `grepai watch` en parallèle de Next.js via `concurrently`, avec un message d'avertissement Ollama quand il était éteint. Retrait complet : script `dev` réduit à `next dev`, dépendance `concurrently` supprimée avec resynchronisation du lockfile, entrée `.grepai/` retirée du `.gitignore`, doc `CLAUDE.md` mise à jour. La suppression du dossier `.grepai/` local a été faite par Baptiste lui-même, ma commande composée ayant été refusée puis son `rm -rf` ayant échoué sous PowerShell (`Remove-Item -Recurse -Force`).
+
+Au moment de la clôture, `git add -A` a stagé deux fichiers applicatifs sans rapport (`fuelColors.ts`, `nationalPrices.ts`), apparus entre-temps : du travail en cours d'une autre session. Ils ont été retirés du staging avant le commit (`1e74ce8`, poussé) et le pattern est capitalisé en global (voir GLRN-300 en mémoire globale). Le blocker [ZBLK-010](archive/blockers/ZBLK-010.md), résolu, a été archivé au passage.
+
+**Entrées clés :**
+
+- [BDR-012](decisions/BDR-012.md) — retrait de GrepAI
+
+---
+
+Nouvelle session de la journée, centrée sur une fonctionnalité produit : un panneau visible en continu qui affiche les prix moyens nationaux, à la manière d'un totem de station-service, pour se comparer à la moyenne française. Point de départ voulu par Baptiste : reprendre la donnée de l'og:image ([BDR-009](decisions/BDR-009.md)) et passer sa structure en colonne, avec sur mobile uniquement le carburant sélectionné.
+
+Le calcul des moyennes et des évolutions a été extrait de `opengraph-image.tsx` vers `src/lib/nationalPrices.ts`, si bien que la carte de partage et le totem partagent la même logique. Le totem se nourrit de `metadata.json` via un hook autonome, sans dépendre de la géolocalisation ([BDR-013](decisions/BDR-013.md)). La première version reprenait le design sombre de l'og:image, et Baptiste l'a immédiatement recadrée : « tu n'as pas repris le style de l'app ». S'ensuit une série d'itérations où le totem a été reconstruit à partir de la carte prix du détail station puis affiné : unité `€/L` alignée sur `StationCard` ([LRN-011](learnings/LRN-011.md)), pastille de carburant pleine et colorée intégrée aussi dans le détail des stations, rayon réduit, prix à droite du titre avec l'évolution dessous, icône de tendance retirée, logo de l'app en tête de totem avec un sous-titre en pied, et bouton d'installation replacé sous le totem. Le chip mobile a été testé puis retiré, jugé trop encombrant ([BDR-013](decisions/BDR-013.md)). La pastille commune a imposé de passer à la teinte 600 pour garder un contraste correct avec le texte blanc, et de centraliser `resolveHex`, présent en trois exemplaires ([BDR-014](decisions/BDR-014.md)).
+
+Vérification : le rendu a été contrôlé en navigateur avec les vraies données. Les captures d'un viewport émulé étant illisibles, les vérifications se sont faites par mesures DOM (voir GLRN-302 en mémoire globale), et l'og:image refactorée a été revérifiée à l'image car sa logique avait changé. Commit `0a95972` (non poussé).
+
+**Entrées clés :**
+
+- [BDR-013](decisions/BDR-013.md) — totem desktop seul, logique partagée avec l'og:image
+- [BDR-014](decisions/BDR-014.md) — FuelBadge unique et resolveHex centralisé
