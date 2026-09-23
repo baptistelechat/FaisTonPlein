@@ -36,4 +36,5 @@ project adheres to [Semantic Versioning](https://semver.org/).
 
 - Correction de plusieurs bugs de statistiques par carburant (meilleur prix/distance selon les filtres actifs)
 - Correction de bugs d'affichage mobile (position de défilement, tiroir, contrôles de carte)
+- Correction du totem des prix moyens qui recouvrait la barre de recherche sur les fenêtres desktop étroites : la recherche se rétrécit pour rester visible, et le totem se masque quand la place manque
 - Correction du blocage d'état de chargement lié à la géolocalisation

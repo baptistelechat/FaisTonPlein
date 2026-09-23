@@ -49,10 +49,10 @@ export function DesktopLayout() {
       </aside>
 
       {/* Map Area */}
-      <div className="relative flex-1">
+      <div className="@container relative flex-1">
         <InteractiveMap>
           {/* Floating Header */}
-          <div className="pointer-events-none absolute top-0 right-0 left-0 z-20 flex flex-col items-center gap-3 p-4 pt-6">
+          <div className="pointer-events-none absolute top-0 right-0 left-0 z-20 flex flex-col items-center gap-3 p-4 pt-6 @2xl:pr-66">
             <div className="pointer-events-auto w-full max-w-md rounded-full shadow-2xl">
               <SearchBar />
             </div>
@@ -61,9 +61,10 @@ export function DesktopLayout() {
             </div>
           </div>
 
-          {/* Totem : moyennes nationales + installation */}
+          {/* Totem : moyennes nationales + installation. Le header réserve sa place
+              à droite (pr-66 = 24 + 224 + 16) ; masqué sous @2xl faute de place */}
           <div className="pointer-events-none absolute top-6 right-6 z-20 flex flex-col items-stretch gap-2">
-            <NationalPriceTotem className="pointer-events-auto" />
+            <NationalPriceTotem className="pointer-events-auto hidden @2xl:flex" />
             <div className="pointer-events-auto flex justify-center">
               <InstallButton variant="full" />
             </div>
