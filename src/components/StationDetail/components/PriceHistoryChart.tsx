@@ -25,25 +25,15 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
-import { FUEL_TYPES, FuelColor, type FuelType } from "@/lib/constants";
+import { FUEL_TYPES, type FuelType } from "@/lib/constants";
 import type { PriceHistoryPoint } from "@/lib/priceHistory";
-import colors from "tailwindcss/colors";
+import { resolveHex } from "@/lib/fuelColors";
 
 interface PriceHistoryChartProps {
   data: PriceHistoryPoint[];
   isLoading: boolean;
   selectedFuel: FuelType;
   isRupture?: boolean;
-}
-
-function resolveHex(colorName: FuelColor, shade: number): string {
-  const entry = (colors as unknown as Record<string, unknown>)[colorName];
-  if (!entry) return "#64748b";
-  if (typeof entry === "string") return entry;
-  if (typeof entry === "object" && entry !== null) {
-    return (entry as Record<number, string>)[shade] ?? "#64748b";
-  }
-  return "#64748b";
 }
 
 // Dérivé de FUEL_TYPES (source unique, comme FuelTypeSelector)

@@ -1,6 +1,7 @@
 "use client";
 
 import { FillEstimate } from "@/components/FillEstimate";
+import { FuelBadge } from "@/components/FuelBadge";
 import { TrendIndicator } from "@/components/TrendIndicator";
 import { FuelType } from "@/lib/constants";
 import { getPriceLevel, getPriceTextColor } from "@/lib/priceColor";
@@ -57,7 +58,7 @@ export const PriceCard = ({
           : "bg-amber-500/10 text-amber-500";
     diffBadge = (
       <span
-        className={`rounded-sm px-1.5 py-0.5 text-[10px] font-bold ${colorClass}`}
+        className={`shrink-0 rounded-sm px-1.5 py-0.5 text-[10px] font-bold whitespace-nowrap ${colorClass}`}
       >
         {`${diff > 0 ? "+ " : "- "}${formatPrice(Math.abs(diff))}`}
       </span>
@@ -79,8 +80,8 @@ export const PriceCard = ({
     >
       {/* Ligne 1 : carburant + badge diff */}
       <div className="mb-1 flex items-center justify-between">
-        <span className="text-muted-foreground flex items-center gap-1 text-[10px] font-bold tracking-widest uppercase">
-          {resolvedFuelType}
+        <span className="flex items-center gap-1.5">
+          {resolvedFuelType && <FuelBadge fuel={resolvedFuelType} />}
           <TrendIndicator
             direction={trendDirection}
             isLoading={arePriceTrendsLoading}

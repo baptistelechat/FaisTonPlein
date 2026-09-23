@@ -3,9 +3,9 @@
 import { Badge } from "@/components/ui/badge";
 import analytics from "@/lib/analytics";
 import { FUEL_TYPES } from "@/lib/constants";
+import { resolveHex } from "@/lib/fuelColors";
 import { cn } from "@/lib/utils";
 import { useAppStore } from "@/store/useAppStore";
-import colors from "tailwindcss/colors";
 
 interface FuelTypeSelectorProps {
   className?: string;
@@ -31,17 +31,6 @@ export function FuelTypeSelector({ className }: FuelTypeSelectorProps) {
     return `rgba(${r}, ${g}, ${b}, ${alpha})`;
   };
 
-  const resolveHex = (colorName: string, shade: number) => {
-    const entry = (colors as unknown as Record<string, unknown>)[colorName];
-    if (!entry) return null;
-    if (typeof entry === "string") return entry;
-    if (typeof entry === "object" && entry !== null) {
-      const byShade = entry as Record<number, string>;
-      return byShade[shade] ?? null;
-    }
-    return null;
-  };
-
   return (
     <div
       className={cn(
@@ -51,8 +40,8 @@ export function FuelTypeSelector({ className }: FuelTypeSelectorProps) {
     >
       {FUEL_TYPES.map((fuel) => {
         const isSelected = selectedFuel === fuel.type;
-        const dotHex = resolveHex(fuel.color, 500) ?? "#64748b";
-        const selectedBgHex = resolveHex(fuel.color, 600) ?? dotHex;
+        const dotHex = resolveHex(fuel.color, 500);
+        const selectedBgHex = resolveHex(fuel.color, 600);
 
         return (
           <Badge

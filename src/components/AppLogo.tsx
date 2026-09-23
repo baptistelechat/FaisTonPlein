@@ -3,10 +3,16 @@ import Image from "next/image";
 
 interface AppLogoProps {
   showName?: boolean;
+  size?: "default" | "lg";
   className?: string;
 }
 
-export function AppLogo({ showName = true, className }: AppLogoProps) {
+export function AppLogo({
+  showName = true,
+  size = "default",
+  className,
+}: AppLogoProps) {
+  const isLarge = size === "lg";
   return (
     <div
       className={cn(
@@ -18,12 +24,17 @@ export function AppLogo({ showName = true, className }: AppLogoProps) {
       <Image
         src="/icon.svg"
         alt="Logo FaisTonPlein"
-        width={24}
-        height={24}
-        className="size-6"
+        width={isLarge ? 32 : 24}
+        height={isLarge ? 32 : 24}
+        className={isLarge ? "size-8" : "size-6"}
       />
       {showName && (
-        <span className="font-heading text-foreground text-sm font-bold tracking-tight">
+        <span
+          className={cn(
+            "font-heading text-foreground font-bold tracking-tight",
+            isLarge ? "text-xl" : "text-sm",
+          )}
+        >
           FaisTonPlein
         </span>
       )}

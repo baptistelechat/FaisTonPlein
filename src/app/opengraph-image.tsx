@@ -1,4 +1,11 @@
-import { HF_LATEST_BASE_URL } from "@/lib/constants";
+import { HF_LATEST_BASE_URL, type FuelType } from "@/lib/constants";
+import {
+  computeNationalPrices,
+  formatDelta,
+  formatPrice,
+  isFlat,
+  type NationalMetadata,
+} from "@/lib/nationalPrices";
 import { ImageResponse } from "next/og";
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
@@ -12,8 +19,7 @@ export const contentType = "image/png";
 // sans régénérer l'image à chaque scrape.
 export const revalidate = 1800;
 
-const FUEL_ORDER = ["Gazole", "E10", "SP95", "SP98", "E85", "GPLc"] as const;
-type Fuel = (typeof FUEL_ORDER)[number];
+type Fuel = FuelType;
 
 // Satori n'interprète pas oklch(), et Tailwind v4 ne publie plus que ça.
 // Ces hex sont les équivalents sRGB exacts de resolveHex(fuel.color, 500) et (…, 600)
@@ -32,29 +38,6 @@ const FUEL_HEX: Record<Fuel, { badge: string; ink: string }> = {
 const UP = "#ff2056"; // rose-500 — une hausse de prix est une mauvaise nouvelle
 const DOWN = "#00bc7d"; // emerald-500
 const FLAT = "#a1a1aa"; // zinc-400 — prix stable, ni bonne ni mauvaise nouvelle
-
-const DAY_MS = 86_400_000;
-const TARGET_DAYS = 21; // fenêtre visée pour l'évolution
-const MIN_DAYS = 7; // en dessous, le delta ne veut rien dire : on n'affiche rien
-
-interface Metadata {
-  total_stations?: number;
-  fuel_stats?: Partial<Record<Fuel, { avg: number | null; stations: number }>>;
-  fuel_history?: { date: string; [fuel: string]: string | number }[];
-}
-
-const daysAgo = (date: string) =>
-  Math.round((Date.now() - new Date(`${date}T00:00:00Z`).getTime()) / DAY_MS);
-
-const formatPrice = (n: number) => n.toFixed(3);
-
-// 3 décimales, comme les prix : un écart de 0,003 € reste une information.
-const formatDelta = (d: number) =>
-  `${d >= 0 ? "+" : "−"}${Math.abs(d).toFixed(3).replace(".", ",")}`;
-
-// En dessous, l'arrondi à 3 décimales donne "0,000" : c'est un équilibre, pas une hausse.
-const FLAT_THRESHOLD = 0.0005;
-const isFlat = (d: number) => Math.abs(d) < FLAT_THRESHOLD;
 
 // Intl peut manquer de locale selon le runtime : espace fine posée à la main.
 const groupThousands = (n: number) =>
@@ -214,43 +197,22 @@ export default async function Image() {
     loadFont("space-grotesk-latin-700-normal.woff"),
   ]);
 
-  let meta: Metadata = {};
+  let meta: NationalMetadata = {};
   try {
     const res = await fetch(`${HF_LATEST_BASE_URL}/metadata.json`, {
       next: { revalidate },
     });
-    if (res.ok) meta = (await res.json()) as Metadata;
+    if (res.ok) meta = (await res.json()) as NationalMetadata;
   } catch {
     // On dégrade proprement plus bas plutôt que de casser le partage du lien.
   }
 
-  const history = Array.isArray(meta.fuel_history) ? meta.fuel_history : [];
+  const { prices, spanDays } = computeNationalPrices(meta);
 
-  // Point de référence : le plus proche de 21 jours parmi ceux d'au moins 7 jours.
-  // Tant que l'historique est trop jeune, aucune flèche n'est affichée.
-  const reference =
-    history
-      .filter((p) => daysAgo(p.date) >= MIN_DAYS)
-      .sort(
-        (a, b) =>
-          Math.abs(daysAgo(a.date) - TARGET_DAYS) -
-          Math.abs(daysAgo(b.date) - TARGET_DAYS),
-      )[0] ?? null;
-  const spanDays = reference ? daysAgo(reference.date) : 0;
-
-  const tiles = FUEL_ORDER.map((fuel) => {
-    const avg = meta.fuel_stats?.[fuel]?.avg ?? null;
-    const past = reference?.[fuel];
-    // null = pas de point de référence (pastille absente).
-    // ~0 = prix stable, rendu par un "=" neutre plutôt qu'une flèche trompeuse.
-    const delta = avg != null && typeof past === "number" ? avg - past : null;
-    return { fuel, avg, delta };
-  }).filter((t) => t.avg != null);
-
-  const subtitle = reference
-    ? `· prix moyens · évolution sur ${spanDays} jours`
-    : "· prix moyens des 6 carburants";
-
+  const subtitle =
+    spanDays != null
+      ? `· prix moyens · évolution sur ${spanDays} jours`
+      : "· prix moyens des 6 carburants";
 
   return new ImageResponse(
     <div
@@ -292,7 +254,7 @@ export default async function Image() {
         </div>
       </div>
 
-      {tiles.length === 0 ? (
+      {prices.length === 0 ? (
         <div
           style={{
             display: "flex",
@@ -313,12 +275,12 @@ export default async function Image() {
           style={{ display: "flex", flexDirection: "column", marginTop: 28 }}
         >
           <div style={{ display: "flex", gap: 18 }}>
-            {tiles.slice(0, 3).map((t) => (
+            {prices.slice(0, 3).map((t) => (
               <Tile key={t.fuel} {...t} />
             ))}
           </div>
           <div style={{ display: "flex", gap: 18, marginTop: 18 }}>
-            {tiles.slice(3, 6).map((t) => (
+            {prices.slice(3, 6).map((t) => (
               <Tile key={t.fuel} {...t} />
             ))}
           </div>

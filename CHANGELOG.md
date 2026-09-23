@@ -24,11 +24,13 @@ project adheres to [Semantic Versioning](https://semver.org/).
 - Personnalisation des habitudes de plein
 - Page Politique de confidentialité, accessible depuis les Réglages
 - Aperçu enrichi au partage du lien (réseaux sociaux, messageries) : prix moyens des 6 carburants et leur évolution sur 21 jours, actualisés automatiquement
+- Totem des prix moyens nationaux sur la carte (version bureau) : les 6 carburants avec leur évolution sur 21 jours, pour se comparer à la moyenne française
 
 ### Changed
 
 - Le calcul de la station "meilleur prix" / "plus proche" prend désormais en compte les filtres actifs et gère les égalités multiples
 - Les filtres sont regroupés dans un dialogue de réglages, avec une mise en page mobile améliorée
+- Le nom du carburant s'affiche dans une pastille colorée sur les cartes de prix du détail d'une station
 
 ### Fixed
 

@@ -1,7 +1,7 @@
-import { AppLogo } from "@/components/AppLogo";
 import { FuelTypeSelector } from "@/components/FuelTypeSelector";
 import { InstallButton } from "@/components/InstallButton";
 import InteractiveMap from "@/components/InteractiveMap";
+import { NationalPriceTotem } from "@/components/NationalPrices/NationalPriceTotem";
 import { SearchBar } from "@/components/SearchBar";
 import { StationDetail } from "@/components/StationDetail";
 import { StationList } from "@/components/StationList";
@@ -51,14 +51,6 @@ export function DesktopLayout() {
       {/* Map Area */}
       <div className="relative flex-1">
         <InteractiveMap>
-          {/* App Logo + Install */}
-          <div className="pointer-events-none absolute top-0 left-0 z-20 p-4 pt-6">
-            <div className="pointer-events-auto flex flex-col items-start gap-2">
-              <AppLogo showName={true} />
-              <InstallButton variant="full" />
-            </div>
-          </div>
-
           {/* Floating Header */}
           <div className="pointer-events-none absolute top-0 right-0 left-0 z-20 flex flex-col items-center gap-3 p-4 pt-6">
             <div className="pointer-events-auto w-full max-w-md rounded-full shadow-2xl">
@@ -66,6 +58,14 @@ export function DesktopLayout() {
             </div>
             <div className="flex flex-col items-center gap-2">
               <FuelTypeSelector />
+            </div>
+          </div>
+
+          {/* Totem : moyennes nationales + installation */}
+          <div className="pointer-events-none absolute top-6 right-6 z-20 flex flex-col items-stretch gap-2">
+            <NationalPriceTotem className="pointer-events-auto" />
+            <div className="pointer-events-auto flex justify-center">
+              <InstallButton variant="full" />
             </div>
           </div>
         </InteractiveMap>
