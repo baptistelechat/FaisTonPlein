@@ -23,6 +23,7 @@ project adheres to [Semantic Versioning](https://semver.org/).
 - Installation en tant qu'application (PWA) via Service Worker
 - Personnalisation des habitudes de plein
 - Page Politique de confidentialité, accessible depuis les Réglages
+- Aperçu enrichi au partage du lien (réseaux sociaux, messageries) : prix moyens des 6 carburants et leur évolution sur 21 jours, actualisés automatiquement
 
 ### Changed
 

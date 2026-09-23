@@ -1,0 +1,1569 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>FaisTonPlein — og:image v4 · G + évolution</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&family=Share+Tech+Mono&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        padding: 48px 32px 96px;
+        background: #eef1f6;
+        color: #0f172a;
+        font-family:
+          "Manrope",
+          system-ui,
+          -apple-system,
+          "Segoe UI",
+          sans-serif;
+      }
+      header,
+      .section,
+      .grid,
+      .warn {
+        max-width: 1280px;
+        margin-left: auto;
+        margin-right: auto;
+      }
+      h1 {
+        font-family: "Space Grotesk", sans-serif;
+        font-size: 34px;
+        margin: 0 0 6px;
+        letter-spacing: -0.02em;
+      }
+      .sub {
+        color: #475569;
+        font-size: 16px;
+        margin: 0 0 20px;
+      }
+      .palette {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 9px;
+        margin-bottom: 12px;
+      }
+      .sw {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: #fff;
+        border: 1px solid #dbe2ea;
+        border-radius: 999px;
+        padding: 5px 13px 5px 6px;
+        font-size: 12.5px;
+        font-weight: 600;
+      }
+      .sw i {
+        width: 19px;
+        height: 19px;
+        border-radius: 50%;
+        display: block;
+        border: 1px solid rgba(15, 23, 42, 0.12);
+      }
+      .src {
+        color: #64748b;
+        font-size: 12.5px;
+        margin: 0 0 22px;
+      }
+      .src code {
+        background: #e2e8f0;
+        border-radius: 4px;
+        padding: 1px 5px;
+      }
+      .warn {
+        background: #ecfdf5;
+        border: 1px solid #a7f3d0;
+        border-left: 4px solid #009966;
+        border-radius: 8px;
+        padding: 13px 16px;
+        font-size: 13.5px;
+        line-height: 1.55;
+        color: #065f46;
+        margin-bottom: 38px;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(600px, 1fr));
+        gap: 34px 32px;
+      }
+      .card {
+        background: #fff;
+        border: 1px solid #dbe2ea;
+        border-radius: 16px;
+        padding: 20px;
+        box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05);
+      }
+      .card h3 {
+        font-family: "Space Grotesk", sans-serif;
+        font-size: 18px;
+        margin: 0 0 4px;
+        display: flex;
+        align-items: center;
+        gap: 9px;
+      }
+      .tag {
+        background: #4f46e5;
+        color: #fff;
+        font-size: 12px;
+        font-weight: 800;
+        padding: 3px 10px;
+        border-radius: 999px;
+        letter-spacing: 0.06em;
+      }
+      .card p {
+        color: #64748b;
+        font-size: 13.5px;
+        margin: 0 0 15px;
+        line-height: 1.5;
+      }
+      .frame {
+        width: 600px;
+        height: 315px;
+        max-width: 100%;
+        overflow: hidden;
+        border-radius: 12px;
+        border: 1px solid #e2e8f0;
+      }
+      .og {
+        width: 1200px;
+        height: 630px;
+        transform: scale(0.5);
+        transform-origin: top left;
+        position: relative;
+        overflow: hidden;
+        font-family: "Manrope", system-ui, sans-serif;
+      }
+      .sg {
+        font-family: "Space Grotesk", sans-serif;
+      }
+      .led {
+        font-family: "Share Tech Mono", ui-monospace, monospace;
+        letter-spacing: 0.02em;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>FaisTonPlein — og:image v4</h1>
+      <p class="sub">
+        Base <b>G</b> conservée · label coloré par carburant ·
+        <b>prix en blanc</b> · indicateur d'évolution · URL retirée.
+      </p>
+      <div class="palette">
+        <span class="sw"
+          ><i style="background: #f0b100"></i>Gazole — yellow-500</span
+        >
+        <span class="sw"
+          ><i style="background: #00c950"></i>E10 — green-500</span
+        >
+        <span class="sw"
+          ><i style="background: #00bc7d"></i>SP95 — emerald-500</span
+        >
+        <span class="sw"
+          ><i style="background: #00bc7d"></i>SP98 — emerald-500</span
+        >
+        <span class="sw"><i style="background: #00a6f4"></i>E85 — sky-500</span>
+        <span class="sw"
+          ><i style="background: #62748e"></i>GPLc — slate-500</span
+        >
+      </div>
+      <p class="src">
+        Exactement <code>resolveHex(fuel.color, 500)</code> pour les pastilles
+        et <code>600</code> pour les fonds de badge — les deux shades qu'utilise
+        <code>FuelTypeSelector</code>. <b>SP95 et SP98 sont identiques</b>,
+        comme dans le projet.
+      </p>
+    </header>
+
+    <div class="warn">
+      <b>✅ Correction v3 → v4.</b> J'avais écarté SP95/SP98 d'une nuance
+      (emerald-400 / 600) de mon propre chef : c'est réparé, les deux sont
+      <code>emerald-500 #00bc7d</code> comme
+      <code>FUEL_TYPES</code> l'impose.<br />
+      <b>🔤 Prix en blanc</b> — la couleur ne sert plus qu'à identifier le
+      carburant et à signer l'évolution. Trois chiffres montent, un baisse (E85)
+      : l'indicateur montre qu'il porte une vraie information.<br />
+      <b>⚠️ Chiffres = placeholders</b> · URL retirée des trois variantes.
+    </div>
+
+    <div class="grid">
+      <!-- ══════════ G1 ══════════ -->
+      <div class="card">
+        <h3><span class="tag">G1</span> Pastille · delta sous le prix</h3>
+        <p>
+          Le plus proche de G. Pastille ronde <code>shade 500</code> comme dans
+          l'app, prix blanc, évolution en petit dessous. Le plus sobre.
+        </p>
+        <div class="frame">
+          <div
+            class="og"
+            style="
+              background-color: #09090b;
+              background-image: radial-gradient(
+                circle at 50% 0%,
+                rgba(79, 70, 229, 0.2),
+                transparent 60%
+              );
+              color: #fafafa;
+              display: flex;
+              flex-direction: column;
+              justify-content: center;
+              padding: 66px 76px;
+            "
+          >
+            <div
+              style="
+                align-items: center;
+                display: flex;
+                gap: 16px;
+                margin-bottom: 8px;
+              "
+            >
+              <svg
+                width="54"
+                height="54"
+                viewBox="0 0 512 512"
+                style="border-radius: 14px"
+              >
+                <rect width="512" height="512" rx="108" fill="#4f46e5" />
+                <g
+                  transform="translate(106,106) scale(12.5)"
+                  stroke="#f8fafc"
+                  stroke-width="1.5"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  fill="none"
+                >
+                  <path
+                    d="M14 13h2a2 2 0 0 1 2 2v2a2 2 0 0 0 4 0v-6.998a2 2 0 0 0-.59-1.42L18 5"
+                  />
+                  <path d="M14 21V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v16" />
+                  <path d="M2 21h13" />
+                  <path d="M3 9h11" />
+                </g>
+              </svg>
+              <div
+                class="sg"
+                style="
+                  display: flex;
+                  font-size: 40px;
+                  font-weight: 800;
+                  letter-spacing: -0.02em;
+                "
+              >
+                FaisTonPlein
+              </div>
+              <div
+                style="
+                  color: #71717a;
+                  display: flex;
+                  font-size: 25px;
+                  margin-left: 8px;
+                "
+              >
+                · prix moyens · évolution sur 3 semaines
+              </div>
+            </div>
+            <div style="display: flex; gap: 16px; margin-top: 24px">
+              <div
+                style="
+                  background-color: #111114;
+                  border: 1px solid rgba(250, 250, 250, 0.1);
+                  border-radius: 18px;
+                  display: flex;
+                  flex: 1;
+                  flex-direction: column;
+                  padding: 22px 20px;
+                "
+              >
+                <div style="align-items: center; display: flex; gap: 9px">
+                  <div
+                    style="
+                      background-color: #f0b100;
+                      border-radius: 999px;
+                      height: 13px;
+                      width: 13px;
+                    "
+                  ></div>
+                  <div
+                    style="color: #a1a1aa; font-size: 23px; font-weight: 700"
+                  >
+                    Gazole
+                  </div>
+                </div>
+                <div
+                  class="led"
+                  style="
+                    color: #fafafa;
+                    display: flex;
+                    font-size: 50px;
+                    margin-top: 10px;
+                  "
+                >
+                  1.842
+                </div>
+                <div
+                  style="
+                    align-items: center;
+                    color: #ff2056;
+                    display: flex;
+                    font-size: 22px;
+                    font-weight: 700;
+                    gap: 6px;
+                    margin-top: 6px;
+                  "
+                >
+                  <svg
+                    fill="none"
+                    height="18"
+                    width="18"
+                    stroke="#ff2056"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="3"
+                    viewBox="0 0 24 24"
+                  >
+                    <path d="M7 17 17 7M9 7h8v8" /></svg
+                  >+0,12 €
+                </div>
+              </div>
+              <div
+                style="
+                  background-color: #111114;
+                  border: 1px solid rgba(250, 250, 250, 0.1);
+                  border-radius: 18px;
+                  display: flex;
+                  flex: 1;
+                  flex-direction: column;
+                  padding: 22px 20px;
+                "
+              >
+                <div style="align-items: center; display: flex; gap: 9px">
+                  <div
+                    style="
+                      background-color: #00c950;
+                      border-radius: 999px;
+                      height: 13px;
+                      width: 13px;
+                    "
+                  ></div>
+                  <div
+                    style="color: #a1a1aa; font-size: 23px; font-weight: 700"
+                  >
+                    E10
+                  </div>
+                </div>
+                <div
+                  class="led"
+                  style="
+                    color: #fafafa;
+                    display: flex;
+                    font-size: 50px;
+                    margin-top: 10px;
+                  "
+                >
+                  1.769
+                </div>
+                <div
+                  style="
+                    align-items: center;
+                    color: #ff2056;
+                    display: flex;
+                    font-size: 22px;
+                    font-weight: 700;
+                    gap: 6px;
+                    margin-top: 6px;
+                  "
+                >
+                  <svg
+                    fill="none"
+                    height="18"
+                    width="18"
+                    stroke="#ff2056"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="3"
+                    viewBox="0 0 24 24"
+                  >
+                    <path d="M7 17 17 7M9 7h8v8" /></svg
+                  >+0,09 €
+                </div>
+              </div>
+              <div
+                style="
+                  background-color: #111114;
+                  border: 1px solid rgba(250, 250, 250, 0.1);
+                  border-radius: 18px;
+                  display: flex;
+                  flex: 1;
+                  flex-direction: column;
+                  padding: 22px 20px;
+                "
+              >
+                <div style="align-items: center; display: flex; gap: 9px">
+                  <div
+                    style="
+                      background-color: #00bc7d;
+                      border-radius: 999px;
+                      height: 13px;
+                      width: 13px;
+                    "
+                  ></div>
+                  <div
+                    style="color: #a1a1aa; font-size: 23px; font-weight: 700"
+                  >
+                    SP95
+                  </div>
+                </div>
+                <div
+                  class="led"
+                  style="
+                    color: #fafafa;
+                    display: flex;
+                    font-size: 50px;
+                    margin-top: 10px;
+                  "
+                >
+                  1.821
+                </div>
+                <div
+                  style="
+                    align-items: center;
+                    color: #ff2056;
+                    display: flex;
+                    font-size: 22px;
+                    font-weight: 700;
+                    gap: 6px;
+                    margin-top: 6px;
+                  "
+                >
+                  <svg
+                    fill="none"
+                    height="18"
+                    width="18"
+                    stroke="#ff2056"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="3"
+                    viewBox="0 0 24 24"
+                  >
+                    <path d="M7 17 17 7M9 7h8v8" /></svg
+                  >+0,08 €
+                </div>
+              </div>
+            </div>
+            <div style="display: flex; gap: 16px; margin-top: 16px">
+              <div
+                style="
+                  background-color: #111114;
+                  border: 1px solid rgba(250, 250, 250, 0.1);
+                  border-radius: 18px;
+                  display: flex;
+                  flex: 1;
+                  flex-direction: column;
+                  padding: 22px 20px;
+                "
+              >
+                <div style="align-items: center; display: flex; gap: 9px">
+                  <div
+                    style="
+                      background-color: #00bc7d;
+                      border-radius: 999px;
+                      height: 13px;
+                      width: 13px;
+                    "
+                  ></div>
+                  <div
+                    style="color: #a1a1aa; font-size: 23px; font-weight: 700"
+                  >
+                    SP98
+                  </div>
+                </div>
+                <div
+                  class="led"
+                  style="
+                    color: #fafafa;
+                    display: flex;
+                    font-size: 50px;
+                    margin-top: 10px;
+                  "
+                >
+                  1.889
+                </div>
+                <div
+                  style="
+                    align-items: center;
+                    color: #ff2056;
+                    display: flex;
+                    font-size: 22px;
+                    font-weight: 700;
+                    gap: 6px;
+                    margin-top: 6px;
+                  "
+                >
+                  <svg
+                    fill="none"
+                    height="18"
+                    width="18"
+                    stroke="#ff2056"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="3"
+                    viewBox="0 0 24 24"
+                  >
+                    <path d="M7 17 17 7M9 7h8v8" /></svg
+                  >+0,11 €
+                </div>
+              </div>
+              <div
+                style="
+                  background-color: #111114;
+                  border: 1px solid rgba(250, 250, 250, 0.1);
+                  border-radius: 18px;
+                  display: flex;
+                  flex: 1;
+                  flex-direction: column;
+                  padding: 22px 20px;
+                "
+              >
+                <div style="align-items: center; display: flex; gap: 9px">
+                  <div
+                    style="
+                      background-color: #00a6f4;
+                      border-radius: 999px;
+                      height: 13px;
+                      width: 13px;
+                    "
+                  ></div>
+                  <div
+                    style="color: #a1a1aa; font-size: 23px; font-weight: 700"
+                  >
+                    E85
+                  </div>
+                </div>
+                <div
+                  class="led"
+                  style="
+                    color: #fafafa;
+                    display: flex;
+                    font-size: 50px;
+                    margin-top: 10px;
+                  "
+                >
+                  0.879
+                </div>
+                <div
+                  style="
+                    align-items: center;
+                    color: #009966;
+                    display: flex;
+                    font-size: 22px;
+                    font-weight: 700;
+                    gap: 6px;
+                    margin-top: 6px;
+                  "
+                >
+                  <svg
+                    fill="none"
+                    height="18"
+                    width="18"
+                    stroke="#009966"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="3"
+                    viewBox="0 0 24 24"
+                  >
+                    <path d="M7 7 17 17M17 9v8h-8" /></svg
+                  >−0,02 €
+                </div>
+              </div>
+              <div
+                style="
+                  background-color: #111114;
+                  border: 1px solid rgba(250, 250, 250, 0.1);
+                  border-radius: 18px;
+                  display: flex;
+                  flex: 1;
+                  flex-direction: column;
+                  padding: 22px 20px;
+                "
+              >
+                <div style="align-items: center; display: flex; gap: 9px">
+                  <div
+                    style="
+                      background-color: #62748e;
+                      border-radius: 999px;
+                      height: 13px;
+                      width: 13px;
+                    "
+                  ></div>
+                  <div
+                    style="color: #a1a1aa; font-size: 23px; font-weight: 700"
+                  >
+                    GPLc
+                  </div>
+                </div>
+                <div
+                  class="led"
+                  style="
+                    color: #fafafa;
+                    display: flex;
+                    font-size: 50px;
+                    margin-top: 10px;
+                  "
+                >
+                  0.979
+                </div>
+                <div
+                  style="
+                    align-items: center;
+                    color: #ff2056;
+                    display: flex;
+                    font-size: 22px;
+                    font-weight: 700;
+                    gap: 6px;
+                    margin-top: 6px;
+                  "
+                >
+                  <svg
+                    fill="none"
+                    height="18"
+                    width="18"
+                    stroke="#ff2056"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="3"
+                    viewBox="0 0 24 24"
+                  >
+                    <path d="M7 17 17 7M9 7h8v8" /></svg
+                  >+0,01 €
+                </div>
+              </div>
+            </div>
+            <div
+              style="
+                color: #71717a;
+                display: flex;
+                font-size: 25px;
+                margin-top: 26px;
+              "
+            >
+              11 400 stations comparées en temps réel, partout en France.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══════════ G2 ══════════ -->
+      <div class="card">
+        <h3><span class="tag">G2</span> Badge totem · delta pastillé ⭐</h3>
+        <p>
+          La logique de <b>K</b> importée dans G : badge rectangulaire
+          <code>shade 600</code> + texte sombre (le pattern « sélectionné » du
+          <code>FuelTypeSelector</code>). Delta dans une pastille colorée à
+          droite du prix.
+        </p>
+        <div class="frame">
+          <div
+            class="og"
+            style="
+              background-color: #09090b;
+              background-image: radial-gradient(
+                circle at 50% 0%,
+                rgba(79, 70, 229, 0.22),
+                transparent 60%
+              );
+              color: #fafafa;
+              display: flex;
+              flex-direction: column;
+              justify-content: center;
+              padding: 62px 72px;
+            "
+          >
+            <div style="align-items: center; display: flex; gap: 16px">
+              <svg
+                width="54"
+                height="54"
+                viewBox="0 0 512 512"
+                style="border-radius: 14px"
+              >
+                <rect width="512" height="512" rx="108" fill="#4f46e5" />
+                <g
+                  transform="translate(106,106) scale(12.5)"
+                  stroke="#f8fafc"
+                  stroke-width="1.5"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  fill="none"
+                >
+                  <path
+                    d="M14 13h2a2 2 0 0 1 2 2v2a2 2 0 0 0 4 0v-6.998a2 2 0 0 0-.59-1.42L18 5"
+                  />
+                  <path d="M14 21V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v16" />
+                  <path d="M2 21h13" />
+                  <path d="M3 9h11" />
+                </g>
+              </svg>
+              <div
+                class="sg"
+                style="
+                  display: flex;
+                  font-size: 40px;
+                  font-weight: 800;
+                  letter-spacing: -0.02em;
+                "
+              >
+                FaisTonPlein
+              </div>
+              <div
+                style="
+                  color: #71717a;
+                  display: flex;
+                  font-size: 25px;
+                  margin-left: 8px;
+                "
+              >
+                · prix moyens · évolution sur 3 semaines
+              </div>
+            </div>
+            <div style="display: flex; gap: 16px; margin-top: 30px">
+              <div
+                style="
+                  background-color: #111114;
+                  border: 1px solid rgba(250, 250, 250, 0.1);
+                  border-radius: 18px;
+                  display: flex;
+                  flex: 1;
+                  flex-direction: column;
+                  padding: 22px 20px;
+                "
+              >
+                <div
+                  style="
+                    align-items: center;
+                    background-color: #d08700;
+                    border-radius: 7px;
+                    color: #0a0a0a;
+                    display: flex;
+                    font-size: 20px;
+                    font-weight: 800;
+                    justify-content: center;
+                    letter-spacing: 0.03em;
+                    padding: 6px 0;
+                    width: 118px;
+                  "
+                >
+                  GAZOLE
+                </div>
+                <div
+                  style="
+                    align-items: flex-end;
+                    display: flex;
+                    gap: 12px;
+                    margin-top: 16px;
+                  "
+                >
+                  <div
+                    class="led"
+                    style="color: #fafafa; display: flex; font-size: 52px"
+                  >
+                    1.842
+                  </div>
+                </div>
+                <div
+                  style="
+                    align-items: center;
+                    align-self: flex-start;
+                    background-color: rgba(255, 32, 86, 0.15);
+                    border-radius: 999px;
+                    color: #ff2056;
+                    display: flex;
+                    font-size: 21px;
+                    font-weight: 700;
+                    gap: 6px;
+                    margin-top: 12px;
+                    padding: 5px 13px;
+                  "
+                >
+                  <svg
+                    fill="none"
+                    height="17"
+                    width="17"
+                    stroke="#ff2056"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="3"
+                    viewBox="0 0 24 24"
+                  >
+                    <path d="M7 17 17 7M9 7h8v8" /></svg
+                  >+0,12 €
+                </div>
+              </div>
+              <div
+                style="
+                  background-color: #111114;
+                  border: 1px solid rgba(250, 250, 250, 0.1);
+                  border-radius: 18px;
+                  display: flex;
+                  flex: 1;
+                  flex-direction: column;
+                  padding: 22px 20px;
+                "
+              >
+                <div
+                  style="
+                    align-items: center;
+                    background-color: #00a63e;
+                    border-radius: 7px;
+                    color: #0a0a0a;
+                    display: flex;
+                    font-size: 20px;
+                    font-weight: 800;
+                    justify-content: center;
+                    letter-spacing: 0.03em;
+                    padding: 6px 0;
+                    width: 118px;
+                  "
+                >
+                  E10
+                </div>
+                <div
+                  style="
+                    align-items: flex-end;
+                    display: flex;
+                    gap: 12px;
+                    margin-top: 16px;
+                  "
+                >
+                  <div
+                    class="led"
+                    style="color: #fafafa; display: flex; font-size: 52px"
+                  >
+                    1.769
+                  </div>
+                </div>
+                <div
+                  style="
+                    align-items: center;
+                    align-self: flex-start;
+                    background-color: rgba(255, 32, 86, 0.15);
+                    border-radius: 999px;
+                    color: #ff2056;
+                    display: flex;
+                    font-size: 21px;
+                    font-weight: 700;
+                    gap: 6px;
+                    margin-top: 12px;
+                    padding: 5px 13px;
+                  "
+                >
+                  <svg
+                    fill="none"
+                    height="17"
+                    width="17"
+                    stroke="#ff2056"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="3"
+                    viewBox="0 0 24 24"
+                  >
+                    <path d="M7 17 17 7M9 7h8v8" /></svg
+                  >+0,09 €
+                </div>
+              </div>
+              <div
+                style="
+                  background-color: #111114;
+                  border: 1px solid rgba(250, 250, 250, 0.1);
+                  border-radius: 18px;
+                  display: flex;
+                  flex: 1;
+                  flex-direction: column;
+                  padding: 22px 20px;
+                "
+              >
+                <div
+                  style="
+                    align-items: center;
+                    background-color: #009966;
+                    border-radius: 7px;
+                    color: #0a0a0a;
+                    display: flex;
+                    font-size: 20px;
+                    font-weight: 800;
+                    justify-content: center;
+                    letter-spacing: 0.03em;
+                    padding: 6px 0;
+                    width: 118px;
+                  "
+                >
+                  SP95
+                </div>
+                <div
+                  style="
+                    align-items: flex-end;
+                    display: flex;
+                    gap: 12px;
+                    margin-top: 16px;
+                  "
+                >
+                  <div
+                    class="led"
+                    style="color: #fafafa; display: flex; font-size: 52px"
+                  >
+                    1.821
+                  </div>
+                </div>
+                <div
+                  style="
+                    align-items: center;
+                    align-self: flex-start;
+                    background-color: rgba(255, 32, 86, 0.15);
+                    border-radius: 999px;
+                    color: #ff2056;
+                    display: flex;
+                    font-size: 21px;
+                    font-weight: 700;
+                    gap: 6px;
+                    margin-top: 12px;
+                    padding: 5px 13px;
+                  "
+                >
+                  <svg
+                    fill="none"
+                    height="17"
+                    width="17"
+                    stroke="#ff2056"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="3"
+                    viewBox="0 0 24 24"
+                  >
+                    <path d="M7 17 17 7M9 7h8v8" /></svg
+                  >+0,08 €
+                </div>
+              </div>
+            </div>
+            <div style="display: flex; gap: 16px; margin-top: 16px">
+              <div
+                style="
+                  background-color: #111114;
+                  border: 1px solid rgba(250, 250, 250, 0.1);
+                  border-radius: 18px;
+                  display: flex;
+                  flex: 1;
+                  flex-direction: column;
+                  padding: 22px 20px;
+                "
+              >
+                <div
+                  style="
+                    align-items: center;
+                    background-color: #009966;
+                    border-radius: 7px;
+                    color: #0a0a0a;
+                    display: flex;
+                    font-size: 20px;
+                    font-weight: 800;
+                    justify-content: center;
+                    letter-spacing: 0.03em;
+                    padding: 6px 0;
+                    width: 118px;
+                  "
+                >
+                  SP98
+                </div>
+                <div
+                  style="
+                    align-items: flex-end;
+                    display: flex;
+                    gap: 12px;
+                    margin-top: 16px;
+                  "
+                >
+                  <div
+                    class="led"
+                    style="color: #fafafa; display: flex; font-size: 52px"
+                  >
+                    1.889
+                  </div>
+                </div>
+                <div
+                  style="
+                    align-items: center;
+                    align-self: flex-start;
+                    background-color: rgba(255, 32, 86, 0.15);
+                    border-radius: 999px;
+                    color: #ff2056;
+                    display: flex;
+                    font-size: 21px;
+                    font-weight: 700;
+                    gap: 6px;
+                    margin-top: 12px;
+                    padding: 5px 13px;
+                  "
+                >
+                  <svg
+                    fill="none"
+                    height="17"
+                    width="17"
+                    stroke="#ff2056"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="3"
+                    viewBox="0 0 24 24"
+                  >
+                    <path d="M7 17 17 7M9 7h8v8" /></svg
+                  >+0,11 €
+                </div>
+              </div>
+              <div
+                style="
+                  background-color: #111114;
+                  border: 1px solid rgba(250, 250, 250, 0.1);
+                  border-radius: 18px;
+                  display: flex;
+                  flex: 1;
+                  flex-direction: column;
+                  padding: 22px 20px;
+                "
+              >
+                <div
+                  style="
+                    align-items: center;
+                    background-color: #0084d1;
+                    border-radius: 7px;
+                    color: #0a0a0a;
+                    display: flex;
+                    font-size: 20px;
+                    font-weight: 800;
+                    justify-content: center;
+                    letter-spacing: 0.03em;
+                    padding: 6px 0;
+                    width: 118px;
+                  "
+                >
+                  E85
+                </div>
+                <div
+                  style="
+                    align-items: flex-end;
+                    display: flex;
+                    gap: 12px;
+                    margin-top: 16px;
+                  "
+                >
+                  <div
+                    class="led"
+                    style="color: #fafafa; display: flex; font-size: 52px"
+                  >
+                    0.879
+                  </div>
+                </div>
+                <div
+                  style="
+                    align-items: center;
+                    align-self: flex-start;
+                    background-color: rgba(0, 153, 102, 0.18);
+                    border-radius: 999px;
+                    color: #00bc7d;
+                    display: flex;
+                    font-size: 21px;
+                    font-weight: 700;
+                    gap: 6px;
+                    margin-top: 12px;
+                    padding: 5px 13px;
+                  "
+                >
+                  <svg
+                    fill="none"
+                    height="17"
+                    width="17"
+                    stroke="#00bc7d"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="3"
+                    viewBox="0 0 24 24"
+                  >
+                    <path d="M7 7 17 17M17 9v8h-8" /></svg
+                  >−0,02 €
+                </div>
+              </div>
+              <div
+                style="
+                  background-color: #111114;
+                  border: 1px solid rgba(250, 250, 250, 0.1);
+                  border-radius: 18px;
+                  display: flex;
+                  flex: 1;
+                  flex-direction: column;
+                  padding: 22px 20px;
+                "
+              >
+                <div
+                  style="
+                    align-items: center;
+                    background-color: #45556c;
+                    border-radius: 7px;
+                    color: #f8fafc;
+                    display: flex;
+                    font-size: 20px;
+                    font-weight: 800;
+                    justify-content: center;
+                    letter-spacing: 0.03em;
+                    padding: 6px 0;
+                    width: 118px;
+                  "
+                >
+                  GPLc
+                </div>
+                <div
+                  style="
+                    align-items: flex-end;
+                    display: flex;
+                    gap: 12px;
+                    margin-top: 16px;
+                  "
+                >
+                  <div
+                    class="led"
+                    style="color: #fafafa; display: flex; font-size: 52px"
+                  >
+                    0.979
+                  </div>
+                </div>
+                <div
+                  style="
+                    align-items: center;
+                    align-self: flex-start;
+                    background-color: rgba(255, 32, 86, 0.15);
+                    border-radius: 999px;
+                    color: #ff2056;
+                    display: flex;
+                    font-size: 21px;
+                    font-weight: 700;
+                    gap: 6px;
+                    margin-top: 12px;
+                    padding: 5px 13px;
+                  "
+                >
+                  <svg
+                    fill="none"
+                    height="17"
+                    width="17"
+                    stroke="#ff2056"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="3"
+                    viewBox="0 0 24 24"
+                  >
+                    <path d="M7 17 17 7M9 7h8v8" /></svg
+                  >+0,01 €
+                </div>
+              </div>
+            </div>
+            <div
+              style="
+                color: #71717a;
+                display: flex;
+                font-size: 25px;
+                margin-top: 24px;
+              "
+            >
+              11 400 stations comparées en temps réel, partout en France.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══════════ G3 ══════════ -->
+      <div class="card">
+        <h3><span class="tag">G3</span> Cotation · flèche inline</h3>
+        <p>
+          Le plus dense : badge + prix + flèche sur une seule ligne, façon
+          tableau de cotation. Laisse la place à une accroche en pied.
+        </p>
+        <div class="frame">
+          <div
+            class="og"
+            style="
+              background-color: #09090b;
+              background-image: radial-gradient(
+                circle at 50% 100%,
+                rgba(79, 70, 229, 0.22),
+                transparent 60%
+              );
+              color: #fafafa;
+              display: flex;
+              flex-direction: column;
+              justify-content: center;
+              padding: 60px 72px;
+            "
+          >
+            <div style="align-items: center; display: flex; gap: 16px">
+              <svg
+                width="52"
+                height="52"
+                viewBox="0 0 512 512"
+                style="border-radius: 13px"
+              >
+                <rect width="512" height="512" rx="108" fill="#4f46e5" />
+                <g
+                  transform="translate(106,106) scale(12.5)"
+                  stroke="#f8fafc"
+                  stroke-width="1.5"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  fill="none"
+                >
+                  <path
+                    d="M14 13h2a2 2 0 0 1 2 2v2a2 2 0 0 0 4 0v-6.998a2 2 0 0 0-.59-1.42L18 5"
+                  />
+                  <path d="M14 21V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v16" />
+                  <path d="M2 21h13" />
+                  <path d="M3 9h11" />
+                </g>
+              </svg>
+              <div
+                class="sg"
+                style="
+                  display: flex;
+                  font-size: 38px;
+                  font-weight: 800;
+                  letter-spacing: -0.02em;
+                "
+              >
+                FaisTonPlein
+              </div>
+              <div
+                style="
+                  color: #71717a;
+                  display: flex;
+                  font-size: 24px;
+                  margin-left: 8px;
+                "
+              >
+                · évolution sur 3 semaines
+              </div>
+            </div>
+            <div style="display: flex; gap: 44px; margin-top: 30px">
+              <div
+                style="
+                  display: flex;
+                  flex: 1;
+                  flex-direction: column;
+                  gap: 17px;
+                "
+              >
+                <div style="align-items: center; display: flex; gap: 14px">
+                  <div
+                    style="
+                      align-items: center;
+                      background-color: #d08700;
+                      border-radius: 6px;
+                      color: #0a0a0a;
+                      display: flex;
+                      font-size: 18px;
+                      font-weight: 800;
+                      justify-content: center;
+                      padding: 5px 0;
+                      width: 104px;
+                    "
+                  >
+                    GAZOLE
+                  </div>
+                  <div class="led" style="color: #fafafa; font-size: 44px">
+                    1.842
+                  </div>
+                  <div
+                    style="
+                      align-items: center;
+                      color: #ff2056;
+                      display: flex;
+                      font-size: 21px;
+                      font-weight: 700;
+                      gap: 5px;
+                    "
+                  >
+                    <svg
+                      fill="none"
+                      height="17"
+                      width="17"
+                      stroke="#ff2056"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="3"
+                      viewBox="0 0 24 24"
+                    >
+                      <path d="M7 17 17 7M9 7h8v8" /></svg
+                    >+0,12
+                  </div>
+                </div>
+                <div style="align-items: center; display: flex; gap: 14px">
+                  <div
+                    style="
+                      align-items: center;
+                      background-color: #00a63e;
+                      border-radius: 6px;
+                      color: #0a0a0a;
+                      display: flex;
+                      font-size: 18px;
+                      font-weight: 800;
+                      justify-content: center;
+                      padding: 5px 0;
+                      width: 104px;
+                    "
+                  >
+                    E10
+                  </div>
+                  <div class="led" style="color: #fafafa; font-size: 44px">
+                    1.769
+                  </div>
+                  <div
+                    style="
+                      align-items: center;
+                      color: #ff2056;
+                      display: flex;
+                      font-size: 21px;
+                      font-weight: 700;
+                      gap: 5px;
+                    "
+                  >
+                    <svg
+                      fill="none"
+                      height="17"
+                      width="17"
+                      stroke="#ff2056"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="3"
+                      viewBox="0 0 24 24"
+                    >
+                      <path d="M7 17 17 7M9 7h8v8" /></svg
+                    >+0,09
+                  </div>
+                </div>
+                <div style="align-items: center; display: flex; gap: 14px">
+                  <div
+                    style="
+                      align-items: center;
+                      background-color: #009966;
+                      border-radius: 6px;
+                      color: #0a0a0a;
+                      display: flex;
+                      font-size: 18px;
+                      font-weight: 800;
+                      justify-content: center;
+                      padding: 5px 0;
+                      width: 104px;
+                    "
+                  >
+                    SP95
+                  </div>
+                  <div class="led" style="color: #fafafa; font-size: 44px">
+                    1.821
+                  </div>
+                  <div
+                    style="
+                      align-items: center;
+                      color: #ff2056;
+                      display: flex;
+                      font-size: 21px;
+                      font-weight: 700;
+                      gap: 5px;
+                    "
+                  >
+                    <svg
+                      fill="none"
+                      height="17"
+                      width="17"
+                      stroke="#ff2056"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="3"
+                      viewBox="0 0 24 24"
+                    >
+                      <path d="M7 17 17 7M9 7h8v8" /></svg
+                    >+0,08
+                  </div>
+                </div>
+              </div>
+              <div
+                style="background-color: rgba(250, 250, 250, 0.1); width: 1px"
+              ></div>
+              <div
+                style="
+                  display: flex;
+                  flex: 1;
+                  flex-direction: column;
+                  gap: 17px;
+                "
+              >
+                <div style="align-items: center; display: flex; gap: 14px">
+                  <div
+                    style="
+                      align-items: center;
+                      background-color: #009966;
+                      border-radius: 6px;
+                      color: #0a0a0a;
+                      display: flex;
+                      font-size: 18px;
+                      font-weight: 800;
+                      justify-content: center;
+                      padding: 5px 0;
+                      width: 104px;
+                    "
+                  >
+                    SP98
+                  </div>
+                  <div class="led" style="color: #fafafa; font-size: 44px">
+                    1.889
+                  </div>
+                  <div
+                    style="
+                      align-items: center;
+                      color: #ff2056;
+                      display: flex;
+                      font-size: 21px;
+                      font-weight: 700;
+                      gap: 5px;
+                    "
+                  >
+                    <svg
+                      fill="none"
+                      height="17"
+                      width="17"
+                      stroke="#ff2056"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="3"
+                      viewBox="0 0 24 24"
+                    >
+                      <path d="M7 17 17 7M9 7h8v8" /></svg
+                    >+0,11
+                  </div>
+                </div>
+                <div style="align-items: center; display: flex; gap: 14px">
+                  <div
+                    style="
+                      align-items: center;
+                      background-color: #0084d1;
+                      border-radius: 6px;
+                      color: #0a0a0a;
+                      display: flex;
+                      font-size: 18px;
+                      font-weight: 800;
+                      justify-content: center;
+                      padding: 5px 0;
+                      width: 104px;
+                    "
+                  >
+                    E85
+                  </div>
+                  <div class="led" style="color: #fafafa; font-size: 44px">
+                    0.879
+                  </div>
+                  <div
+                    style="
+                      align-items: center;
+                      color: #00bc7d;
+                      display: flex;
+                      font-size: 21px;
+                      font-weight: 700;
+                      gap: 5px;
+                    "
+                  >
+                    <svg
+                      fill="none"
+                      height="17"
+                      width="17"
+                      stroke="#00bc7d"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="3"
+                      viewBox="0 0 24 24"
+                    >
+                      <path d="M7 7 17 17M17 9v8h-8" /></svg
+                    >−0,02
+                  </div>
+                </div>
+                <div style="align-items: center; display: flex; gap: 14px">
+                  <div
+                    style="
+                      align-items: center;
+                      background-color: #45556c;
+                      border-radius: 6px;
+                      color: #f8fafc;
+                      display: flex;
+                      font-size: 18px;
+                      font-weight: 800;
+                      justify-content: center;
+                      padding: 5px 0;
+                      width: 104px;
+                    "
+                  >
+                    GPLc
+                  </div>
+                  <div class="led" style="color: #fafafa; font-size: 44px">
+                    0.979
+                  </div>
+                  <div
+                    style="
+                      align-items: center;
+                      color: #ff2056;
+                      display: flex;
+                      font-size: 21px;
+                      font-weight: 700;
+                      gap: 5px;
+                    "
+                  >
+                    <svg
+                      fill="none"
+                      height="17"
+                      width="17"
+                      stroke="#ff2056"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="3"
+                      viewBox="0 0 24 24"
+                    >
+                      <path d="M7 17 17 7M9 7h8v8" /></svg
+                    >+0,01
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div
+              style="
+                background-color: rgba(250, 250, 250, 0.1);
+                height: 1px;
+                margin: 30px 0 22px;
+                width: 100%;
+              "
+            ></div>
+            <div
+              class="sg"
+              style="
+                display: flex;
+                font-size: 38px;
+                font-weight: 700;
+                letter-spacing: -0.02em;
+              "
+            >
+              Trouvez la station la moins chère près de chez vous.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,1077 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>FaisTonPlein — Moodboard og:image</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --ftp-primary: #4f46e5; /* Indigo-600  */
+        --ftp-background: #f8fafc; /* Slate-50    */
+        --ftp-foreground: #0f172a; /* Slate-900   */
+        --ftp-emerald: #10b981; /* chart-2     */
+        --ftp-rose: #f43f5e; /* chart-3     */
+        --ftp-amber: #fbbf24; /* chart-4     */
+        --ui-font: "Manrope", system-ui, -apple-system, "Segoe UI", sans-serif;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        padding: 48px 32px 96px;
+        background: #eef1f6;
+        color: #0f172a;
+        font-family: var(--ui-font);
+      }
+      header {
+        max-width: 1280px;
+        margin: 0 auto 40px;
+      }
+      h1 {
+        font-family: "Space Grotesk", var(--ui-font);
+        font-size: 34px;
+        margin: 0 0 6px;
+        letter-spacing: -0.02em;
+      }
+      .sub {
+        color: #475569;
+        font-size: 16px;
+        margin: 0 0 24px;
+      }
+      .palette {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-bottom: 20px;
+      }
+      .sw {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: #fff;
+        border: 1px solid #dbe2ea;
+        border-radius: 999px;
+        padding: 5px 13px 5px 6px;
+        font-size: 12.5px;
+        font-weight: 600;
+      }
+      .sw i {
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        display: block;
+        border: 1px solid rgba(15, 23, 42, 0.1);
+      }
+      .warn {
+        background: #fff7ed;
+        border: 1px solid #fed7aa;
+        border-left: 4px solid #f97316;
+        border-radius: 8px;
+        padding: 13px 16px;
+        font-size: 13.5px;
+        line-height: 1.55;
+        color: #7c2d12;
+        max-width: 1280px;
+        margin: 0 auto 34px;
+      }
+      .warn b {
+        color: #9a3412;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(600px, 1fr));
+        gap: 36px 32px;
+        max-width: 1280px;
+        margin: 0 auto;
+      }
+      .card {
+        background: #fff;
+        border: 1px solid #dbe2ea;
+        border-radius: 16px;
+        padding: 20px;
+        box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05);
+      }
+      .card h2 {
+        font-family: "Space Grotesk", var(--ui-font);
+        font-size: 19px;
+        margin: 0 0 4px;
+        display: flex;
+        align-items: center;
+        gap: 9px;
+      }
+      .tag {
+        background: var(--ftp-primary);
+        color: #fff;
+        font-size: 11px;
+        font-weight: 700;
+        padding: 3px 9px;
+        border-radius: 999px;
+        letter-spacing: 0.04em;
+      }
+      .card p {
+        color: #64748b;
+        font-size: 13.5px;
+        margin: 0 0 15px;
+        line-height: 1.5;
+      }
+      .frame {
+        width: 600px;
+        height: 315px;
+        max-width: 100%;
+        overflow: hidden;
+        border-radius: 12px;
+        border: 1px solid #e2e8f0;
+      }
+      .og {
+        width: 1200px;
+        height: 630px;
+        transform: scale(0.5);
+        transform-origin: top left;
+        position: relative;
+        font-family: var(--ui-font);
+        overflow: hidden;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>FaisTonPlein — 6 propositions d'image de partage</h1>
+      <p class="sub">
+        Templates ogimagecn convertis en HTML/CSS réel, à l'échelle 1200×630
+        (affichés à 50 %). Palette et contenu tirés du projet.
+      </p>
+      <div class="palette">
+        <span class="sw"
+          ><i style="background: #4f46e5"></i>--primary — #4f46e5</span
+        >
+        <span class="sw"
+          ><i style="background: #f8fafc"></i>--background — #f8fafc</span
+        >
+        <span class="sw"
+          ><i style="background: #0f172a"></i>--foreground — #0f172a</span
+        >
+        <span class="sw"
+          ><i style="background: #10b981"></i>--chart-2 — #10b981</span
+        >
+        <span class="sw"
+          ><i style="background: #f43f5e"></i>--chart-3 — #f43f5e</span
+        >
+        <span class="sw"
+          ><i style="background: #fbbf24"></i>--chart-4 — #fbbf24</span
+        >
+      </div>
+    </header>
+
+    <div class="warn">
+      <b>⚠️ Chiffres = placeholders.</b> « 1,84 € », « +0,12 € », « 11 400
+      stations » sont inventés pour la mise en page — ils seront remplacés par
+      les vraies valeurs issues de ton ETL au moment de générer l'asset
+      final.<br />
+      <b>⚠️ URL à confirmer.</b> Le template Showcase affiche
+      <code>faistonplein.fr</code> — dis-moi le vrai domaine.<br />
+      <b>⚠️ Logo reconstruit.</b> <code>public/icon.svg</code> est un export DOM
+      avec <code>&lt;foreignObject&gt;</code> (68 Ko) que ni
+      <code>&lt;img&gt;</code> ni Satori ne savent rendre. Les logos ci-dessous
+      utilisent une version SVG propre de l'icône Lucide <code>fuel</code> (4
+      paths, ~600 o). Contraste icône/fond vérifié : <b>6,0:1</b> (WCAG AA
+      graphique ≥ 3:1 ✓).
+    </div>
+
+    <div class="grid">
+      <!-- ══════════ 1. SIMPLE ══════════ -->
+      <div class="card">
+        <h2><span class="tag">SIMPLE</span> Minimal centré</h2>
+        <p>
+          Eyebrow + titre + description + marque en pied. Le plus polyvalent :
+          lisible partout, ne se périme jamais.
+        </p>
+        <div class="frame">
+          <div
+            class="og"
+            style="
+              align-items: center;
+              background-color: #09090b;
+              background-image: radial-gradient(
+                circle at 50% 0%,
+                rgba(79, 70, 229, 0.22),
+                transparent 55%
+              );
+              color: #fafafa;
+              display: flex;
+              flex-direction: column;
+              justify-content: center;
+              padding: 96px;
+            "
+          >
+            <div
+              style="
+                align-items: center;
+                background-color: rgba(250, 250, 250, 0.04);
+                border: 1px solid rgba(250, 250, 250, 0.12);
+                border-radius: 999px;
+                color: #d4d4d8;
+                display: flex;
+                font-size: 24px;
+                font-weight: 500;
+                gap: 12px;
+                letter-spacing: 0.04em;
+                padding: 8px 18px;
+                text-transform: uppercase;
+              "
+            >
+              <div
+                style="
+                  background-color: #4f46e5;
+                  border-radius: 999px;
+                  height: 10px;
+                  width: 10px;
+                "
+              ></div>
+              Prix carburant · temps réel
+            </div>
+            <div
+              style="
+                display: flex;
+                font-size: 64px;
+                font-weight: 700;
+                letter-spacing: -0.03em;
+                line-height: 1.05;
+                margin-top: 40px;
+                max-width: 900px;
+                text-align: center;
+                font-family: &quot;Space Grotesk&quot;, sans-serif;
+              "
+            >
+              Trouvez la station la moins chère près de chez vous
+            </div>
+            <div
+              style="
+                color: #a1a1aa;
+                display: flex;
+                font-size: 32px;
+                line-height: 1.4;
+                margin-top: 28px;
+                max-width: 760px;
+                text-align: center;
+              "
+            >
+              Gazole, E10, SP95, SP98, E85 et GPLc comparés en direct partout en
+              France.
+            </div>
+            <div
+              style="
+                align-items: center;
+                bottom: 56px;
+                color: #fafafa;
+                display: flex;
+                font-size: 26px;
+                font-weight: 600;
+                gap: 12px;
+                position: absolute;
+              "
+            >
+              <svg
+                width="28"
+                height="28"
+                viewBox="0 0 512 512"
+                style="border-radius: 6px"
+              >
+                <rect width="512" height="512" rx="108" fill="#4f46e5" />
+                <g
+                  transform="translate(106,106) scale(12.5)"
+                  stroke="#f8fafc"
+                  stroke-width="1.5"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  fill="none"
+                >
+                  <path
+                    d="M14 13h2a2 2 0 0 1 2 2v2a2 2 0 0 0 4 0v-6.998a2 2 0 0 0-.59-1.42L18 5"
+                  />
+                  <path d="M14 21V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v16" />
+                  <path d="M2 21h13" />
+                  <path d="M3 9h11" />
+                </g>
+              </svg>
+              FaisTonPlein
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══════════ 2. STAT ══════════ -->
+      <div class="card">
+        <h2><span class="tag">STAT</span> Métrique · le prix qui grimpe</h2>
+        <p>
+          Chiffre géant + pastille de tendance. Le trend est passé en
+          <b style="color: #f43f5e">rose</b> : une hausse de prix est une
+          mauvaise nouvelle, le vert d'origine aurait dit l'inverse.
+        </p>
+        <div class="frame">
+          <div
+            class="og"
+            style="
+              background-color: #09090b;
+              background-image: radial-gradient(
+                circle at 50% 120%,
+                rgba(244, 63, 94, 0.18),
+                transparent 55%
+              );
+              color: #fafafa;
+              display: flex;
+              flex-direction: column;
+              justify-content: center;
+              padding: 96px;
+            "
+          >
+            <div
+              style="
+                color: #a1a1aa;
+                display: flex;
+                font-size: 30px;
+                font-weight: 600;
+                letter-spacing: 0.04em;
+                text-transform: uppercase;
+              "
+            >
+              Prix moyen du gazole
+            </div>
+            <div
+              style="
+                align-items: flex-end;
+                display: flex;
+                gap: 28px;
+                margin-top: 20px;
+              "
+            >
+              <div
+                style="
+                  display: flex;
+                  font-size: 200px;
+                  font-weight: 800;
+                  letter-spacing: -0.04em;
+                  line-height: 1;
+                  font-family: &quot;Space Grotesk&quot;, sans-serif;
+                "
+              >
+                1,84 €
+              </div>
+              <div
+                style="
+                  align-items: center;
+                  background-color: rgba(244, 63, 94, 0.15);
+                  border-radius: 999px;
+                  color: #f43f5e;
+                  display: flex;
+                  font-size: 34px;
+                  font-weight: 700;
+                  gap: 10px;
+                  margin-bottom: 36px;
+                  padding: 10px 22px;
+                "
+              >
+                <svg
+                  fill="none"
+                  height="26"
+                  width="26"
+                  stroke="#f43f5e"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="3"
+                  viewBox="0 0 24 24"
+                >
+                  <path d="M7 17 17 7M9 7h8v8" />
+                </svg>
+                +0,12 €
+              </div>
+            </div>
+            <div
+              style="
+                color: #d4d4d8;
+                display: flex;
+                font-size: 34px;
+                line-height: 1.4;
+                margin-top: 28px;
+                max-width: 820px;
+              "
+            >
+              Sur 11 400 stations en France. Jusqu'à 0,23 €/L d'écart dans votre
+              département — soit 11 € par plein.
+            </div>
+            <div
+              style="
+                align-items: center;
+                bottom: 56px;
+                color: #71717a;
+                display: flex;
+                font-size: 26px;
+                font-weight: 600;
+                gap: 12px;
+                position: absolute;
+              "
+            >
+              <svg
+                width="24"
+                height="24"
+                viewBox="0 0 512 512"
+                style="border-radius: 6px"
+              >
+                <rect width="512" height="512" rx="108" fill="#4f46e5" />
+                <g
+                  transform="translate(106,106) scale(12.5)"
+                  stroke="#f8fafc"
+                  stroke-width="1.5"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  fill="none"
+                >
+                  <path
+                    d="M14 13h2a2 2 0 0 1 2 2v2a2 2 0 0 0 4 0v-6.998a2 2 0 0 0-.59-1.42L18 5"
+                  />
+                  <path d="M14 21V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v16" />
+                  <path d="M2 21h13" />
+                  <path d="M3 9h11" />
+                </g>
+              </svg>
+              FaisTonPlein
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══════════ 3. LOGO ══════════ -->
+      <div class="card">
+        <h2><span class="tag">LOGO</span> Marque centrée</h2>
+        <p>
+          Logo + wordmark + tagline sur fond de marque. Intemporel, mais ne dit
+          rien de ce que fait l'app.
+        </p>
+        <div class="frame">
+          <div
+            class="og"
+            style="
+              align-items: center;
+              background-color: #09090b;
+              background-image: radial-gradient(
+                circle at 50% 50%,
+                rgba(79, 70, 229, 0.3),
+                transparent 60%
+              );
+              color: #fafafa;
+              display: flex;
+              flex-direction: column;
+              justify-content: center;
+            "
+          >
+            <svg
+              width="140"
+              height="140"
+              viewBox="0 0 512 512"
+              style="border-radius: 28px"
+            >
+              <rect width="512" height="512" rx="108" fill="#4f46e5" />
+              <g
+                transform="translate(106,106) scale(12.5)"
+                stroke="#f8fafc"
+                stroke-width="1.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                fill="none"
+              >
+                <path
+                  d="M14 13h2a2 2 0 0 1 2 2v2a2 2 0 0 0 4 0v-6.998a2 2 0 0 0-.59-1.42L18 5"
+                />
+                <path d="M14 21V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v16" />
+                <path d="M2 21h13" />
+                <path d="M3 9h11" />
+              </g>
+            </svg>
+            <div
+              style="
+                display: flex;
+                font-size: 96px;
+                font-weight: 800;
+                letter-spacing: -0.04em;
+                margin-top: 44px;
+                font-family: &quot;Space Grotesk&quot;, sans-serif;
+              "
+            >
+              FaisTonPlein
+            </div>
+            <div
+              style="
+                color: #a1a1aa;
+                display: flex;
+                font-size: 32px;
+                margin-top: 16px;
+              "
+            >
+              Le plein au meilleur prix
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══════════ 4. SHOWCASE ══════════ -->
+      <div class="card">
+        <h2><span class="tag">SHOWCASE</span> Faux navigateur</h2>
+        <p>
+          Titre au-dessus d'une fenêtre de navigateur stylisée. Le panneau
+          interne a été recâblé sur tes carburants (le template affichait un
+          chiffre d'affaires).
+        </p>
+        <div class="frame">
+          <div
+            class="og"
+            style="
+              align-items: center;
+              background-color: #09090b;
+              background-image: radial-gradient(
+                circle at 50% 0%,
+                rgba(79, 70, 229, 0.22),
+                transparent 55%
+              );
+              color: #fafafa;
+              display: flex;
+              flex-direction: column;
+              padding-top: 64px;
+            "
+          >
+            <div
+              style="
+                display: flex;
+                font-size: 60px;
+                font-weight: 700;
+                letter-spacing: -0.03em;
+                text-align: center;
+                font-family: &quot;Space Grotesk&quot;, sans-serif;
+              "
+            >
+              Comparez les prix du carburant en France
+            </div>
+            <div
+              style="
+                color: #a1a1aa;
+                display: flex;
+                font-size: 28px;
+                margin-top: 14px;
+                max-width: 760px;
+                text-align: center;
+              "
+            >
+              11 400 stations · 6 carburants · mis à jour en continu
+            </div>
+            <div
+              style="
+                background-color: #0a0a0a;
+                border: 1px solid rgba(250, 250, 250, 0.12);
+                border-radius: 20px 20px 0 0;
+                box-shadow: 0 -10px 80px rgba(79, 70, 229, 0.25);
+                display: flex;
+                flex-direction: column;
+                height: 360px;
+                margin-top: 48px;
+                width: 1000px;
+              "
+            >
+              <div
+                style="
+                  align-items: center;
+                  border-bottom: 1px solid rgba(250, 250, 250, 0.08);
+                  display: flex;
+                  gap: 10px;
+                  padding: 20px 24px;
+                "
+              >
+                <div
+                  style="
+                    background-color: #ef4444;
+                    border-radius: 999px;
+                    height: 14px;
+                    width: 14px;
+                  "
+                ></div>
+                <div
+                  style="
+                    background-color: #f59e0b;
+                    border-radius: 999px;
+                    height: 14px;
+                    width: 14px;
+                  "
+                ></div>
+                <div
+                  style="
+                    background-color: #22c55e;
+                    border-radius: 999px;
+                    height: 14px;
+                    width: 14px;
+                  "
+                ></div>
+                <div
+                  style="
+                    background-color: rgba(250, 250, 250, 0.06);
+                    border-radius: 8px;
+                    color: #71717a;
+                    display: flex;
+                    align-items: center;
+                    gap: 10px;
+                    font-size: 20px;
+                    margin-left: 20px;
+                    padding: 8px 20px;
+                  "
+                >
+                  <svg
+                    width="20"
+                    height="20"
+                    viewBox="0 0 512 512"
+                    style="border-radius: 4px"
+                  >
+                    <rect width="512" height="512" rx="108" fill="#4f46e5" />
+                    <g
+                      transform="translate(106,106) scale(12.5)"
+                      stroke="#f8fafc"
+                      stroke-width="1.5"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      fill="none"
+                    >
+                      <path
+                        d="M14 13h2a2 2 0 0 1 2 2v2a2 2 0 0 0 4 0v-6.998a2 2 0 0 0-.59-1.42L18 5"
+                      />
+                      <path d="M14 21V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v16" />
+                      <path d="M2 21h13" />
+                      <path d="M3 9h11" />
+                    </g>
+                  </svg>
+                  faistonplein.fr
+                </div>
+              </div>
+              <div style="display: flex; flex: 1">
+                <div
+                  style="
+                    border-right: 1px solid rgba(250, 250, 250, 0.08);
+                    display: flex;
+                    flex-direction: column;
+                    gap: 18px;
+                    padding: 28px 24px;
+                    width: 220px;
+                  "
+                >
+                  <div
+                    style="
+                      background-color: #4f46e5;
+                      border-radius: 8px;
+                      height: 20px;
+                      width: 90%;
+                    "
+                  ></div>
+                  <div
+                    style="
+                      background-color: rgba(250, 250, 250, 0.12);
+                      border-radius: 8px;
+                      height: 20px;
+                      width: 60%;
+                    "
+                  ></div>
+                  <div
+                    style="
+                      background-color: rgba(250, 250, 250, 0.12);
+                      border-radius: 8px;
+                      height: 20px;
+                      width: 70%;
+                    "
+                  ></div>
+                  <div
+                    style="
+                      background-color: rgba(250, 250, 250, 0.12);
+                      border-radius: 8px;
+                      height: 20px;
+                      width: 50%;
+                    "
+                  ></div>
+                </div>
+                <div
+                  style="
+                    display: flex;
+                    flex: 1;
+                    flex-direction: column;
+                    padding: 28px 36px;
+                  "
+                >
+                  <div style="color: #71717a; display: flex; font-size: 22px">
+                    Gazole · le moins cher
+                  </div>
+                  <div
+                    style="
+                      display: flex;
+                      font-size: 56px;
+                      font-weight: 700;
+                      letter-spacing: -0.02em;
+                      margin-top: 4px;
+                      font-family: &quot;Space Grotesk&quot;, sans-serif;
+                    "
+                  >
+                    1,61 €/L
+                  </div>
+                  <div
+                    style="
+                      align-items: flex-end;
+                      display: flex;
+                      flex: 1;
+                      gap: 18px;
+                      margin-top: 24px;
+                    "
+                  >
+                    <div
+                      style="
+                        background-color: #10b981;
+                        border-radius: 6px 6px 0 0;
+                        flex: 1;
+                        height: 40%;
+                      "
+                    ></div>
+                    <div
+                      style="
+                        background-color: rgba(250, 250, 250, 0.18);
+                        border-radius: 6px 6px 0 0;
+                        flex: 1;
+                        height: 65%;
+                      "
+                    ></div>
+                    <div
+                      style="
+                        background-color: #10b981;
+                        border-radius: 6px 6px 0 0;
+                        flex: 1;
+                        height: 50%;
+                      "
+                    ></div>
+                    <div
+                      style="
+                        background-color: rgba(250, 250, 250, 0.18);
+                        border-radius: 6px 6px 0 0;
+                        flex: 1;
+                        height: 80%;
+                      "
+                    ></div>
+                    <div
+                      style="
+                        background-color: #4f46e5;
+                        border-radius: 6px 6px 0 0;
+                        flex: 1;
+                        height: 55%;
+                      "
+                    ></div>
+                    <div
+                      style="
+                        background-color: rgba(250, 250, 250, 0.18);
+                        border-radius: 6px 6px 0 0;
+                        flex: 1;
+                        height: 95%;
+                      "
+                    ></div>
+                    <div
+                      style="
+                        background-color: #f43f5e;
+                        border-radius: 6px 6px 0 0;
+                        flex: 1;
+                        height: 70%;
+                      "
+                    ></div>
+                    <div
+                      style="
+                        background-color: rgba(250, 250, 250, 0.18);
+                        border-radius: 6px 6px 0 0;
+                        flex: 1;
+                        height: 85%;
+                      "
+                    ></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══════════ 5. PRODUCT ══════════ -->
+      <div class="card">
+        <h2><span class="tag">PRODUCT</span> Deux colonnes</h2>
+        <p>
+          Pitch à gauche, visuel à droite. Le pavé droit accueillerait un vrai
+          screenshot de la carte (dégradé en attendant).
+        </p>
+        <div class="frame">
+          <div
+            class="og"
+            style="
+              background-color: #09090b;
+              color: #fafafa;
+              display: flex;
+              padding: 72px;
+            "
+          >
+            <div
+              style="
+                display: flex;
+                flex: 1;
+                flex-direction: column;
+                justify-content: space-between;
+                padding-right: 56px;
+              "
+            >
+              <div style="align-items: center; display: flex; gap: 14px">
+                <svg
+                  width="32"
+                  height="32"
+                  viewBox="0 0 512 512"
+                  style="border-radius: 10px"
+                >
+                  <rect width="512" height="512" rx="108" fill="#4f46e5" />
+                  <g
+                    transform="translate(106,106) scale(12.5)"
+                    stroke="#f8fafc"
+                    stroke-width="1.5"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    fill="none"
+                  >
+                    <path
+                      d="M14 13h2a2 2 0 0 1 2 2v2a2 2 0 0 0 4 0v-6.998a2 2 0 0 0-.59-1.42L18 5"
+                    />
+                    <path d="M14 21V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v16" />
+                    <path d="M2 21h13" />
+                    <path d="M3 9h11" />
+                  </g>
+                </svg>
+                <div style="display: flex; font-size: 28px; font-weight: 600">
+                  FaisTonPlein
+                </div>
+              </div>
+              <div style="display: flex; flex-direction: column">
+                <div
+                  style="
+                    display: flex;
+                    font-size: 76px;
+                    font-weight: 700;
+                    letter-spacing: -0.03em;
+                    line-height: 1.05;
+                    max-width: 560px;
+                    font-family: &quot;Space Grotesk&quot;, sans-serif;
+                  "
+                >
+                  Le plein au meilleur prix
+                </div>
+                <div
+                  style="
+                    color: #a1a1aa;
+                    display: flex;
+                    font-size: 30px;
+                    line-height: 1.4;
+                    margin-top: 24px;
+                    max-width: 520px;
+                  "
+                >
+                  Carte interactive, tri par prix ou distance, 6 carburants
+                  suivis en temps réel.
+                </div>
+              </div>
+              <div
+                style="
+                  align-items: center;
+                  align-self: flex-start;
+                  background-color: #4f46e5;
+                  border-radius: 999px;
+                  color: #fff;
+                  display: flex;
+                  font-size: 32px;
+                  font-weight: 700;
+                  padding: 14px 32px;
+                "
+              >
+                Gratuit · sans compte
+              </div>
+            </div>
+            <div
+              style="
+                align-items: center;
+                background-color: #18181b;
+                background-image: linear-gradient(
+                  135deg,
+                  #4f46e5 0%,
+                  #10b981 100%
+                );
+                border: 1px solid rgba(250, 250, 250, 0.1);
+                border-radius: 28px;
+                display: flex;
+                height: 100%;
+                justify-content: center;
+                width: 486px;
+              "
+            >
+              <svg
+                width="190"
+                height="190"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="rgba(255,255,255,.92)"
+                stroke-width="1.2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path
+                  d="M14 13h2a2 2 0 0 1 2 2v2a2 2 0 0 0 4 0v-6.998a2 2 0 0 0-.59-1.42L18 5"
+                />
+                <path d="M14 21V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v16" />
+                <path d="M2 21h13" />
+                <path d="M3 9h11" />
+              </svg>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══════════ 6. EVENT ══════════ -->
+      <div class="card">
+        <h2><span class="tag">EVENT</span> Format annonce</h2>
+        <p>
+          Badge + gros titre + pied date · lieu. Taillé pour un lancement —
+          accent ambre repris de <code>--chart-4</code>.
+        </p>
+        <div class="frame">
+          <div
+            class="og"
+            style="
+              background-color: #0a0a0a;
+              background-image: radial-gradient(
+                circle at 100% 0%,
+                rgba(251, 191, 36, 0.2),
+                transparent 55%
+              );
+              color: #fafafa;
+              display: flex;
+              flex-direction: column;
+              justify-content: space-between;
+              padding: 80px;
+            "
+          >
+            <div
+              style="
+                align-items: center;
+                display: flex;
+                justify-content: space-between;
+              "
+            >
+              <div
+                style="
+                  align-items: center;
+                  background-color: rgba(251, 191, 36, 0.15);
+                  border: 1px solid rgba(251, 191, 36, 0.4);
+                  border-radius: 999px;
+                  color: #fbbf24;
+                  display: flex;
+                  font-size: 26px;
+                  font-weight: 600;
+                  gap: 12px;
+                  letter-spacing: 0.04em;
+                  padding: 10px 22px;
+                  text-transform: uppercase;
+                "
+              >
+                <div
+                  style="
+                    background-color: #fbbf24;
+                    border-radius: 999px;
+                    height: 12px;
+                    width: 12px;
+                  "
+                ></div>
+                Nouveau
+              </div>
+              <div style="align-items: center; display: flex; gap: 12px">
+                <svg
+                  width="40"
+                  height="40"
+                  viewBox="0 0 512 512"
+                  style="border-radius: 8px"
+                >
+                  <rect width="512" height="512" rx="108" fill="#4f46e5" />
+                  <g
+                    transform="translate(106,106) scale(12.5)"
+                    stroke="#f8fafc"
+                    stroke-width="1.5"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    fill="none"
+                  >
+                    <path
+                      d="M14 13h2a2 2 0 0 1 2 2v2a2 2 0 0 0 4 0v-6.998a2 2 0 0 0-.59-1.42L18 5"
+                    />
+                    <path d="M14 21V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v16" />
+                    <path d="M2 21h13" />
+                    <path d="M3 9h11" />
+                  </g>
+                </svg>
+                <div style="color: #a1a1aa; font-size: 28px; font-weight: 600">
+                  FaisTonPlein
+                </div>
+              </div>
+            </div>
+            <div
+              style="
+                display: flex;
+                font-size: 72px;
+                font-weight: 700;
+                letter-spacing: -0.03em;
+                line-height: 1.02;
+                max-width: 1000px;
+                font-family: &quot;Space Grotesk&quot;, sans-serif;
+              "
+            >
+              Les prix remontent. Trouvez la station la moins chère.
+            </div>
+            <div style="align-items: center; display: flex; gap: 20px">
+              <div
+                style="
+                  align-items: center;
+                  display: flex;
+                  font-size: 30px;
+                  font-weight: 600;
+                  gap: 14px;
+                "
+              >
+                <svg
+                  fill="none"
+                  height="30"
+                  width="30"
+                  stroke="#fbbf24"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  viewBox="0 0 24 24"
+                >
+                  <rect height="18" rx="2" width="18" x="3" y="4" />
+                  <path d="M16 2v4M8 2v4M3 10h18" />
+                </svg>
+                Septembre 2026
+              </div>
+              <div style="color: #52525b; display: flex; font-size: 30px">
+                ·
+              </div>
+              <div style="color: #a1a1aa; display: flex; font-size: 30px">
+                Toute la France
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

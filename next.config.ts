@@ -1,6 +1,12 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // Les .woff de l'og:image sont lus au runtime avec fs.readFile : le tracing
+  // automatique ne les détecte pas, il faut les inclure explicitement dans le
+  // bundle serverless sinon la génération d'image échoue en production.
+  outputFileTracingIncludes: {
+    "/opengraph-image": ["./src/app/_og-fonts/**"],
+  },
   images: {
     remotePatterns: [
       {

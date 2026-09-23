@@ -5,3 +5,4 @@ dist/
 data/
 *.log
 duckdb_home/
+metadata.bootstrap.json

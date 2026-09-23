@@ -21,6 +21,9 @@ const spaceGrotesk = Space_Grotesk({
 });
 
 export const metadata: Metadata = {
+  // Requis pour que Next résolve l'URL absolue de l'og:image générée par
+  // src/app/opengraph-image.tsx — sans lui, les scrapers sociaux reçoivent un chemin relatif.
+  metadataBase: new URL("https://faistonplein.vercel.app"),
   title: {
     default: "FaisTonPlein",
     template: "%s | FaisTonPlein",
@@ -56,7 +59,9 @@ export const metadata: Metadata = {
     siteName: "FaisTonPlein",
   },
   twitter: {
-    card: "summary",
+    // summary_large_image : sans ça, X réduit l'og:image à une vignette carrée
+    // et les 6 prix du totem deviennent illisibles.
+    card: "summary_large_image",
     title: "FaisTonPlein",
     description: "Trouvez la station-service la moins chère près de chez vous.",
   },
