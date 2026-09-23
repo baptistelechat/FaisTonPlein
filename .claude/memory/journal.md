@@ -111,3 +111,12 @@ Vérification : le rendu a été contrôlé en navigateur avec les vraies donné
 
 - [BDR-013](decisions/BDR-013.md) — totem desktop seul, logique partagée avec l'og:image
 - [BDR-014](decisions/BDR-014.md) — FuelBadge unique et resolveHex centralisé
+
+---
+
+Suite de session sur le totem : il recouvrait la barre de recherche sur les fenêtres desktop étroites. Première approche construite puis abandonnée : une barre horizontale minimaliste en bas de carte (`NationalPriceTotemBar`), basculée via une container query `@5xl`, repositionnée à gauche après avoir constaté qu'elle chevauchait les contrôles de carte. Baptiste a ensuite préféré une autre approche : le header réserve la place du totem à droite (`@2xl:pr-66`), la barre de recherche se rétrécit et reste toujours visible, et le totem se masque sous 672px de largeur de carte ([BDR-015](decisions/BDR-015.md)). La barre horizontale a été supprimée. Vérifié en navigateur à 1000 et 1100px, lint et build verts, commit `47fbeca` (non poussé) avec une entrée `Fixed` au changelog. Le pattern container query est capitalisé en local ([LRN-012](learnings/LRN-012.md)), Baptiste ayant demandé de tout garder en local.
+
+**Entrées clés :**
+
+- [BDR-015](decisions/BDR-015.md) — header qui réserve la place du totem, masqué sous `@2xl`
+- [LRN-012](learnings/LRN-012.md) — container query plutôt que media query pour un overlay à largeur variable

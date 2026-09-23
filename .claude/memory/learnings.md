@@ -17,3 +17,4 @@ register: learnings
 | [LRN-009](learnings/LRN-009.md) | 2026-09-10 | Instance self-hosted à côté du cloud = angle mort de diagnostic monitoring          | #monitoring #self-hosted #rpi #deployment-drift #diagnosis #blind-spot                   |
 | [LRN-010](learnings/LRN-010.md) | 2026-09-10 | Wrapper `docker-monitor` NAS NOPASSWD limité à ps/stats/logs/inspect/version/images | #nas #docker #sudo #docker-monitor #uptime-kuma #readonly-audit                          |
 | [LRN-011](learnings/LRN-011.md) | 2026-09-23 | Deux rendus de « €/L » : PriceCard vs StationCard | #price-card #station-card #unit-style #consistency |
+| [LRN-012](learnings/LRN-012.md) | 2026-09-23 | Overlay à largeur variable : container query, pas media query | #tailwind4 #container-query #responsive #layout #sidebar #overlay |
