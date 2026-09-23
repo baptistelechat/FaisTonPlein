@@ -13,3 +13,6 @@ register: decisions
 | [BDR-005](decisions/BDR-005.md) | 2026-09-10 | Projet PostHog partagé avec ifecho via propriété `app`                      | #posthog #ifecho #app-property #cross-project #rgpd #session-replay   | actif  |
 | [BDR-006](decisions/BDR-006.md) | 2026-09-10 | Isoler events de test via filtre `$host` (pattern ifecho)                   | #posthog #test-accounts #host-filter #data-hygiene #ifecho            | actif  |
 | [BDR-007](decisions/BDR-007.md) | 2026-09-10 | Drift pnpm RPi : upgrade global de l'outil plutôt que régénérer le lockfile | #pnpm #lockfile #rpi #deployment #tooling #corepack                   | actif  |
+| [BDR-008](decisions/BDR-008.md) | 2026-09-23 | Env vars PostHog limitées à l'environnement Production                   | #posthog #vercel #env-vars #preview #data-hygiene #node-env         | actif  |
+| [BDR-009](decisions/BDR-009.md) | 2026-09-23 | og:image dynamique alimentée par l'ETL plutôt qu'un PNG statique | #og-image #viralite #etl #metadata-json #next-og #partage | actif  |
+| [BDR-010](decisions/BDR-010.md) | 2026-09-23 | Historique glissant cumulatif dans metadata.json, un point par jour | #etl #historique #metadata-json #rolling #duckdb #amorcage | actif  |

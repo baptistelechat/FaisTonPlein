@@ -1,12 +1,12 @@
 ---
-id: BLK-005
+id: ZBLK-005
 type: blocker
 date: 2026-09-10
 tags:
   [posthog, event-collision, shared-project, dashboard, ifecho, data-integrity]
 ---
 
-# BLK-005 — Collision de noms d'events avec ifecho fausse le dashboard
+# ZBLK-005 — Collision de noms d'events avec ifecho fausse le dashboard
 
 | Friction                                                                                                                                                    | Cause réelle                                                                                                                                                                                                                                                | Solution                                                                                                                                                                                                                                                | Statut |
 | ----------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
@@ -14,5 +14,5 @@ tags:
 
 ## Références
 
-- [LRN-006](../learnings/LRN-006.md) — pattern générique extrait de ce blocage
-- [BDR-005](../decisions/BDR-005.md) — décision d'origine du partage de projet avec ifecho
+- [LRN-006](../../learnings/LRN-006.md) — pattern générique extrait de ce blocage
+- [BDR-005](../../decisions/BDR-005.md) — décision d'origine du partage de projet avec ifecho

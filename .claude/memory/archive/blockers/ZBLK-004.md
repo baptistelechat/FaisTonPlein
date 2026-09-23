@@ -1,11 +1,11 @@
 ---
-id: BLK-004
+id: ZBLK-004
 type: blocker
 date: 2026-09-10
 tags: [coep, posthog, cross-origin, next-config, production-bug, silent-failure]
 ---
 
-# BLK-004 — COEP `require-corp` bloque silencieusement PostHog
+# ZBLK-004 — COEP `require-corp` bloque silencieusement PostHog
 
 | Friction                                                                                                                                 | Cause réelle                                                                                                                                                                                                                       | Solution                                                                                                                                                                                                                                                       | Statut |
 | ---------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
@@ -13,4 +13,4 @@ tags: [coep, posthog, cross-origin, next-config, production-bug, silent-failure]
 
 ## Références
 
-- [LRN-005](../learnings/LRN-005.md) — pattern générique extrait de ce blocage
+- [LRN-005](../../learnings/LRN-005.md) — pattern générique extrait de ce blocage
