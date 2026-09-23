@@ -1,13 +1,14 @@
 /**
- * SCRIPT JETABLE — amorçage de `fuel_history` dans metadata.json.
+ * Amorçage / réparation manuelle de `fuel_history` dans metadata.json.
  *
  * L'og:image (src/app/opengraph-image.tsx) n'affiche ses flèches d'évolution
  * qu'à partir de 7 jours d'historique. En régime normal, transform.ts empile un
- * point par run et l'historique se construit tout seul — mais il faut attendre.
+ * point par run et reconstruit lui-même l'historique via reconstructFuelHistory()
+ * (../history.ts) s'il ne parvient pas à relire celui du run précédent — ce script
+ * ne devrait donc plus être nécessaire qu'en dépannage manuel (ex. vérifier l'état
+ * publié sans attendre le prochain run ETL).
  *
- * Ce script reconstruit l'historique d'un coup depuis rolling/30days. Exécuté une
- * fois le 2026-09-23 pour amorcer les 27 jours disponibles ; conservé au cas où
- * l'historique serait perdu ou corrompu et qu'il faudrait le reconstruire.
+ * Exécuté une première fois le 2026-09-23 pour amorcer les 27 jours disponibles.
  *
  * Depuis etl/ :
  *   npx ts-node src/scripts/bootstrap-og-history.ts            # calcule et affiche (aucune écriture distante)
@@ -15,16 +16,13 @@
  *
  * Écrit un metadata.bootstrap.json local (ignoré par git) pour inspection avant upload.
  */
-import { Database } from "duckdb";
 import fs from "fs";
 import path from "path";
 import { HF_REPO, HF_TOKEN } from "../config";
-import { runSQL } from "../db";
+import { initDB } from "../db";
+import { FUEL_KEYS, reconstructFuelHistory } from "../history";
 import { uploadFilesWithRetry } from "../hf";
 
-const FUEL_KEYS = ["Gazole", "E10", "SP95", "SP98", "E85", "GPLc"] as const;
-const HISTORY_DAYS = 30;
-const ROLLING_PREFIX = "data/rolling/30days";
 const META_PATH = "data/latest/metadata.json";
 
 const shouldUpload = process.argv.includes("--upload");
@@ -32,68 +30,15 @@ const shouldUpload = process.argv.includes("--upload");
 const baseUrl = (p: string) =>
   `https://huggingface.co/datasets/${HF_REPO}/resolve/main/${p}`;
 
-async function listRollingFiles(): Promise<string[]> {
-  const res = await fetch(
-    `https://huggingface.co/api/datasets/${HF_REPO}/tree/main/${ROLLING_PREFIX}?recursive=true`,
-    { signal: AbortSignal.timeout(60_000) },
-  );
-  if (!res.ok) throw new Error(`Listing HF échoué : HTTP ${res.status}`);
-  const entries = (await res.json()) as { type: string; path: string }[];
-  return entries
-    .filter((e) => e.type === "file" && e.path.endsWith(".parquet"))
-    .map((e) => baseUrl(e.path));
-}
-
 async function main() {
   if (!HF_REPO) throw new Error("HF_REPO manquant dans .env");
 
-  console.log("📋 Listing des Parquet rolling sur Hugging Face...");
-  const urls = await listRollingFiles();
-  console.log(`   -> ${urls.length} fichiers`);
-  if (urls.length === 0)
-    throw new Error("Aucun Parquet trouvé dans rolling/30days");
-
-  const db = new Database(":memory:");
-  console.log("🦆 Chargement de httpfs...");
-  await runSQL(db, "INSTALL httpfs; LOAD httpfs;");
-
-  // Même garde-fou que transform.ts : les relevés hors [0.3, 5] € sont des erreurs
-  // de saisie du flux data.gouv et décaleraient la moyenne nationale.
-  const avgCols = FUEL_KEYS.map(
-    (f) =>
-      `ROUND(AVG(CASE WHEN "Prix ${f}" BETWEEN 0.3 AND 5 THEN "Prix ${f}" END), 3) AS "${f}"`,
-  ).join(", ");
-
-  const fileList = urls.map((u) => `'${u}'`).join(", ");
-
+  const db = await initDB();
   console.log(
-    `📊 Agrégation des moyennes nationales par jour (${urls.length} fichiers, ~10 Mo)...`,
+    "📊 Agrégation des moyennes nationales par jour depuis rolling/30days...",
   );
-  const rows = await new Promise<Record<string, unknown>[]>(
-    (resolve, reject) => {
-      db.all(
-        `SELECT date, ${avgCols}
-       FROM read_parquet([${fileList}], union_by_name=true)
-       WHERE date IS NOT NULL
-       GROUP BY date
-       ORDER BY date`,
-        (err, r) =>
-          err ? reject(err) : resolve(r as Record<string, unknown>[]),
-      );
-    },
-  );
-
-  const history = rows
-    .map((r) => {
-      const point: Record<string, string | number> = { date: String(r.date) };
-      for (const fuel of FUEL_KEYS) {
-        const v = r[fuel];
-        if (v != null) point[fuel] = Number(v);
-      }
-      return point;
-    })
-    .filter((p) => Object.keys(p).length > 1)
-    .slice(-HISTORY_DAYS);
+  const history = await reconstructFuelHistory(db);
+  db.close();
 
   console.log(`\n✅ ${history.length} jours reconstruits :`);
   for (const p of history) {

@@ -3,6 +3,7 @@ import fs from "fs";
 import path from "path";
 import { CSV_URL, HF_REPO, OUTPUT_DIR } from "./config";
 import { runSQL } from "./db";
+import { reconstructFuelHistory } from "./history";
 
 export const CSV_TEMP_PATH = path.join(process.cwd(), "temp_fuel_prices.csv");
 
@@ -152,7 +153,9 @@ export async function processFuelData(db: Database) {
   // L'historique repart du metadata.json du run précédent (déjà publié sur HF).
   // Un point par jour : les runs suivants d'une même journée écrasent le point du jour,
   // sinon le cron 2h en empilerait 12 et 30 entrées ne couvriraient que 2,5 jours.
-  let fuelHistory: Record<string, string | number>[] = [];
+  // `null` (et pas [] ) distingue "champ absent/illisible" de "historique vide mais valide"
+  // (jour 1 du projet) : seul le premier cas déclenche la reconstruction ci-dessous.
+  let fuelHistory: Record<string, string | number>[] | null = null;
   if (HF_REPO) {
     try {
       const prev = await fetch(
@@ -169,14 +172,32 @@ export async function processFuelData(db: Database) {
         }
       }
     } catch {
-      // Non bloquant : un historique perdu se reconstruit au fil des runs.
+      // fuelHistory reste null, reconstruction tentée ci-dessous.
+    }
+
+    if (fuelHistory === null) {
+      // metadata.json précédent illisible ou sans fuel_history (ex. run avec un
+      // code plus ancien qui écrase le champ) : on reconstruit depuis
+      // rolling/30days plutôt que de reperdre 7 jours d'affichage des flèches
+      // de l'og:image — voir etl/src/scripts/bootstrap-og-history.ts.
       console.warn(
-        "   -> metadata.json précédent illisible, historique repart de zéro",
+        "   -> fuel_history précédent illisible, reconstruction depuis rolling/30days...",
       );
+      try {
+        fuelHistory = await reconstructFuelHistory(db);
+        console.log(
+          `   -> ${fuelHistory.length} jour(s) reconstruits depuis rolling/30days`,
+        );
+      } catch (err) {
+        console.warn(
+          "   -> reconstruction impossible (rolling indisponible), historique repart de zéro :",
+          err instanceof Error ? err.message : err,
+        );
+      }
     }
   }
   fuelHistory = [
-    ...fuelHistory.filter((p) => p.date !== todayPoint.date),
+    ...(fuelHistory ?? []).filter((p) => p.date !== todayPoint.date),
     todayPoint,
   ]
     .sort((a, b) => String(a.date).localeCompare(String(b.date)))
