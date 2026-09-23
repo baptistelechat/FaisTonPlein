@@ -4,7 +4,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "concurrently --kill-others-on-fail false -n \"NEXT,GREP\" -c \"cyan.dim,magenta.dim\" \"next dev --turbo -p 3000\" \"grepai watch || echo GrepAI unavailable: start Ollama first\"",
+    "dev": "next dev --turbo -p 3000",
     "dev:https": "next dev --turbo -p 3000 --experimental-https",
     "build": "next build",
     "start": "next start",
@@ -52,7 +52,6 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@vitejs/plugin-react": "^5.1.4",
-    "concurrently": "^9.2.1",
     "eslint": "^9",
     "eslint-config-next": "16.1.6",
     "eslint-plugin-tailwindcss": "4.0.0-beta.0",

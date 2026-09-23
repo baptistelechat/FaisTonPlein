@@ -22,15 +22,15 @@ Le frontend charge les Parquet via DuckDB-WASM dans un Web Worker (`DuckDBProvid
 
 ```ts
 type Station = {
-  id: string
-  name: string
-  lat: number
-  lon: number
-  address: string
-  services: string[]   // ex: ["Automate CB 24/24", "DAB", ...]
-  prices: FuelPrice[]
-  is24h: boolean       // OR de 'Automate 24-24 (oui/non)' === 'Oui' et services.includes('Automate CB 24/24')
-}
+  id: string;
+  name: string;
+  lat: number;
+  lon: number;
+  address: string;
+  services: string[]; // ex: ["Automate CB 24/24", "DAB", ...]
+  prices: FuelPrice[];
+  is24h: boolean; // OR de 'Automate 24-24 (oui/non)' === 'Oui' et services.includes('Automate CB 24/24')
+};
 ```
 
 **Carburants supportés :** `Gazole`, `E10`, `SP95`, `SP98`, `E85`, `GPLc`
@@ -76,8 +76,7 @@ Ne pas écrire, proposer ou mentionner de tests unitaires sur ce projet. Les sto
 ### Commandes utiles
 
 ```bash
-pnpm dev        # Démarre Next.js + GrepAI watcher
+pnpm dev        # Démarre Next.js
 pnpm build      # Build de production
 pnpm lint       # ESLint (utiliser rtk lint pour output compact)
 ```
-

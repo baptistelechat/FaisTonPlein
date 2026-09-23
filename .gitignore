@@ -46,9 +46,6 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# grepai
-.grepai/
-
 # BMAD Method
 .claude/skills/bmad-*/
 
