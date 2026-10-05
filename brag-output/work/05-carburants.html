@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;700&family=Space+Grotesk:wght@500;700&display=block"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="kit.css" />
+  </head>
+  <body>
+    <div id="stage">
+      <!-- Hook : deux moyennes nationales réelles (totem de l'app) -->
+      <div class="scene">
+        <h1 class="hook-title a" data-in="0.1" data-out="4.7">Même pompe.</h1>
+        <h1 class="hook-title a" data-in="0.6" data-out="4.7">
+          Pas le même prix.
+        </h1>
+        <div class="prices">
+          <div class="price a" data-in="1.4" data-out="4.7" data-dx="-120">
+            <span class="pill" style="background: #009966">SP98</span
+            ><span class="val" style="color: var(--bad)"
+              >2,276<small>€/L</small></span
+            >
+          </div>
+          <div class="price a" data-in="2.0" data-out="4.7" data-dx="120">
+            <span class="pill" style="background: #0084d1">E85</span
+            ><span class="val" style="color: var(--good)"
+              >0,904<small>€/L</small></span
+            >
+          </div>
+        </div>
+        <div class="gap h a" data-in="2.8" data-out="4.7">
+          <b>2,5×</b> moins cher<br />au litre.
+        </div>
+        <div class="foot a" data-in="1.4" data-out="4.7" data-dy="0">
+          Moyennes nationales · 5 oct. 2026 · data.gouv.fr
+        </div>
+      </div>
+
+      <!-- La vraie app (captures de la prod) -->
+      <div id="cam">
+        <div id="phone">
+          <img src="shots/e2-expanded.png" alt="" />
+          <img id="s1" src="shots/f-E10.png" alt="" />
+          <img id="s2" src="shots/f-E85.png" alt="" />
+          <div
+            class="ring"
+            id="ring1"
+            style="left: 23px; top: 813px; width: 724px; height: 164px"
+          ></div>
+          <div class="tap" id="tap1" style="left: 333px; top: 165px"></div>
+          <div class="tap" id="tap2" style="left: 322px; top: 221px"></div>
+        </div>
+      </div>
+      <div id="band"></div>
+      <div class="cap h a" data-in="8.2" data-out="11.7">
+        Choisissez<br /><span class="soft">votre carburant.</span>
+      </div>
+      <div class="cap h a" data-in="12.2" data-out="16.2">
+        La liste se recalcule<br /><span class="soft">à chaque tap.</span>
+      </div>
+      <div class="cap h a" data-in="16.7" data-out="21.8">
+        E85 dès 0,849 €/L<br /><span class="soft">autour de Lyon.</span>
+      </div>
+    </div>
+
+    <script src="theme.js"></script>
+    <script src="kit.js"></script>
+    <script>
+      defineVideo({
+        duration: 26.5,
+        poster: 25.5,
+        stills: [
+          1.0, 2.4, 4.4, 6.5, 8.6, 10.5, 11.9, 12.4, 14.5, 16.4, 17.0, 20.5,
+          22.4, 25.5,
+        ],
+        reveal: { in: 5, out: 7.7, tag: "Les 6 carburants, un tap chacun." },
+        outro: {
+          in: 22,
+          punch:
+            'Six carburants.<br><span class="soft">Un seul réflexe.</span>',
+        },
+        cues: {
+          arp: 8,
+          clap: 12,
+          taps: [11.8, 16.3],
+          whooshes: [
+            [4.0, 1.0, 0.25],
+            [7.9, 0.8, 0.12],
+            [21.6, 0.5, 0.14],
+          ],
+          bells: [
+            [0.1, 57, 0.05, 0.6],
+            [0.6, 60, 0.05, 0.6],
+            [1.4, 76, 0.07, 0.35],
+            [2.0, 69, 0.07, 0.35],
+            [2.8, 72, 0.05, 0.4],
+            [2.9, 76, 0.05, 0.4],
+            [12.0, 76, 0.05, 0.5],
+            [16.5, 81, 0.05, 0.5],
+            [18.0, 81, 0.06, 0.5],
+            [18.1, 88, 0.05, 0.6],
+          ],
+        },
+        tick(t, K) {
+          K.phone(t, {
+            enter: 8,
+            exit: 21.9,
+            zooms: [
+              {
+                from: 9.2,
+                to: 10.6,
+                back: 11.0,
+                s: 1.25,
+                origin: "390px 160px",
+              }, // vers les pastilles carburant
+              { from: 18.6, to: 20.4, s: 1.16, origin: "390px 860px" }, // vers la 1re carte E85
+            ],
+          });
+          K.tap(K.$("tap1"), t, 11.8);
+          K.$("s1").style.opacity = K.p(t, 12.0, 12.1); // tap E10 → liste E10
+          K.tap(K.$("tap2"), t, 16.3);
+          K.$("s2").style.opacity = K.p(t, 16.5, 16.6); // tap E85 → liste E85
+          K.ring(K.$("ring1"), t, 18.0);
+        },
+      });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,336 @@
+/* brag-series — structure de la DA. Aucune couleur ni typo de projet ici :
+   tout passe par les variables ci-dessous, que kit.js remplace par celles de theme.js. */
+:root {
+  --bg: #0b0b0f;
+  --fg: #f8fafc;
+  --primary: #6366f1;
+  --primary-soft: #a5b4fc;
+  --good: #34d399;
+  --bad: #fb7185;
+  --amber: #fbbf24;
+  --muted: #94a3b8;
+  --surface: #16161d;
+  --surface-border: #26262f;
+  --ring: var(--good);
+  --logo-tile: #f8fafc;
+  --screen-bg: #f8fafc;
+  --frame: #0f172b;
+  --frame-edge: #314158;
+  --font-heading: sans-serif;
+  --font-body: sans-serif;
+  --glow: color-mix(in srgb, var(--primary) 53%, transparent);
+}
+* {
+  margin: 0;
+  box-sizing: border-box;
+}
+html,
+body {
+  width: 1080px;
+  height: 1920px;
+  overflow: hidden;
+  background: var(--bg);
+}
+body {
+  font-family: var(--font-body), sans-serif;
+  color: var(--fg);
+}
+#stage {
+  position: relative;
+  width: 1080px;
+  height: 1920px;
+  overflow: hidden;
+}
+.glow {
+  position: absolute;
+  width: 1300px;
+  height: 1300px;
+  border-radius: 50%;
+  filter: blur(40px);
+}
+.scene {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+.a {
+  opacity: 0;
+  will-change: transform, opacity;
+}
+h1,
+.h {
+  font-family: var(--font-heading), sans-serif;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1.05;
+}
+.soft {
+  color: var(--primary-soft);
+}
+
+/* Hook */
+.hook-title {
+  font-size: 112px;
+}
+.prices {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  margin-top: 90px;
+  width: 820px;
+}
+.price {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 36px 48px;
+  border-radius: 36px;
+  background: var(--surface);
+  border: 2px solid var(--surface-border);
+}
+.price .lbl {
+  font-size: 40px;
+  color: var(--muted);
+  font-weight: 500;
+  text-align: left;
+}
+.price .val {
+  font-family: var(--font-heading), sans-serif;
+  font-weight: 700;
+  font-size: 84px;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.price .val small {
+  font-size: 40px;
+  color: var(--muted);
+  font-weight: 500;
+  margin-left: 8px;
+}
+.gap {
+  margin-top: 90px;
+  font-size: 92px;
+}
+.gap b {
+  color: var(--amber);
+}
+.foot {
+  position: absolute;
+  bottom: 110px;
+  left: 0;
+  right: 0;
+  font-size: 32px;
+  color: var(--muted);
+}
+
+/* Reveal + outro */
+.logo {
+  width: 220px;
+  height: 220px;
+  border-radius: 52px;
+  background: var(--logo-tile);
+  padding: 34px;
+  box-shadow: 0 30px 120px color-mix(in srgb, var(--primary) 67%, transparent);
+}
+.logo.sm {
+  width: 170px;
+  height: 170px;
+  border-radius: 42px;
+  padding: 26px;
+}
+.logo img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+.name {
+  font-size: 124px;
+  margin-top: 48px;
+}
+.name.sm {
+  font-size: 84px;
+  margin-top: 32px;
+}
+.tag {
+  font-size: 54px;
+  color: var(--primary-soft);
+  margin-top: 28px;
+  font-weight: 500;
+}
+.punch {
+  font-size: 100px;
+  margin-top: 56px;
+}
+.pills {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 20px;
+  width: 760px;
+  margin-top: 72px;
+}
+.pill {
+  font-family: var(--font-heading), sans-serif;
+  font-weight: 500;
+  font-size: 44px;
+  padding: 14px 34px;
+  border-radius: 18px;
+  color: #fff;
+  background: var(--surface);
+}
+.url {
+  margin-top: 76px;
+  font-family: var(--font-heading), sans-serif;
+  font-weight: 700;
+  font-size: 52px;
+  padding: 26px 52px;
+  border-radius: 999px;
+  background: var(--primary);
+  color: #fff;
+  box-shadow: 0 20px 80px color-mix(in srgb, var(--primary) 60%, transparent);
+}
+
+/* Légendes */
+#band {
+  position: absolute;
+  left: 0;
+  top: 0;
+  right: 0;
+  height: 330px;
+  background: linear-gradient(var(--bg) 82%, transparent);
+  opacity: 0;
+}
+.cap {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 78px;
+  text-align: center;
+  font-size: 70px;
+}
+
+/* Cadre téléphone (captures mobiles 390×780, affichées en 780×1560) */
+#cam {
+  position: absolute;
+  left: 150px;
+  top: 320px;
+  width: 780px;
+  height: 1560px;
+  will-change: transform;
+  opacity: 0;
+}
+#phone {
+  position: absolute;
+  inset: 0;
+  border-radius: 60px;
+  overflow: hidden;
+  background: var(--screen-bg);
+  box-shadow:
+    0 0 0 14px var(--frame),
+    0 0 0 17px var(--frame-edge),
+    0 60px 160px var(--glow);
+}
+#phone img {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 780px;
+  height: 1560px;
+}
+.ring {
+  position: absolute;
+  border-radius: 26px;
+  border: 6px solid var(--ring);
+  opacity: 0;
+  box-shadow:
+    0 0 0 8px color-mix(in srgb, var(--ring) 20%, transparent),
+    0 0 50px color-mix(in srgb, var(--ring) 53%, transparent);
+}
+.ring.amber {
+  --ring: var(--amber);
+}
+.ring.primary {
+  --ring: var(--primary);
+}
+.tap {
+  position: absolute;
+  width: 110px;
+  height: 110px;
+  margin: -55px 0 0 -55px;
+  border-radius: 50%;
+  opacity: 0;
+  background: color-mix(in srgb, var(--primary) 33%, transparent);
+  border: 4px solid var(--primary);
+}
+
+/* Cadre navigateur (captures bureau 1440×900) */
+#win {
+  position: absolute;
+  left: 50px;
+  width: 980px;
+  border-radius: 28px;
+  overflow: hidden;
+  background: var(--screen-bg);
+  opacity: 0;
+  box-shadow:
+    0 0 0 3px var(--frame-edge),
+    0 60px 160px var(--glow);
+}
+#win .bar {
+  height: 60px;
+  background: #e2e8f0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 22px;
+}
+#win .bar i {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #90a1b9;
+}
+#win .bar span {
+  margin-left: 16px;
+  flex: 1;
+  background: #f8fafc;
+  border-radius: 999px;
+  padding: 7px 22px;
+  font-size: 22px;
+  color: #45556c;
+  text-align: left;
+}
+#view {
+  position: relative;
+  overflow: hidden;
+}
+#world {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 1440px;
+  height: 900px;
+  transform-origin: 0 0;
+  will-change: transform;
+}
+#world img {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 1440px;
+  height: 900px;
+}
+#world .tap {
+  width: 60px;
+  height: 60px;
+  margin: -30px 0 0 -30px;
+  border-width: 2px;
+}
+#world .ring {
+  border-width: 3px;
+  border-radius: 14px;
+}

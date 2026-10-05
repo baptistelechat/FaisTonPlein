@@ -1,0 +1,46 @@
+=== 01-lancement.mp4 ===
+Même ville, même gazole : 21 € d'écart sur un plein. ⛽
+
+FaisTonPlein trouve la station la moins chère près de chez vous — 6 carburants, prix officiels mis à jour toutes les 2 h, itinéraire inclus.
+
+👉 faistonplein.vercel.app
+
+
+=== 02-bureau.mp4 ===
+Gazole : 2,377 €/L en moyenne en France. Et près de chez vous ? 🖥️
+
+Sur grand écran, FaisTonPlein affiche tout sur une page : la carte, les stations classées par prix, 30 jours d'historique et la moyenne nationale.
+
+👉 faistonplein.vercel.app
+
+
+=== 04-historique.mp4 ===
+Le gazole a pris 2 centimes en 20 jours. Et votre station ? 📈
+
+FaisTonPlein affiche la tendance de chaque prix et 30 jours d'historique par station, ruptures de stock comprises.
+
+👉 faistonplein.vercel.app
+
+
+=== 05-carburants.mp4 ===
+SP98 : 2,276 €/L. E85 : 0,904 €/L. 2,5× moins cher au litre. ⛽
+
+Gazole, E10, SP95, SP98, E85, GPLc : un tap, et FaisTonPlein reclasse les stations autour de vous.
+
+👉 faistonplein.vercel.app
+
+
+=== 06-installable.mp4 ===
+Pas d'App Store. Pas de compte. Un tap, c'est installé. 📲
+
+FaisTonPlein s'installe depuis le navigateur et garde vos départements en mémoire.
+
+👉 faistonplein.vercel.app
+
+
+=== 03-cout-reel.mp4 ===
+Le 2e meilleur prix est à 14,5 km. Ça vaut le détour ? 🚗
+
+Indiquez votre véhicule : FaisTonPlein ajoute le coût du trajet au prix du plein et reclasse les stations. Le bon prix, trajet compris.
+
+👉 faistonplein.vercel.app
