@@ -123,6 +123,31 @@ Suite de session sur le totem : il recouvrait la barre de recherche sur les fen�
 
 ## 2026-10-05
 
+Session consacrée à un premier short vertical de présentation de l'app (9:16, 30 s), puis à la formalisation du flux en skill. Le brief initial (accroche en question, trois astuces, outro) a été passé au crible avec Rodin avant tout code : un tour de fonctionnalités aurait été une pub, une question fermée se fait swiper, et les chiffres devaient être réels. Baptiste a d'abord voulu un angle « évolution sur 3 semaines » ; les données de `metadata.json` montraient un pic du gazole le 20 septembre puis une baisse, et surtout une accroche datée périmait la vidéo en une semaine. Après plusieurs séries de variantes, l'accroche retenue est intemporelle : « Le prix de l'essence, on ne le choisit pas. Sa station, si. » ([BDR-016](decisions/BDR-016.md)).
+
+Le projet Remotion a été créé dans `video/`, isolé de l'app ([BDR-019](decisions/BDR-019.md)), avec un cas réel tiré du Parquet du département 31 (Toulouse, 48 stations dans 10 km, gazole de 2,250 € à 2,590 €) et la tendance nationale relue à chaque rendu. Deux incidents ont coûté du temps : l'alias `@` ignoré sous Rspack ([ZBLK-012](archive/blockers/ZBLK-012.md)) et le lanceur de preview qui a pris un autre pnpm et réinstallé la racine ([ZBLK-011](archive/blockers/ZBLK-011.md)).
+
+Baptiste a ensuite demandé des bruitages (bibliothèque uisfx, pack `studio` choisi à l'oreille sur des extraits), la réorganisation en kit partagé pour décliner les vidéos, puis une musique de fond libre de droits cherchée par API. Sa règle initiale d'ambiances fixes a été corrigée par lui-même : les ambiances se déduisent du projet. « Funky rythm » de Yonael (CC BY 3.0) a été retenue. Des sélecteurs de pack, de musique et de volume ont été ajoutés dans l'inspecteur du Studio ([LRN-014](learnings/LRN-014.md)). Le tout est encodé dans le skill `remotion-short` ([BDR-017](decisions/BDR-017.md)), qui s'appuie sur le journal `video/VIDEOS.md`. Commit `4ce5ea6` (non poussé) ; le skill lui-même vit dans le dépôt de configuration de Baptiste et n'y est pas encore commité.
+
+**Entrées clés :**
+
+- [BDR-016](decisions/BDR-016.md) — ligne éditoriale des shorts
+- [BDR-017](decisions/BDR-017.md) — skill remotion-short
+- [ZBLK-011](archive/blockers/ZBLK-011.md) — pnpm du lanceur
+- [LRN-015](learnings/LRN-015.md) — sources de musique libre
+
+---
+
+Seconde session du jour, courte : finitions du short `station-choisie`. Baptiste voulait une mention du créateur sur la dernière page, avec le logo Instagram devant `baptistematthieu.dev`, et que la règle entre dans le skill `remotion-short`. La signature a d'abord été posée sous le bouton d'URL ; sur capture du Studio, Baptiste l'a demandée plus bas. Elle est maintenant détachée du bloc central et ancrée à la limite basse de la zone sûre, pas tout en bas où l'interface de TikTok et Reels la recouvrirait ([BDR-018](decisions/BDR-018.md)). Il a aussi demandé pourquoi l'icône n'était pas importée de Lucide : le kit recopie déjà les tracés faute de `lucide-react` dans `video/`, et il a choisi de garder ce tracé plutôt que le logo officiel.
+
+En route, le preview a refusé de démarrer parce que le port du Studio était codé en dur et pris par une autre session ([BLK-013](blockers/BLK-013.md)) ; le lanceur passe désormais par `autoPort` (voir GLRN-330 en mémoire globale). Rendu final contrôlé (30 s, 1080×1920, piste audio) et envoyé. Commit `37ee5eb` (non poussé). Le skill modifié vit dans le dépôt de configuration de Baptiste. Deux points laissés ouverts : `@` devant le pseudo, et la durée d'affichage de la signature (environ 1,3 s).
+
+**Entrées clés :**
+
+- [BDR-018](decisions/BDR-018.md) — signature créateur dans l'outro
+
+---
+
 Session vidéos promo. Départ : `/brag` pour un short vertical de présentation. Sur Opus 5.5, `/brag` passe la main à `brag-slim`, qui ne fournit aucun moteur : la vidéo a été construite à la main (captures de la prod en viewport mobile avec Playwright, page HTML « pure fonction du temps », musique et bruitages synthétisés en Node, encodage ffmpeg). Première version de 21 s jugée « très bien mais un peu rapide ».
 
 Baptiste a ensuite demandé une série dans la même DA : le pipeline a été extrait en kit partagé, puis six vidéos de 26 à 29 s ont été rendues (lancement, bureau avec zooms sur les zones commentées, coût réel, historique, 6 carburants, app installable). Tous les chiffres viennent de la prod, relevés le 5 oct. à 14:00 autour de Lyon. En préparant la vidéo 6, constat que le service worker ne met rien en cache : la vidéo ne parle donc pas de hors-ligne.
