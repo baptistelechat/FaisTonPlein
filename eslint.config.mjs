@@ -36,6 +36,7 @@ const eslintConfig = defineConfig([
     "public/duckdb/**",
     "etl/**",
     "video/**",
+    "brag-output/**",
   ]),
 ]);
 
