@@ -159,3 +159,9 @@ Le pipeline a été formalisé en skill global `brag-series` : moteur neutre emb
 - [BDR-020](decisions/BDR-020.md) — vidéos promo dans `brag-output/`, sources et captures versionnées
 - [BDR-021](decisions/BDR-021.md) — skill `brag-series` autonome, lit `/brag` sans l'exécuter
 - [BLK-014](blockers/BLK-014.md) — « hors-ligne » annoncé mais service worker sans cache
+
+---
+
+Suite de la même session. Les fichiers non suivis qui restaient après la clôture venaient de deux sources : mes fichiers temporaires dans `brag-output/work/` (supprimés via PowerShell avec des chemins absolus, la commande relative donnée à Baptiste n'ayant rien fait depuis son sous-dossier) et le `node_modules` du projet Remotion, dont le `.gitignore` vivait sur la branche `video` non mergée.
+
+La branche `video` a été mergée dans `development` puis supprimée (local et remote). Elle avait attribué les mêmes IDs mémoire que cette session : mes entrées ont été renumérotées avant le merge (BDR-016 → BDR-020, BDR-017 → BDR-021, BLK-011 → BLK-014), et les trois conflits d'index et de journal résolus en gardant les deux côtés. Le lint lancé après le merge a révélé que le commit des sources vidéo avait cassé `pnpm lint` (scripts CommonJS du kit) : `brag-output/**` ajouté aux ignores d'ESLint. Le skill `brag-series` a reçu deux consignes en conséquence : fichiers de travail dans `work/tmp/` ignoré, et exclusion de `brag-output/` du lint à l'installation.
