@@ -9,6 +9,7 @@ Journal des shorts produits avec le skill `remotion-short`. Il évite de reposer
 - Musique : ambiance funk discret / groove retenue (« Funky rythm » de Yonael, CC BY 3.0). Ambiances proposées mais non retenues : road trip acoustique, électro minimale.
 - Slogan : « Le prix, on ne le choisit pas. Sa station, si. »
 - URL affichée : `faistonplein.vercel.app`
+- Signature créateur : logo Instagram + `baptistematthieu.dev`, dernière ligne de l'outro (`CreatorCredit` du kit)
 - Mentions confirmées par Baptiste : aucune pour l'instant (« Gratuit. Sans compte. » reste à confirmer)
 - Critère de performance à suivre : rétention à 3 s, visites PostHog dans les 48 h
 

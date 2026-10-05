@@ -30,6 +30,11 @@ const ICONS = {
   navigation: ["M3 11 22 2 13 21 11 13 3 11z"],
   trendingUp: ["M16 7h6v6", "m22 7-8.5 8.5-5-5L2 17"],
   trendingDown: ["M16 17h6v-6", "m22 17-8.5-8.5-5 5L2 7"],
+  instagram: [
+    "M7 2h10a5 5 0 0 1 5 5v10a5 5 0 0 1-5 5H7a5 5 0 0 1-5-5V7a5 5 0 0 1 5-5z",
+    "M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z",
+    "M17.5 6.5h.01",
+  ],
 };
 
 export const Icon: React.FC<{
@@ -71,6 +76,38 @@ export const Logo: React.FC<{ size: number }> = ({ size }) => (
     <Icon name="fuel" size={size * 0.58} color="#f8fafc" strokeWidth={1.5} />
   </div>
 );
+
+// Signature du créateur, détachée en bas de l'outro : discrète, elle ne fait pas concurrence à l'appel à l'action.
+export const CreatorCredit: React.FC<{ at: number }> = ({ at }) => {
+  const frame = useCurrentFrame();
+
+  return (
+    <Interactive.Div
+      name="Signature créateur"
+      style={{
+        alignItems: "center",
+        // Bas de la zone sûre (y ≈ 1500) : plus bas, l'interface de TikTok et Reels la recouvre.
+        bottom: 420,
+        color: C.muted,
+        display: "flex",
+        fontSize: 44,
+        fontWeight: 700,
+        gap: 16,
+        justifyContent: "center",
+        left: 0,
+        position: "absolute",
+        right: 0,
+        opacity: interpolate(frame, [at, at + 10], [0, 1], {
+          extrapolateLeft: "clamp",
+          extrapolateRight: "clamp",
+        }),
+      }}
+    >
+      <Icon name="instagram" size={52} />
+      baptistematthieu.dev
+    </Interactive.Div>
+  );
+};
 
 // Fond clair de l'app + pastille de marque (AppLogo) en haut, comme sur la carte.
 export const Shell: React.FC<{ children: ReactNode }> = ({ children }) => (

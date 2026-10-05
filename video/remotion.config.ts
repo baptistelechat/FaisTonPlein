@@ -12,6 +12,11 @@ Config.setRspack(true);
 Config.setVideoImageFormat("jpeg");
 Config.setOverwriteOutput(true);
 
+// Le preview de Claude attribue un port libre via PORT (plusieurs sessions en parallèle).
+if (process.env.PORT) {
+  Config.setStudioPort(Number(process.env.PORT));
+}
+
 // Même alias que l'app : la vidéo réutilise src/lib (prix nationaux, coût réel)
 // au lieu d'en recopier la logique.
 Config.overrideRspackConfig((config) => ({

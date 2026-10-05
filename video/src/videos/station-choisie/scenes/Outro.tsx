@@ -5,7 +5,7 @@ import {
   interpolate,
   useCurrentFrame,
 } from "remotion";
-import { Logo } from "../../../kit/components";
+import { CreatorCredit, Logo } from "../../../kit/components";
 import { Sfx } from "../../../kit/sfx";
 import { C, FONT } from "../../../kit/theme";
 
@@ -109,6 +109,7 @@ export const Outro: React.FC = () => {
       >
         faistonplein.vercel.app
       </Interactive.Div>
+      <CreatorCredit at={40} />
     </AbsoluteFill>
   );
 };
