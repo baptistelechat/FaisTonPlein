@@ -131,6 +131,6 @@ Le pipeline a été formalisé en skill global `brag-series` : moteur neutre emb
 
 **Entrées clés :**
 
-- [BDR-016](decisions/BDR-016.md) — vidéos promo dans `brag-output/`, sources et captures versionnées
-- [BDR-017](decisions/BDR-017.md) — skill `brag-series` autonome, lit `/brag` sans l'exécuter
-- [BLK-011](blockers/BLK-011.md) — « hors-ligne » annoncé mais service worker sans cache
+- [BDR-020](decisions/BDR-020.md) — vidéos promo dans `brag-output/`, sources et captures versionnées
+- [BDR-021](decisions/BDR-021.md) — skill `brag-series` autonome, lit `/brag` sans l'exécuter
+- [BLK-014](blockers/BLK-014.md) — « hors-ligne » annoncé mais service worker sans cache
