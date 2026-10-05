@@ -120,3 +120,17 @@ Suite de session sur le totem : il recouvrait la barre de recherche sur les fen�
 
 - [BDR-015](decisions/BDR-015.md) — header qui réserve la place du totem, masqué sous `@2xl`
 - [LRN-012](learnings/LRN-012.md) — container query plutôt que media query pour un overlay à largeur variable
+
+## 2026-10-05
+
+Session vidéos promo. Départ : `/brag` pour un short vertical de présentation. Sur Opus 5.5, `/brag` passe la main à `brag-slim`, qui ne fournit aucun moteur : la vidéo a été construite à la main (captures de la prod en viewport mobile avec Playwright, page HTML « pure fonction du temps », musique et bruitages synthétisés en Node, encodage ffmpeg). Première version de 21 s jugée « très bien mais un peu rapide ».
+
+Baptiste a ensuite demandé une série dans la même DA : le pipeline a été extrait en kit partagé, puis six vidéos de 26 à 29 s ont été rendues (lancement, bureau avec zooms sur les zones commentées, coût réel, historique, 6 carburants, app installable). Tous les chiffres viennent de la prod, relevés le 5 oct. à 14:00 autour de Lyon. En préparant la vidéo 6, constat que le service worker ne met rien en cache : la vidéo ne parle donc pas de hors-ligne.
+
+Le pipeline a été formalisé en skill global `brag-series` : moteur neutre embarqué, thème généré par projet, sortie fixe dans `brag-output/`. Baptiste voulait d'abord que le skill appelle `/brag:brag` ; après discussion, compromis retenu : le skill reste autonome et lit seulement les règles créatives de `/brag`. La série a été rangée dans `brag-output/`, le `.gitignore` mis à jour, commit `1fb94d4` poussé sur `development`. Restent non suivis : des fichiers temporaires dans `brag-output/work/` (suppression refusée par les permissions) et le dossier `video/` antérieur à la session.
+
+**Entrées clés :**
+
+- [BDR-016](decisions/BDR-016.md) — vidéos promo dans `brag-output/`, sources et captures versionnées
+- [BDR-017](decisions/BDR-017.md) — skill `brag-series` autonome, lit `/brag` sans l'exécuter
+- [BLK-011](blockers/BLK-011.md) — « hors-ligne » annoncé mais service worker sans cache
