@@ -6,6 +6,8 @@ register: archive_blockers
 
 | ID                               | Date       | Friction                                                          | Tags                                                                         | Statut |
 | -------------------------------- | ---------- | ----------------------------------------------------------------- | ---------------------------------------------------------------------------- | ------ |
+| [ZBLK-012](blockers/ZBLK-012.md) | 2026-10-05 | Alias @ ignoré au rendu Remotion | #remotion #rspack #alias #override-config #bundler | résolu |
+| [ZBLK-011](blockers/ZBLK-011.md) | 2026-10-05 | pnpm 12 du lanceur a réinstallé la racine | #pnpm #launch-json #node-modules #pnpm-workspace #preview | résolu |
 | [ZBLK-010](blockers/ZBLK-010.md) | 2026-09-23 | pm2 restart après git pull, ETL toujours sur dist/ compilé périmé | #pm2 #rpi #dist #gitignore #tsc #deployment #etl                             | résolu |
 | [ZBLK-009](blockers/ZBLK-009.md) | 2026-09-23 | og:image illisible : 6 tuiles superposées sur une ligne           | #satori #flexbox #react-fragment #og-image #layout #silent-failure           | résolu |
 | [ZBLK-008](blockers/ZBLK-008.md) | 2026-09-23 | Build Next cassé au prerender de /opengraph-image                 | #turbopack #satori #next-og #build-failure #fonts #import-meta-url           | résolu |

@@ -18,3 +18,7 @@ register: learnings
 | [LRN-010](learnings/LRN-010.md) | 2026-09-10 | Wrapper `docker-monitor` NAS NOPASSWD limité à ps/stats/logs/inspect/version/images | #nas #docker #sudo #docker-monitor #uptime-kuma #readonly-audit                          |
 | [LRN-011](learnings/LRN-011.md) | 2026-09-23 | Deux rendus de « €/L » : PriceCard vs StationCard | #price-card #station-card #unit-style #consistency |
 | [LRN-012](learnings/LRN-012.md) | 2026-09-23 | Overlay à largeur variable : container query, pas media query | #tailwind4 #container-query #responsive #layout #sidebar #overlay |
+| [LRN-016](learnings/LRN-016.md) | 2026-10-05 | Le lanceur de preview peut résoudre un autre pnpm | #pnpm #launch-json #preview #node-modules #windows #winget |
+| [LRN-013](learnings/LRN-013.md) | 2026-10-05 | Pièges Remotion sous Rspack (alias, props, require.context) | #remotion #rspack #alias #require-context #exports #typescript |
+| [LRN-014](learnings/LRN-014.md) | 2026-10-05 | Schéma Zod = sélecteurs dans le Studio Remotion | #remotion #studio #zod #schema #props #inspector |
+| [LRN-015](learnings/LRN-015.md) | 2026-10-05 | Musique libre par API : ce qui marche vraiment | #musique #licence #cc-by #openverse #jamendo #pixabay #api |
