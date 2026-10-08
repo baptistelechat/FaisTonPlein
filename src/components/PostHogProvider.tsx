@@ -85,12 +85,11 @@ export function PostHogProvider() {
     const onVisibilityChange = () => {
       if (document.visibilityState === "hidden") handleSessionEnded();
     };
+    // visibilitychange seul : il tire aussi à la fermeture, y ajouter beforeunload doublait l'event
     document.addEventListener("visibilitychange", onVisibilityChange);
-    window.addEventListener("beforeunload", handleSessionEnded);
 
     return () => {
       document.removeEventListener("visibilitychange", onVisibilityChange);
-      window.removeEventListener("beforeunload", handleSessionEnded);
     };
   }, []);
 
