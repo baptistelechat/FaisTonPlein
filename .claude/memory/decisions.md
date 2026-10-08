@@ -28,3 +28,4 @@ register: decisions
 | [BDR-020](decisions/BDR-020.md) | 2026-10-05 | Vidéos promo dans `brag-output/`, sources et captures versionnées | #promo-video #brag-output #gitignore #playwright #shots #remotion | actif |
 | [BDR-021](decisions/BDR-021.md) | 2026-10-05 | Skill `brag-series` autonome, lit `/brag` sans l'exécuter | #brag-series #skill #brag #promo-video #theme #kit | actif |
 | [BDR-022](decisions/BDR-022.md) | 2026-10-08 | Textes de publication : récit long, « nous », gratuit sans pub | #share-copy #instagram #storytelling #promo-video #ligne-editoriale #brag-output | actif |
+| [BDR-023](decisions/BDR-023.md) | 2026-10-08 | Convention UTM : bio sans campagne, contenus éphémères avec | #utm #posthog #acquisition #instagram #lancement #convention | actif |

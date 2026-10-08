@@ -6,6 +6,7 @@ register: archive_blockers
 
 | ID                               | Date       | Friction                                                          | Tags                                                                         | Statut |
 | -------------------------------- | ---------- | ----------------------------------------------------------------- | ---------------------------------------------------------------------------- | ------ |
+| [ZBLK-007](blockers/ZBLK-007.md) | 2026-09-23 | `session_ended` compté 2x, `session_start` manquant | #posthog #analytics #session-ended #beforeunload #visibilitychange #beacon | résolu |
 | [ZBLK-013](blockers/ZBLK-013.md) | 2026-10-05 | Port 3123 en dur bloque un second preview | #preview #launch-json #port #autoport #remotion #studio | résolu |
 | [ZBLK-012](blockers/ZBLK-012.md) | 2026-10-05 | Alias @ ignoré au rendu Remotion | #remotion #rspack #alias #override-config #bundler | résolu |
 | [ZBLK-011](blockers/ZBLK-011.md) | 2026-10-05 | pnpm 12 du lanceur a réinstallé la racine | #pnpm #launch-json #node-modules #pnpm-workspace #preview | résolu |

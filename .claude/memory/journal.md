@@ -51,13 +51,13 @@ Fix appliqué par Baptiste dans le dashboard Vercel, avec deux points tranchés 
 
 Vérification du fix en trois niveaux après redeploy, en se méfiant de tout indicateur indirect : clé présente dans le bundle, requête réelle vers `https://eu.i.posthog.com/e/` observée via l'API `performance`, puis events `session_start` et `geoloc_result` confirmés en HogQL avec la bonne propriété `app`. À noter qu'un premier test a échoué à tort parce que `window.posthog` restait `undefined` — faux négatif, `posthog-js` importé en ESM n'expose pas ce global, contrairement au snippet HTML.
 
-Deux observations relevées en fin de parcours sans être investiguées : `session_ended` apparaît en double sans `session_start` associé ([BLK-007](blockers/BLK-007.md), laissé ouvert), et la production répond sur deux hosts distincts, le domaine canonique et l'URL propre à chaque déploiement. [ZBLK-004](archive/blockers/ZBLK-004.md) et [ZBLK-005](archive/blockers/ZBLK-005.md) ont par ailleurs été archivés au passage, leur statut étant résolu depuis le 10 septembre. Les quatre patterns extraits ont cette fois été promus en mémoire globale — contrairement à la session précédente — parce qu'ils relèvent du Next/Vercel générique et ne dépendent en rien de ce projet.
+Deux observations relevées en fin de parcours sans être investiguées : `session_ended` apparaît en double sans `session_start` associé ([ZBLK-007](archive/blockers/ZBLK-007.md), laissé ouvert), et la production répond sur deux hosts distincts, le domaine canonique et l'URL propre à chaque déploiement. [ZBLK-004](archive/blockers/ZBLK-004.md) et [ZBLK-005](archive/blockers/ZBLK-005.md) ont par ailleurs été archivés au passage, leur statut étant résolu depuis le 10 septembre. Les quatre patterns extraits ont cette fois été promus en mémoire globale — contrairement à la session précédente — parce qu'ils relèvent du Next/Vercel générique et ne dépendent en rien de ce projet.
 
 **Entrées clés :**
 
 - [ZBLK-006](archive/blockers/ZBLK-006.md) — env var absente de Vercel, treize jours d'analytics muette
 - [BDR-008](decisions/BDR-008.md) — env vars PostHog restreintes à Production
-- [BLK-007](blockers/BLK-007.md) — double comptage `session_ended`, à confirmer sur du volume
+- [ZBLK-007](archive/blockers/ZBLK-007.md) — double comptage `session_ended`, à confirmer sur du volume
 
 ---
 
@@ -177,3 +177,20 @@ Quelques phrases vont au-delà de ce que montrent les vidéos et restent à vali
 **Entrées clés :**
 
 - [BDR-022](decisions/BDR-022.md) — textes de publication en récit long, « nous », gratuit et sans pub
+
+---
+
+Veille du lancement officiel : vérification du suivi PostHog. Le pipeline a d'abord été contrôlé sans accès aux données (clé présente dans le bundle de prod et acceptée par PostHog EU, host EU, COEP `credentialless`, déploiement à jour). Le MCP PostHog n'était plus enregistré dans la config ; sa reconnexion par le connecteur claude.ai a buté sur le bloqueur DNS du réseau local, qui sinkhole `oauth.posthog.com` et `mcp.posthog.com`.
+
+Une fois connecté, 30 jours de prod ont été lus : tous les events remontent (35 visites). Le doublon de `session_ended` est confirmé, 9 visites sur 28 ayant deux events quasi simultanés, et le volet « `session_start` manquant » du même blocker est infirmé (35 pour 35). Le listener `beforeunload` a été retiré, lint et build passés, commit `c2be792` poussé sur `development`.
+
+Trois erreurs WebGL du soir même ont été attribuées au scanner de liens de Meta, pas à des visiteurs. Baptiste a ensuite posé ses liens UTM : bio Instagram sans campagne, story avec `launch`. Toutes les entrées de la session sont restées locales à sa demande, y compris les trois patterns proposés en global.
+
+Reste à faire avant ou après le lancement : fusionner `development` dans `main` pour que le correctif soit en prod, décider du filtre anti-robots Meta dans PostHog, et vérifier que le lien réellement collé en bio ne contient pas `utm_campaign`.
+
+**Entrées clés :**
+
+- [ZBLK-007](archive/blockers/ZBLK-007.md) — doublon `session_ended` confirmé et corrigé
+- [BDR-023](decisions/BDR-023.md) — convention UTM du lancement
+- [LRN-017](learnings/LRN-017.md) — le scanner de liens Meta crée des visites et des erreurs WebGL
+- [BLK-015](blockers/BLK-015.md) — visites sans aucun `session_ended`, surtout sur mobile

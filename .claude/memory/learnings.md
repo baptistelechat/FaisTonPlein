@@ -22,3 +22,7 @@ register: learnings
 | [LRN-013](learnings/LRN-013.md) | 2026-10-05 | Pièges Remotion sous Rspack (alias, props, require.context) | #remotion #rspack #alias #require-context #exports #typescript |
 | [LRN-014](learnings/LRN-014.md) | 2026-10-05 | Schéma Zod = sélecteurs dans le Studio Remotion | #remotion #studio #zod #schema #props #inspector |
 | [LRN-015](learnings/LRN-015.md) | 2026-10-05 | Musique libre par API : ce qui marche vraiment | #musique #licence #cc-by #openverse #jamendo #pixabay #api |
+| [LRN-017](learnings/LRN-017.md) | 2026-10-08 | Le scanner de liens Meta crée des visites et erreurs WebGL | #meta #bot #webgl #posthog #maplibre #fbclid #faux-positif |
+| [LRN-018](learnings/LRN-018.md) | 2026-10-08 | Un bloqueur DNS local casse l'OAuth du MCP PostHog | #dns #pihole #posthog #mcp #oauth #err-name-not-resolved |
+| [LRN-019](learnings/LRN-019.md) | 2026-10-08 | `visibilitychange` seul, `beforeunload` en plus double le beacon | #visibilitychange #beforeunload #beacon #analytics #double-count |
+| [LRN-020](learnings/LRN-020.md) | 2026-10-08 | `session_ended` : sans UTM, plusieurs par visite | #posthog #session-ended #utm #beacon #dashboard #uniques |
