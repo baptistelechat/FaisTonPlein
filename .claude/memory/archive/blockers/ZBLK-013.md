@@ -1,11 +1,11 @@
 ---
-id: BLK-013
+id: ZBLK-013
 type: blocker
 date: 2026-10-05
 tags: [preview, launch-json, port, autoport, remotion, studio]
 ---
 
-# BLK-013 — Port 3123 en dur bloque un second preview
+# ZBLK-013 — Port 3123 en dur bloque un second preview
 
 | Friction | Cause réelle | Solution | Statut |
 | --- | --- | --- | --- |
@@ -13,4 +13,4 @@ tags: [preview, launch-json, port, autoport, remotion, studio]
 
 ## Références
 
-- [BDR-019](../decisions/BDR-019.md) — projet Remotion isolé dans video/
+- [BDR-019](../../decisions/BDR-019.md) — projet Remotion isolé dans video/

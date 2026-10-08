@@ -140,7 +140,7 @@ Baptiste a ensuite demandé des bruitages (bibliothèque uisfx, pack `studio` ch
 
 Seconde session du jour, courte : finitions du short `station-choisie`. Baptiste voulait une mention du créateur sur la dernière page, avec le logo Instagram devant `baptistematthieu.dev`, et que la règle entre dans le skill `remotion-short`. La signature a d'abord été posée sous le bouton d'URL ; sur capture du Studio, Baptiste l'a demandée plus bas. Elle est maintenant détachée du bloc central et ancrée à la limite basse de la zone sûre, pas tout en bas où l'interface de TikTok et Reels la recouvrirait ([BDR-018](decisions/BDR-018.md)). Il a aussi demandé pourquoi l'icône n'était pas importée de Lucide : le kit recopie déjà les tracés faute de `lucide-react` dans `video/`, et il a choisi de garder ce tracé plutôt que le logo officiel.
 
-En route, le preview a refusé de démarrer parce que le port du Studio était codé en dur et pris par une autre session ([BLK-013](blockers/BLK-013.md)) ; le lanceur passe désormais par `autoPort` (voir GLRN-330 en mémoire globale). Rendu final contrôlé (30 s, 1080×1920, piste audio) et envoyé. Commit `37ee5eb` (non poussé). Le skill modifié vit dans le dépôt de configuration de Baptiste. Deux points laissés ouverts : `@` devant le pseudo, et la durée d'affichage de la signature (environ 1,3 s).
+En route, le preview a refusé de démarrer parce que le port du Studio était codé en dur et pris par une autre session ([ZBLK-013](archive/blockers/ZBLK-013.md)) ; le lanceur passe désormais par `autoPort` (voir GLRN-330 en mémoire globale). Rendu final contrôlé (30 s, 1080×1920, piste audio) et envoyé. Commit `37ee5eb` (non poussé). Le skill modifié vit dans le dépôt de configuration de Baptiste. Deux points laissés ouverts : `@` devant le pseudo, et la durée d'affichage de la signature (environ 1,3 s).
 
 **Entrées clés :**
 
@@ -165,3 +165,15 @@ Le pipeline a été formalisé en skill global `brag-series` : moteur neutre emb
 Suite de la même session. Les fichiers non suivis qui restaient après la clôture venaient de deux sources : mes fichiers temporaires dans `brag-output/work/` (supprimés via PowerShell avec des chemins absolus, la commande relative donnée à Baptiste n'ayant rien fait depuis son sous-dossier) et le `node_modules` du projet Remotion, dont le `.gitignore` vivait sur la branche `video` non mergée.
 
 La branche `video` a été mergée dans `development` puis supprimée (local et remote). Elle avait attribué les mêmes IDs mémoire que cette session : mes entrées ont été renumérotées avant le merge (BDR-016 → BDR-020, BDR-017 → BDR-021, BLK-011 → BLK-014), et les trois conflits d'index et de journal résolus en gardant les deux côtés. Le lint lancé après le merge a révélé que le commit des sources vidéo avait cassé `pnpm lint` (scripts CommonJS du kit) : `brag-output/**` ajouté aux ignores d'ESLint. Le skill `brag-series` a reçu deux consignes en conséquence : fichiers de travail dans `work/tmp/` ignoré, et exclusion de `brag-output/` du lint à l'installation.
+
+## 2026-10-08
+
+Session courte sur les textes de publication des six vidéos promo. Baptiste trouvait `brag-output/share-copy.txt` trop court, et le texte du lancement ne présentait pas vraiment le projet. Les six textes ont été réécrits : l'accroche chiffrée reste en première ligne, puis vient le problème, puis ce que fait l'app. Le lancement explique d'où viennent les prix (open data de l'État), le parcours en trois gestes, la liste des atouts, et se termine sur le slogan. Les blocs ont été remis dans l'ordre 01 à 06.
+
+Deux précisions de Baptiste ensuite : l'app est gratuite et sans pub (ajouté au lancement), et le compte Instagram est partagé avec son frère, donc « nous » au lieu de « je ». Les chiffres viennent tous des vidéos, sans ajout.
+
+Quelques phrases vont au-delà de ce que montrent les vidéos et restent à valider par Baptiste avant publication : les champs du profil véhicule (réservoir, consommation), les libellés de tendance et le périmètre de la médiane en 04, la carte qui se recalcule en 05, et la remarque sur la surconsommation de l'E85. Commit `bd4d64d` poussé sur `development`. Rien au changelog : aucun changement visible dans l'app.
+
+**Entrées clés :**
+
+- [BDR-022](decisions/BDR-022.md) — textes de publication en récit long, « nous », gratuit et sans pub

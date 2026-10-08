@@ -6,6 +6,7 @@ register: archive_blockers
 
 | ID                               | Date       | Friction                                                          | Tags                                                                         | Statut |
 | -------------------------------- | ---------- | ----------------------------------------------------------------- | ---------------------------------------------------------------------------- | ------ |
+| [ZBLK-013](blockers/ZBLK-013.md) | 2026-10-05 | Port 3123 en dur bloque un second preview | #preview #launch-json #port #autoport #remotion #studio | résolu |
 | [ZBLK-012](blockers/ZBLK-012.md) | 2026-10-05 | Alias @ ignoré au rendu Remotion | #remotion #rspack #alias #override-config #bundler | résolu |
 | [ZBLK-011](blockers/ZBLK-011.md) | 2026-10-05 | pnpm 12 du lanceur a réinstallé la racine | #pnpm #launch-json #node-modules #pnpm-workspace #preview | résolu |
 | [ZBLK-010](blockers/ZBLK-010.md) | 2026-09-23 | pm2 restart après git pull, ETL toujours sur dist/ compilé périmé | #pm2 #rpi #dist #gitignore #tsc #deployment #etl                             | résolu |
