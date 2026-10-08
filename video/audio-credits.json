@@ -1,0 +1,29 @@
+[
+  {
+    "title": "Funky rythm",
+    "artist": "Yonael",
+    "source": "openverse (jamendo)",
+    "durationSeconds": 178,
+    "mood": "funk-groove",
+    "tags": [
+      "bass",
+      "drums",
+      "instrumental",
+      "neutral",
+      "percu",
+      "speed_medium"
+    ],
+    "license": "CC BY 3.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by/3.0/",
+    "attributionRequired": true,
+    "attributionText": "\"Funky rythm\" by Yonael is licensed under CC BY 3.0. To view a copy of this license, visit https://creativecommons.org/licenses/by/3.0/.",
+    "sourceUrl": "https://www.jamendo.com/track/1265789",
+    "previewUrl": "https://prod-1.storage.jamendo.com/?trackid=1265789&format=mp32",
+    "licenseCheckedOnSourcePage": true,
+    "file": "audio/funky-rythm-yonael.mp3",
+    "downloadedAt": "2026-10-05",
+    "usedIn": [
+      "station-choisie"
+    ]
+  }
+]

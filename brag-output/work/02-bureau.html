@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;700&family=Space+Grotesk:wght@500;700&display=block"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="kit.css" />
+  </head>
+  <body>
+    <div id="stage">
+      <!-- Hook : la moyenne nationale réelle affichée par le totem -->
+      <div class="scene">
+        <div
+          class="tag a"
+          data-in="0.1"
+          data-out="3.7"
+          style="margin: 0; color: var(--muted)"
+        >
+          Gazole · moyenne en France
+        </div>
+        <h1
+          class="a"
+          data-in="0.3"
+          data-out="3.7"
+          style="font-size: 190px; color: var(--amber); margin-top: 24px"
+        >
+          2,377<span style="font-size: 80px; color: var(--muted)"> €/L</span>
+        </h1>
+        <div
+          class="pill a"
+          data-in="1.0"
+          data-out="3.7"
+          style="background: #ff637e22; color: var(--bad); margin-top: 36px"
+        >
+          + 0,019 € en 20 jours
+        </div>
+        <div class="gap h a" data-in="1.8" data-out="3.7">
+          Et près de<br /><b>chez vous ?</b>
+        </div>
+        <div class="foot a" data-in="0.3" data-out="3.7" data-dy="0">
+          Moyenne nationale · 5 oct. 2026 · data.gouv.fr
+        </div>
+      </div>
+
+      <!-- La vraie app bureau (captures de la prod, 1440×900) : la caméra zoome sur la zone dont on parle -->
+      <div id="win">
+        <div class="bar">
+          <i></i><i></i><i></i><span>faistonplein.vercel.app</span>
+        </div>
+        <div id="view">
+          <div id="world">
+            <img src="shots/d1-prix.png" alt="" />
+            <div
+              class="ring"
+              id="ring"
+              style="left: 14px; top: 205px; width: 352px; height: 80px"
+            ></div>
+            <img id="d2" src="shots/d2-detail.png" alt="" />
+            <div class="tap" id="tap1" style="left: 190px; top: 245px"></div>
+          </div>
+        </div>
+      </div>
+      <div class="cap h a" data-in="7.2" data-out="10.4">
+        Carte, liste, prix :<br /><span class="soft"
+          >tout sur un seul écran.</span
+        >
+      </div>
+      <div class="cap h a" data-in="10.9" data-out="14.6">
+        Les moins chères,<br /><span class="soft">classées pour vous.</span>
+      </div>
+      <div class="cap h a" data-in="15.1" data-out="19.4">
+        Chaque station,<br /><span class="soft">30 jours d'historique.</span>
+      </div>
+      <div class="cap h a" data-in="19.9" data-out="23.7">
+        La moyenne nationale,<br /><span class="soft"
+          >toujours sous les yeux.</span
+        >
+      </div>
+    </div>
+
+    <script src="theme.js"></script>
+    <script src="kit.js"></script>
+    <script>
+      // Zones de la capture bureau (coordonnées 1440×900). Largeur visible = 980 / s.
+      const WIDE = { cx: 720, cy: 450, s: 0.6806, top: 560, h: 612 }; // tout l'écran
+      const LIST = { cx: 210, cy: 279, s: 2.333, top: 340, h: 1300 }; // barre latérale, haut de liste
+      const CHART = { ...LIST, cy: 621 }; // barre latérale, graphique 30 jours
+      const TOTEM = { cx: 1221, cy: 290, s: 2.32, top: 340, h: 1300 }; // totem des prix nationaux
+
+      defineVideo({
+        duration: 28.5,
+        poster: 27.5,
+        stills: [
+          0.8, 2.6, 5.5, 7.6, 9.5, 10.6, 12.5, 14.9, 15.3, 17.0, 18.8, 19.6,
+          21.5, 24.3, 27.5,
+        ],
+        reveal: { in: 4, out: 6.7, tag: "Aussi sur grand écran." },
+        outro: {
+          in: 24,
+          punch: 'Grand écran.<br><span class="soft">Petits prix.</span>',
+        },
+        cues: {
+          arp: 7,
+          clap: 10.5,
+          taps: [14.7],
+          whooshes: [
+            [3.0, 1.0, 0.25],
+            [6.9, 0.8, 0.12],
+            [10.0, 0.9, 0.12],
+            [15.6, 1.2, 0.08],
+            [19.0, 1.0, 0.12],
+            [23.6, 0.5, 0.14],
+          ],
+          bells: [
+            [0.3, 69, 0.07, 0.5],
+            [1.0, 76, 0.05, 0.35],
+            [1.8, 72, 0.05, 0.4],
+            [1.9, 76, 0.05, 0.4],
+            [12.0, 81, 0.06, 0.5],
+            [12.1, 88, 0.05, 0.6],
+            [17.2, 84, 0.04, 0.8],
+            [20.2, 81, 0.05, 0.6],
+          ],
+        },
+        tick(t, K) {
+          K.browser(t, {
+            enter: 7,
+            exit: 23.9,
+            keys: [
+              { ...WIDE },
+              { ...LIST, t: 11.0, d: 1.1 },
+              { ...CHART, t: 17.2, d: 1.6 }, // descente vers le graphique
+              { ...TOTEM, t: 20.0, d: 1.2 },
+            ],
+          });
+          K.ring(K.$("ring"), t, 12.0, 14.85);
+          K.tap(K.$("tap1"), t, 14.7);
+          K.$("d2").style.opacity = K.p(t, 14.9, 14.98); // clic sur la station → détail + itinéraire
+        },
+      });
+    </script>
+  </body>
+</html>

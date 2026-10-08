@@ -4,11 +4,15 @@
     {
       "name": "dev",
       "runtimeExecutable": "pnpm",
-      "runtimeArgs": [
-        "run",
-        "dev"
-      ],
+      "runtimeArgs": ["run", "dev"],
       "port": 3000
+    },
+    {
+      "name": "video",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["--prefix", "video", "run", "dev", "--", "--no-open"],
+      "port": 3123,
+      "autoPort": true
     }
   ]
 }

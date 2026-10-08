@@ -1,0 +1,99 @@
+=== 01-lancement.mp4 ===
+Même ville, même gazole : 21 € d'écart sur un plein. ⛽
+
+Le 5 octobre, autour de Lyon, le litre de gazole se vendait 2,240 € dans une station et 2,669 € dans une autre. 43 centimes d'écart, soit 21 € sur un plein de 50 L. Le même carburant, à quelques kilomètres près.
+
+Ces prix sont publics. Chaque station les déclare à l'État, qui les publie en open data sur data.gouv.fr. Seulement, personne ne va lire un fichier de plusieurs milliers de lignes avant de prendre la route.
+
+Alors nous avons construit FaisTonPlein. 🚗
+
+Vous ouvrez l'app, elle affiche toutes les stations autour de vous sur une carte. Un tap sur « Prix » et la liste se trie, la moins chère en premier. Un tap sur une station et l'itinéraire se trace, temps de trajet compris. À Lyon ce jour-là, le meilleur prix était à 13 minutes.
+
+Ce qu'il y a dedans :
+⛽ 6 carburants : Gazole, E10, SP95, SP98, E85, GPLc
+🔄 Les prix officiels, mis à jour toutes les 2 h
+🗺️ Toute la France, département par département
+🙅 Pas de compte à créer
+💸 Gratuit, et sans pub
+
+Le prix de l'essence, on ne le choisit pas. Sa station, si.
+
+👉 faistonplein.vercel.app
+
+
+=== 02-bureau.mp4 ===
+Gazole : 2,377 €/L en moyenne en France. Et près de chez vous ? 🖥️
+
+Un chiffre national, ça ne dit rien de la station au coin de votre rue. Elle est peut-être 15 centimes au-dessus. Ou en dessous. Tant qu'on n'a pas les deux prix côte à côte, on ne sait pas.
+
+FaisTonPlein est né sur mobile, pour être consulté avant de démarrer. Mais le soir, quand on prépare un long trajet, on est plutôt devant un ordinateur. La version bureau est faite pour ce moment-là.
+
+Tout tient sur un seul écran :
+🗺️ La carte, avec toutes les stations
+📋 La liste, classée de la moins chère à la plus chère
+📈 30 jours d'historique pour chaque station
+🇫🇷 La moyenne nationale, toujours sous les yeux
+
+Vous voyez d'un coup d'œil si votre station habituelle est une bonne affaire ou une habitude qui coûte cher.
+
+👉 faistonplein.vercel.app
+
+
+=== 03-cout-reel.mp4 ===
+Le 2e meilleur prix est à 14,5 km. Ça vaut le détour ? 🚗
+
+On a tous fait ce calcul de tête, un peu vite. Trois centimes de moins au litre, ça semble toujours bon à prendre. Puis on roule un quart d'heure pour y aller, autant pour revenir, et l'économie est partie dans le réservoir.
+
+Le prix au litre ne dit pas tout.
+
+Dans FaisTonPlein, vous indiquez ce que vous conduisez : la taille du réservoir, la consommation. L'app ajoute alors le coût du trajet au prix du plein, et reclasse les stations selon le total.
+
+Dans la vidéo, la station classée 2e au prix seul est à 14,5 km. Trajet compris, elle sort du podium. Une station un peu plus chère au litre, mais tout près, passe devant.
+
+Plein + trajet : c'est ce total-là que vous payez vraiment.
+
+👉 faistonplein.vercel.app
+
+
+=== 04-historique.mp4 ===
+Le gazole a pris 2 centimes en 20 jours. Et votre station ? 📈
+
+Un prix affiché sur un totem, c'est une photo. Il ne dit pas s'il monte depuis une semaine ou s'il vient de baisser. Pourtant c'est ça qui aide à décider : faire le plein maintenant, ou attendre deux jours.
+
+FaisTonPlein garde la mémoire des prix. Pour chaque station, vous retrouvez 30 jours d'historique, carburant par carburant.
+
+📊 Une tendance sur chaque prix : en hausse, en baisse, stable
+⚖️ Chaque carburant comparé à la médiane des stations autour
+⛔ Les ruptures de stock, visibles sur la courbe
+
+Vous repérez vite la station qui suit le marché, et celle qui reste chère quoi qu'il arrive.
+
+👉 faistonplein.vercel.app
+
+
+=== 05-carburants.mp4 ===
+SP98 : 2,276 €/L. E85 : 0,904 €/L. 2,5× moins cher au litre. ⛽
+
+Même pompe, pas le même prix. Et la station la moins chère en gazole n'est pas forcément la moins chère en SP98 : chaque carburant a son propre classement.
+
+FaisTonPlein suit les 6 carburants vendus en France : Gazole, E10, SP95, SP98, E85 et GPLc. Vous choisissez le vôtre, et toute la liste se recalcule à chaque tap. La carte aussi.
+
+Autour de Lyon, l'E85 démarre à 0,849 €/L. Il faut un véhicule compatible, et il consomme davantage, donc l'écart réel est plus petit que sur le totem. Mais à ce prix-là, la question mérite d'être posée.
+
+Vous roulez avec deux voitures à la maison ? Un tap pour passer de l'une à l'autre.
+
+👉 faistonplein.vercel.app
+
+
+=== 06-installable.mp4 ===
+Pas d'App Store. Pas de compte. Un tap, c'est installé. 📲
+
+Pour comparer des prix d'essence, on ne devrait pas avoir à créer un compte, valider un e-mail et retenir un mot de passe de plus.
+
+FaisTonPlein est une application web. Vous l'ouvrez dans votre navigateur et elle fonctionne tout de suite. Si elle vous plaît, le bouton « Installer » est dans l'app : un tap, et elle rejoint votre écran d'accueil, avec son icône, comme n'importe quelle autre.
+
+Elle garde aussi en mémoire les départements que vous avez déjà consultés. Au prochain plein, vos stations sont déjà là.
+
+Rien à télécharger depuis un store, rien à renseigner sur vous. Juste les prix.
+
+👉 faistonplein.vercel.app

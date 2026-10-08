@@ -18,3 +18,11 @@ register: learnings
 | [LRN-010](learnings/LRN-010.md) | 2026-09-10 | Wrapper `docker-monitor` NAS NOPASSWD limité à ps/stats/logs/inspect/version/images | #nas #docker #sudo #docker-monitor #uptime-kuma #readonly-audit                          |
 | [LRN-011](learnings/LRN-011.md) | 2026-09-23 | Deux rendus de « €/L » : PriceCard vs StationCard | #price-card #station-card #unit-style #consistency |
 | [LRN-012](learnings/LRN-012.md) | 2026-09-23 | Overlay à largeur variable : container query, pas media query | #tailwind4 #container-query #responsive #layout #sidebar #overlay |
+| [LRN-016](learnings/LRN-016.md) | 2026-10-05 | Le lanceur de preview peut résoudre un autre pnpm | #pnpm #launch-json #preview #node-modules #windows #winget |
+| [LRN-013](learnings/LRN-013.md) | 2026-10-05 | Pièges Remotion sous Rspack (alias, props, require.context) | #remotion #rspack #alias #require-context #exports #typescript |
+| [LRN-014](learnings/LRN-014.md) | 2026-10-05 | Schéma Zod = sélecteurs dans le Studio Remotion | #remotion #studio #zod #schema #props #inspector |
+| [LRN-015](learnings/LRN-015.md) | 2026-10-05 | Musique libre par API : ce qui marche vraiment | #musique #licence #cc-by #openverse #jamendo #pixabay #api |
+| [LRN-017](learnings/LRN-017.md) | 2026-10-08 | Le scanner de liens Meta crée des visites et erreurs WebGL | #meta #bot #webgl #posthog #maplibre #fbclid #faux-positif |
+| [LRN-018](learnings/LRN-018.md) | 2026-10-08 | Un bloqueur DNS local casse l'OAuth du MCP PostHog | #dns #pihole #posthog #mcp #oauth #err-name-not-resolved |
+| [LRN-019](learnings/LRN-019.md) | 2026-10-08 | `visibilitychange` seul, `beforeunload` en plus double le beacon | #visibilitychange #beforeunload #beacon #analytics #double-count |
+| [LRN-020](learnings/LRN-020.md) | 2026-10-08 | `session_ended` : sans UTM, plusieurs par visite | #posthog #session-ended #utm #beacon #dashboard #uniques |

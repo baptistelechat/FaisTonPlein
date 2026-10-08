@@ -51,13 +51,13 @@ Fix appliqué par Baptiste dans le dashboard Vercel, avec deux points tranchés 
 
 Vérification du fix en trois niveaux après redeploy, en se méfiant de tout indicateur indirect : clé présente dans le bundle, requête réelle vers `https://eu.i.posthog.com/e/` observée via l'API `performance`, puis events `session_start` et `geoloc_result` confirmés en HogQL avec la bonne propriété `app`. À noter qu'un premier test a échoué à tort parce que `window.posthog` restait `undefined` — faux négatif, `posthog-js` importé en ESM n'expose pas ce global, contrairement au snippet HTML.
 
-Deux observations relevées en fin de parcours sans être investiguées : `session_ended` apparaît en double sans `session_start` associé ([BLK-007](blockers/BLK-007.md), laissé ouvert), et la production répond sur deux hosts distincts, le domaine canonique et l'URL propre à chaque déploiement. [ZBLK-004](archive/blockers/ZBLK-004.md) et [ZBLK-005](archive/blockers/ZBLK-005.md) ont par ailleurs été archivés au passage, leur statut étant résolu depuis le 10 septembre. Les quatre patterns extraits ont cette fois été promus en mémoire globale — contrairement à la session précédente — parce qu'ils relèvent du Next/Vercel générique et ne dépendent en rien de ce projet.
+Deux observations relevées en fin de parcours sans être investiguées : `session_ended` apparaît en double sans `session_start` associé ([ZBLK-007](archive/blockers/ZBLK-007.md), laissé ouvert), et la production répond sur deux hosts distincts, le domaine canonique et l'URL propre à chaque déploiement. [ZBLK-004](archive/blockers/ZBLK-004.md) et [ZBLK-005](archive/blockers/ZBLK-005.md) ont par ailleurs été archivés au passage, leur statut étant résolu depuis le 10 septembre. Les quatre patterns extraits ont cette fois été promus en mémoire globale — contrairement à la session précédente — parce qu'ils relèvent du Next/Vercel générique et ne dépendent en rien de ce projet.
 
 **Entrées clés :**
 
 - [ZBLK-006](archive/blockers/ZBLK-006.md) — env var absente de Vercel, treize jours d'analytics muette
 - [BDR-008](decisions/BDR-008.md) — env vars PostHog restreintes à Production
-- [BLK-007](blockers/BLK-007.md) — double comptage `session_ended`, à confirmer sur du volume
+- [ZBLK-007](archive/blockers/ZBLK-007.md) — double comptage `session_ended`, à confirmer sur du volume
 
 ---
 
@@ -120,3 +120,77 @@ Suite de session sur le totem : il recouvrait la barre de recherche sur les fen�
 
 - [BDR-015](decisions/BDR-015.md) — header qui réserve la place du totem, masqué sous `@2xl`
 - [LRN-012](learnings/LRN-012.md) — container query plutôt que media query pour un overlay à largeur variable
+
+## 2026-10-05
+
+Session consacrée à un premier short vertical de présentation de l'app (9:16, 30 s), puis à la formalisation du flux en skill. Le brief initial (accroche en question, trois astuces, outro) a été passé au crible avec Rodin avant tout code : un tour de fonctionnalités aurait été une pub, une question fermée se fait swiper, et les chiffres devaient être réels. Baptiste a d'abord voulu un angle « évolution sur 3 semaines » ; les données de `metadata.json` montraient un pic du gazole le 20 septembre puis une baisse, et surtout une accroche datée périmait la vidéo en une semaine. Après plusieurs séries de variantes, l'accroche retenue est intemporelle : « Le prix de l'essence, on ne le choisit pas. Sa station, si. » ([BDR-016](decisions/BDR-016.md)).
+
+Le projet Remotion a été créé dans `video/`, isolé de l'app ([BDR-019](decisions/BDR-019.md)), avec un cas réel tiré du Parquet du département 31 (Toulouse, 48 stations dans 10 km, gazole de 2,250 € à 2,590 €) et la tendance nationale relue à chaque rendu. Deux incidents ont coûté du temps : l'alias `@` ignoré sous Rspack ([ZBLK-012](archive/blockers/ZBLK-012.md)) et le lanceur de preview qui a pris un autre pnpm et réinstallé la racine ([ZBLK-011](archive/blockers/ZBLK-011.md)).
+
+Baptiste a ensuite demandé des bruitages (bibliothèque uisfx, pack `studio` choisi à l'oreille sur des extraits), la réorganisation en kit partagé pour décliner les vidéos, puis une musique de fond libre de droits cherchée par API. Sa règle initiale d'ambiances fixes a été corrigée par lui-même : les ambiances se déduisent du projet. « Funky rythm » de Yonael (CC BY 3.0) a été retenue. Des sélecteurs de pack, de musique et de volume ont été ajoutés dans l'inspecteur du Studio ([LRN-014](learnings/LRN-014.md)). Le tout est encodé dans le skill `remotion-short` ([BDR-017](decisions/BDR-017.md)), qui s'appuie sur le journal `video/VIDEOS.md`. Commit `4ce5ea6` (non poussé) ; le skill lui-même vit dans le dépôt de configuration de Baptiste et n'y est pas encore commité.
+
+**Entrées clés :**
+
+- [BDR-016](decisions/BDR-016.md) — ligne éditoriale des shorts
+- [BDR-017](decisions/BDR-017.md) — skill remotion-short
+- [ZBLK-011](archive/blockers/ZBLK-011.md) — pnpm du lanceur
+- [LRN-015](learnings/LRN-015.md) — sources de musique libre
+
+---
+
+Seconde session du jour, courte : finitions du short `station-choisie`. Baptiste voulait une mention du créateur sur la dernière page, avec le logo Instagram devant `baptistematthieu.dev`, et que la règle entre dans le skill `remotion-short`. La signature a d'abord été posée sous le bouton d'URL ; sur capture du Studio, Baptiste l'a demandée plus bas. Elle est maintenant détachée du bloc central et ancrée à la limite basse de la zone sûre, pas tout en bas où l'interface de TikTok et Reels la recouvrirait ([BDR-018](decisions/BDR-018.md)). Il a aussi demandé pourquoi l'icône n'était pas importée de Lucide : le kit recopie déjà les tracés faute de `lucide-react` dans `video/`, et il a choisi de garder ce tracé plutôt que le logo officiel.
+
+En route, le preview a refusé de démarrer parce que le port du Studio était codé en dur et pris par une autre session ([ZBLK-013](archive/blockers/ZBLK-013.md)) ; le lanceur passe désormais par `autoPort` (voir GLRN-330 en mémoire globale). Rendu final contrôlé (30 s, 1080×1920, piste audio) et envoyé. Commit `37ee5eb` (non poussé). Le skill modifié vit dans le dépôt de configuration de Baptiste. Deux points laissés ouverts : `@` devant le pseudo, et la durée d'affichage de la signature (environ 1,3 s).
+
+**Entrées clés :**
+
+- [BDR-018](decisions/BDR-018.md) — signature créateur dans l'outro
+
+---
+
+Session vidéos promo. Départ : `/brag` pour un short vertical de présentation. Sur Opus 5.5, `/brag` passe la main à `brag-slim`, qui ne fournit aucun moteur : la vidéo a été construite à la main (captures de la prod en viewport mobile avec Playwright, page HTML « pure fonction du temps », musique et bruitages synthétisés en Node, encodage ffmpeg). Première version de 21 s jugée « très bien mais un peu rapide ».
+
+Baptiste a ensuite demandé une série dans la même DA : le pipeline a été extrait en kit partagé, puis six vidéos de 26 à 29 s ont été rendues (lancement, bureau avec zooms sur les zones commentées, coût réel, historique, 6 carburants, app installable). Tous les chiffres viennent de la prod, relevés le 5 oct. à 14:00 autour de Lyon. En préparant la vidéo 6, constat que le service worker ne met rien en cache : la vidéo ne parle donc pas de hors-ligne.
+
+Le pipeline a été formalisé en skill global `brag-series` : moteur neutre embarqué, thème généré par projet, sortie fixe dans `brag-output/`. Baptiste voulait d'abord que le skill appelle `/brag:brag` ; après discussion, compromis retenu : le skill reste autonome et lit seulement les règles créatives de `/brag`. La série a été rangée dans `brag-output/`, le `.gitignore` mis à jour, commit `1fb94d4` poussé sur `development`. Restent non suivis : des fichiers temporaires dans `brag-output/work/` (suppression refusée par les permissions) et le dossier `video/` antérieur à la session.
+
+**Entrées clés :**
+
+- [BDR-020](decisions/BDR-020.md) — vidéos promo dans `brag-output/`, sources et captures versionnées
+- [BDR-021](decisions/BDR-021.md) — skill `brag-series` autonome, lit `/brag` sans l'exécuter
+- [BLK-014](blockers/BLK-014.md) — « hors-ligne » annoncé mais service worker sans cache
+
+---
+
+Suite de la même session. Les fichiers non suivis qui restaient après la clôture venaient de deux sources : mes fichiers temporaires dans `brag-output/work/` (supprimés via PowerShell avec des chemins absolus, la commande relative donnée à Baptiste n'ayant rien fait depuis son sous-dossier) et le `node_modules` du projet Remotion, dont le `.gitignore` vivait sur la branche `video` non mergée.
+
+La branche `video` a été mergée dans `development` puis supprimée (local et remote). Elle avait attribué les mêmes IDs mémoire que cette session : mes entrées ont été renumérotées avant le merge (BDR-016 → BDR-020, BDR-017 → BDR-021, BLK-011 → BLK-014), et les trois conflits d'index et de journal résolus en gardant les deux côtés. Le lint lancé après le merge a révélé que le commit des sources vidéo avait cassé `pnpm lint` (scripts CommonJS du kit) : `brag-output/**` ajouté aux ignores d'ESLint. Le skill `brag-series` a reçu deux consignes en conséquence : fichiers de travail dans `work/tmp/` ignoré, et exclusion de `brag-output/` du lint à l'installation.
+
+## 2026-10-08
+
+Session courte sur les textes de publication des six vidéos promo. Baptiste trouvait `brag-output/share-copy.txt` trop court, et le texte du lancement ne présentait pas vraiment le projet. Les six textes ont été réécrits : l'accroche chiffrée reste en première ligne, puis vient le problème, puis ce que fait l'app. Le lancement explique d'où viennent les prix (open data de l'État), le parcours en trois gestes, la liste des atouts, et se termine sur le slogan. Les blocs ont été remis dans l'ordre 01 à 06.
+
+Deux précisions de Baptiste ensuite : l'app est gratuite et sans pub (ajouté au lancement), et le compte Instagram est partagé avec son frère, donc « nous » au lieu de « je ». Les chiffres viennent tous des vidéos, sans ajout.
+
+Quelques phrases vont au-delà de ce que montrent les vidéos et restent à valider par Baptiste avant publication : les champs du profil véhicule (réservoir, consommation), les libellés de tendance et le périmètre de la médiane en 04, la carte qui se recalcule en 05, et la remarque sur la surconsommation de l'E85. Commit `bd4d64d` poussé sur `development`. Rien au changelog : aucun changement visible dans l'app.
+
+**Entrées clés :**
+
+- [BDR-022](decisions/BDR-022.md) — textes de publication en récit long, « nous », gratuit et sans pub
+
+---
+
+Veille du lancement officiel : vérification du suivi PostHog. Le pipeline a d'abord été contrôlé sans accès aux données (clé présente dans le bundle de prod et acceptée par PostHog EU, host EU, COEP `credentialless`, déploiement à jour). Le MCP PostHog n'était plus enregistré dans la config ; sa reconnexion par le connecteur claude.ai a buté sur le bloqueur DNS du réseau local, qui sinkhole `oauth.posthog.com` et `mcp.posthog.com`.
+
+Une fois connecté, 30 jours de prod ont été lus : tous les events remontent (35 visites). Le doublon de `session_ended` est confirmé, 9 visites sur 28 ayant deux events quasi simultanés, et le volet « `session_start` manquant » du même blocker est infirmé (35 pour 35). Le listener `beforeunload` a été retiré, lint et build passés, commit `c2be792` poussé sur `development`.
+
+Trois erreurs WebGL du soir même ont été attribuées au scanner de liens de Meta, pas à des visiteurs. Baptiste a ensuite posé ses liens UTM : bio Instagram sans campagne, story avec `launch`. Toutes les entrées de la session sont restées locales à sa demande, y compris les trois patterns proposés en global.
+
+Reste à faire avant ou après le lancement : fusionner `development` dans `main` pour que le correctif soit en prod, décider du filtre anti-robots Meta dans PostHog, et vérifier que le lien réellement collé en bio ne contient pas `utm_campaign`.
+
+**Entrées clés :**
+
+- [ZBLK-007](archive/blockers/ZBLK-007.md) — doublon `session_ended` confirmé et corrigé
+- [BDR-023](decisions/BDR-023.md) — convention UTM du lancement
+- [LRN-017](learnings/LRN-017.md) — le scanner de liens Meta crée des visites et des erreurs WebGL
+- [BLK-015](blockers/BLK-015.md) — visites sans aucun `session_ended`, surtout sur mobile

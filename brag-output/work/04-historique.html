@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;700&family=Space+Grotesk:wght@500;700&display=block"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="kit.css" />
+  </head>
+  <body>
+    <div id="stage">
+      <!-- Hook : l'évolution réelle de la moyenne nationale (totem de l'app) -->
+      <div class="scene">
+        <h1 class="hook-title a" data-in="0.1" data-out="4.7">
+          Le gazole a pris
+        </h1>
+        <h1 class="hook-title a" data-in="0.7" data-out="4.7">
+          <span style="color: var(--bad)">2 centimes</span>
+        </h1>
+        <h1 class="hook-title a" data-in="1.1" data-out="4.7">en 20 jours.</h1>
+        <div class="prices">
+          <div class="price a" data-in="1.8" data-out="4.7" data-dx="-120">
+            <span class="lbl">Moyenne<br />en France</span
+            ><span class="val" style="color: var(--amber)"
+              >2,377<small>€/L</small></span
+            >
+          </div>
+        </div>
+        <div class="gap h a" data-in="2.8" data-out="4.7">
+          Et <b>votre</b><br />station ?
+        </div>
+        <div class="foot a" data-in="1.8" data-out="4.7" data-dy="0">
+          + 0,019 €/L · moyenne nationale · 5 oct. 2026
+        </div>
+      </div>
+
+      <!-- La vraie app (captures de la prod) -->
+      <div id="cam">
+        <div id="phone">
+          <img src="shots/e2-expanded.png" alt="" />
+          <img id="s1" src="shots/h1-detail-expanded.png" alt="" />
+          <div
+            class="ring"
+            id="ring1"
+            style="left: 43px; top: 813px; width: 334px; height: 199px"
+          ></div>
+          <img id="s2" src="shots/h2-chart.png" alt="" />
+          <div class="tap" id="tap1" style="left: 386px; top: 897px"></div>
+        </div>
+      </div>
+      <div id="band"></div>
+      <div class="cap h a" data-in="8.2" data-out="12.2">
+        Une tendance<br /><span class="soft">sur chaque prix.</span>
+      </div>
+      <div class="cap h a" data-in="12.7" data-out="17.2">
+        Chaque carburant,<br /><span class="soft">comparé à la médiane.</span>
+      </div>
+      <div class="cap h a" data-in="17.7" data-out="22.8">
+        30 jours d'historique.<br /><span class="soft"
+          >Ruptures comprises.</span
+        >
+      </div>
+    </div>
+
+    <script src="theme.js"></script>
+    <script src="kit.js"></script>
+    <script>
+      defineVideo({
+        duration: 27.5,
+        poster: 26.5,
+        stills: [
+          1.0, 2.4, 4.4, 6.5, 8.6, 10.8, 12.4, 13.0, 15.5, 17.6, 18.5, 21.5,
+          23.4, 26.5,
+        ],
+        reveal: {
+          in: 5,
+          out: 7.7,
+          tag: "L'historique des prix, station par station.",
+        },
+        outro: {
+          in: 23,
+          punch:
+            'Le plein,<br><span class="soft">plus jamais à l\'aveugle.</span>',
+        },
+        cues: {
+          arp: 8,
+          clap: 12.5,
+          taps: [12.3],
+          whooshes: [
+            [4.0, 1.0, 0.25],
+            [7.9, 0.8, 0.12],
+            [17.3, 0.6, 0.1],
+            [22.6, 0.5, 0.14],
+          ],
+          bells: [
+            [0.1, 57, 0.05, 0.6],
+            [0.7, 64, 0.05, 0.6],
+            [1.8, 76, 0.07, 0.35],
+            [2.8, 72, 0.05, 0.4],
+            [2.9, 76, 0.05, 0.4],
+            [14.0, 81, 0.06, 0.5],
+            [14.1, 88, 0.05, 0.6],
+            [19.0, 84, 0.04, 0.8],
+          ],
+        },
+        tick(t, K) {
+          K.phone(t, {
+            enter: 8,
+            exit: 22.9,
+            zooms: [
+              {
+                from: 9.4,
+                to: 11.0,
+                back: 11.7,
+                s: 1.22,
+                origin: "640px 1050px",
+              }, // vers les prix et leurs tendances
+              { from: 19.0, to: 21.0, s: 1.2, origin: "390px 1030px" }, // vers le graphique
+            ],
+          });
+          K.tap(K.$("tap1"), t, 12.3);
+          K.$("s1").style.opacity = K.p(t, 12.5, 12.6); // tap sur la station → détail
+          K.ring(K.$("ring1"), t, 14.0, 17.3);
+          K.$("s2").style.opacity = K.p(t, 17.5, 17.58); // défilement vers le graphique
+        },
+      });
+    </script>
+  </body>
+</html>

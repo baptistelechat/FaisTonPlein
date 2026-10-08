@@ -49,6 +49,12 @@ next-env.d.ts
 # BMAD Method
 .claude/skills/bmad-*/
 
+# brag-series : dépendances et fichiers temporaires
+# (les sources, les captures shots/ et les vidéos rendues restent versionnées)
+brag-output/work/node_modules/
+brag-output/work/frames*/
+brag-output/work/stills*
+
 # Obsidian vault
 **/.obsidian/
 .claude/memory/dashboard.md

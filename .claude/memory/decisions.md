@@ -21,3 +21,11 @@ register: decisions
 | [BDR-013](decisions/BDR-013.md) | 2026-09-23 | Totem des prix nationaux : desktop seul, logique partagée avec og:image                  | #national-prices #totem #og-image #desktop #mobile #shared-logic         | actif  |
 | [BDR-014](decisions/BDR-014.md) | 2026-09-23 | FuelBadge unique (teinte 600 + blanc), resolveHex centralisé                             | #fuel-badge #design-system #resolvehex #contrast #reuse                  | actif  |
 | [BDR-015](decisions/BDR-015.md) | 2026-09-23 | Totem desktop : header réserve sa place, masqué sous `@2xl`                              | #national-prices #totem #container-query #tailwind4 #responsive #desktop | actif  |
+| [BDR-019](decisions/BDR-019.md) | 2026-10-05 | Projet Remotion isolé dans video/, kit partagé + un dossier par vidéo | #remotion #video #pnpm-workspace #tsconfig #eslint #isolation | actif |
+| [BDR-016](decisions/BDR-016.md) | 2026-10-05 | Ligne éditoriale des shorts : accroche, thème, bruitages, musique | #video #short #accroche #ligne-editoriale #sfx #musique #cc-by | actif |
+| [BDR-017](decisions/BDR-017.md) | 2026-10-05 | Skill remotion-short pour rejouer le flux vidéo | #skill #remotion-short #rodin #workflow #video #studio | actif |
+| [BDR-018](decisions/BDR-018.md) | 2026-10-05 | Signature créateur en bas de zone sûre de l'outro | #video #outro #signature #instagram #zone-sure #kit #lucide | actif |
+| [BDR-020](decisions/BDR-020.md) | 2026-10-05 | Vidéos promo dans `brag-output/`, sources et captures versionnées | #promo-video #brag-output #gitignore #playwright #shots #remotion | actif |
+| [BDR-021](decisions/BDR-021.md) | 2026-10-05 | Skill `brag-series` autonome, lit `/brag` sans l'exécuter | #brag-series #skill #brag #promo-video #theme #kit | actif |
+| [BDR-022](decisions/BDR-022.md) | 2026-10-08 | Textes de publication : récit long, « nous », gratuit sans pub | #share-copy #instagram #storytelling #promo-video #ligne-editoriale #brag-output | actif |
+| [BDR-023](decisions/BDR-023.md) | 2026-10-08 | Convention UTM : bio sans campagne, contenus éphémères avec | #utm #posthog #acquisition #instagram #lancement #convention | actif |

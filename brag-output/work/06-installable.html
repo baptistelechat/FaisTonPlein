@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;700&family=Space+Grotesk:wght@500;700&display=block"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="kit.css" />
+    <style>
+      /* Écran d'accueil illustratif (seule partie non capturée : l'icône et le nom sont ceux de l'app) */
+      #home {
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(160deg, #312c85, #020617 70%);
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        align-content: start;
+        gap: 56px 0;
+        padding: 150px 40px;
+        justify-items: center;
+        opacity: 0;
+      }
+      #home .app {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 14px;
+        font-size: 27px;
+        color: #e2e8f0;
+      }
+      #home .app i {
+        width: 150px;
+        height: 150px;
+        border-radius: 36px;
+        background: #ffffff1a;
+        display: block;
+      }
+      #home .app.me i {
+        background: #f8fafc;
+        padding: 23px;
+        box-shadow: 0 0 60px #4f39f6;
+      }
+      #home .app.me img {
+        position: static;
+        width: 104px;
+        height: 104px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="stage">
+      <!-- Hook -->
+      <div class="scene">
+        <h1 class="hook-title a" data-in="0.1" data-out="4.7">
+          Pas d'App Store.
+        </h1>
+        <h1 class="hook-title a" data-in="0.8" data-out="4.7">
+          Pas de compte.
+        </h1>
+        <div class="gap h a" data-in="2.0" data-out="4.7">
+          <b>Un tap,</b><br />c'est installé.
+        </div>
+        <div class="foot a" data-in="2.0" data-out="4.7" data-dy="0">
+          Application web installable (PWA)
+        </div>
+      </div>
+
+      <!-- La vraie app (captures de la prod) -->
+      <div id="cam">
+        <div id="phone">
+          <img src="shots/i0-install-button.png" alt="" />
+          <div
+            class="ring"
+            id="ring0"
+            style="
+              left: 67px;
+              top: 110px;
+              width: 72px;
+              height: 72px;
+              border-radius: 22px;
+              border-width: 4px;
+            "
+          ></div>
+          <div id="home">
+            <div class="app"><i></i></div>
+            <div class="app"><i></i></div>
+            <div class="app"><i></i></div>
+            <div class="app"><i></i></div>
+            <div class="app"><i></i></div>
+            <div class="app"><i></i></div>
+            <div class="app"><i></i></div>
+            <div class="app"><i></i></div>
+            <div class="app"><i></i></div>
+            <div class="app me" id="me">
+              <i><img src="../../public/icon.svg" alt="" /></i>FaisTonPlein
+            </div>
+          </div>
+          <img id="s2" src="shots/i1-cache.png" alt="" />
+          <div
+            class="ring"
+            id="ring2"
+            style="left: 23px; top: 1022px; width: 734px; height: 150px"
+          ></div>
+          <div class="tap" id="tap1" style="left: 103px; top: 146px"></div>
+        </div>
+      </div>
+      <div id="band"></div>
+      <div class="cap h a" data-in="8.2" data-out="12.2">
+        Le bouton Installer<br /><span class="soft">est dans l'app.</span>
+      </div>
+      <div class="cap h a" data-in="12.7" data-out="16.7">
+        Elle rejoint votre<br /><span class="soft">écran d'accueil.</span>
+      </div>
+      <div class="cap h a" data-in="17.2" data-out="21.8">
+        Vos départements<br /><span class="soft">restent en mémoire.</span>
+      </div>
+    </div>
+
+    <script src="theme.js"></script>
+    <script src="kit.js"></script>
+    <script>
+      defineVideo({
+        duration: 26.5,
+        poster: 25.5,
+        stills: [
+          1.0, 2.6, 4.4, 6.5, 8.6, 10.6, 12.4, 13.0, 14.5, 16.9, 17.5, 20.5,
+          22.4, 25.5,
+        ],
+        reveal: { in: 5, out: 7.7, tag: "S'installe depuis le navigateur." },
+        outro: {
+          in: 22,
+          punch: 'Une vraie app.<br><span class="soft">Sans le store.</span>',
+        },
+        cues: {
+          arp: 8,
+          clap: 12.5,
+          taps: [12.2],
+          whooshes: [
+            [4.0, 1.0, 0.25],
+            [7.9, 0.8, 0.12],
+            [16.8, 0.5, 0.1],
+            [21.6, 0.5, 0.14],
+          ],
+          bells: [
+            [0.1, 57, 0.05, 0.6],
+            [0.8, 60, 0.05, 0.6],
+            [2.0, 72, 0.05, 0.4],
+            [2.1, 76, 0.05, 0.4],
+            [9.3, 84, 0.04, 0.6],
+            [13.3, 81, 0.06, 0.5],
+            [13.4, 88, 0.05, 0.6],
+            [18.4, 84, 0.04, 0.8],
+          ],
+        },
+        tick(t, K) {
+          K.phone(t, {
+            enter: 8,
+            exit: 21.9,
+            zooms: [
+              {
+                from: 9.3,
+                to: 10.8,
+                back: 11.4,
+                s: 1.5,
+                origin: "103px 146px",
+              }, // vers le bouton Installer
+              { from: 18.6, to: 20.4, s: 1.14, origin: "390px 1000px" }, // vers le cache des départements
+            ],
+          });
+          K.ring(K.$("ring0"), t, 9.3, 12.3);
+          K.tap(K.$("tap1"), t, 12.2);
+          K.$("home").style.opacity =
+            K.p(t, 12.5, 12.65) * (1 - K.p(t, 16.95, 17.0));
+          const pop = K.p(t, 13.3, 13.75);
+          K.$("me").style.opacity = K.out3(pop);
+          K.$("me").style.transform = `scale(${0.4 + 0.6 * K.back(pop)})`;
+          K.$("s2").style.opacity = K.p(t, 17.0, 17.15); // l'app s'ouvre sur les réglages : données en cache
+          K.ring(K.$("ring2"), t, 18.4);
+        },
+      });
+    </script>
+  </body>
+</html>

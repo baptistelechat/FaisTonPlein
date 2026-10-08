@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;700&family=Space+Grotesk:wght@500;700&display=block"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="kit.css" />
+  </head>
+  <body>
+    <div id="stage">
+      <!-- Hook : le 2e meilleur prix réel est loin -->
+      <div class="scene">
+        <h1 class="hook-title a" data-in="0.1" data-out="4.7">
+          Le 2<sup style="font-size: 0.5em">e</sup> meilleur prix
+        </h1>
+        <h1 class="hook-title a" data-in="0.7" data-out="4.7">
+          est à <span style="color: var(--amber)">14,5 km.</span>
+        </h1>
+        <div class="prices">
+          <div class="price a" data-in="1.5" data-out="4.7" data-dx="-120">
+            <span class="lbl">E. Leclerc<br />Chaponnay</span
+            ><span class="val" style="color: var(--good)"
+              >2,249<small>€/L</small></span
+            >
+          </div>
+        </div>
+        <div class="gap h a" data-in="2.6" data-out="4.7">
+          Ça vaut<br /><b>le détour ?</b>
+        </div>
+        <div class="foot a" data-in="1.5" data-out="4.7" data-dy="0">
+          Gazole · 20 km autour de Lyon · 5 oct. 2026
+        </div>
+      </div>
+
+      <!-- La vraie app (captures de la prod) -->
+      <div id="cam">
+        <div id="phone">
+          <img src="shots/c2-vehicle-set.png" alt="" />
+          <div
+            class="ring"
+            id="ringV"
+            style="
+              left: 376px;
+              top: 958px;
+              width: 344px;
+              height: 108px;
+              border-color: #4f39f6;
+              box-shadow:
+                0 0 0 8px #4f39f633,
+                0 0 50px #4f39f688;
+            "
+          ></div>
+          <img id="s4" src="shots/c4-price-list.png" alt="" />
+          <div
+            class="ring amber"
+            id="ringL"
+            style="left: 27px; top: 1010px; width: 718px; height: 176px"
+          ></div>
+          <img id="s5" src="shots/c5-cost-list.png" alt="" />
+          <div
+            class="ring"
+            id="ringC"
+            style="left: 27px; top: 818px; width: 718px; height: 244px"
+          ></div>
+          <div class="tap" id="tap0" style="left: 546px; top: 1012px"></div>
+          <div class="tap" id="tap1" style="left: 445px; top: 573px"></div>
+        </div>
+      </div>
+      <div id="band"></div>
+      <div class="cap h a" data-in="8.2" data-out="12.6">
+        Dites-lui ce que<br /><span class="soft">vous conduisez.</span>
+      </div>
+      <div class="cap h a" data-in="13.1" data-out="17.6">
+        Au prix seul,<br /><span class="soft"
+          >le Leclerc est 2<sup style="font-size: 0.6em">e</sup>.</span
+        >
+      </div>
+      <div class="cap h a" data-in="18.1" data-out="20.7">
+        Trajet compris,<br /><span class="soft">il sort du podium.</span>
+      </div>
+      <div class="cap h a" data-in="21.0" data-out="24.2">
+        Plein + trajet :<br /><span class="soft">le vrai total.</span>
+      </div>
+    </div>
+
+    <script src="theme.js"></script>
+    <script src="kit.js"></script>
+    <script>
+      defineVideo({
+        duration: 29,
+        poster: 28,
+        stills: [
+          1.0, 2.2, 4.4, 6.5, 8.6, 10.3, 12.0, 13.4, 15.5, 17.9, 18.4, 20.0,
+          22.8, 24.8, 28,
+        ],
+        reveal: { in: 5, out: 7.7, tag: "Le vrai coût de votre plein." },
+        outro: {
+          in: 24.5,
+          punch: 'Le bon prix,<br><span class="soft">trajet compris.</span>',
+        },
+        cues: {
+          arp: 8,
+          clap: 13,
+          taps: [9.6, 17.8],
+          whooshes: [
+            [4.0, 1.0, 0.25],
+            [7.9, 0.8, 0.12],
+            [12.7, 0.5, 0.1],
+            [24.1, 0.5, 0.14],
+          ],
+          bells: [
+            [0.1, 57, 0.05, 0.6],
+            [0.7, 64, 0.05, 0.6],
+            [1.5, 76, 0.07, 0.35],
+            [2.6, 72, 0.05, 0.4],
+            [2.7, 76, 0.05, 0.4],
+            [9.7, 84, 0.04, 0.6],
+            [14.0, 76, 0.05, 0.5],
+            [19.0, 81, 0.06, 0.5],
+            [19.1, 88, 0.05, 0.6],
+            [21.2, 84, 0.04, 0.8],
+          ],
+        },
+        tick(t, K) {
+          K.phone(t, {
+            enter: 8,
+            exit: 24.4,
+            zooms: [
+              {
+                from: 10.2,
+                to: 11.8,
+                back: 12.4,
+                s: 1.14,
+                origin: "546px 900px",
+              }, // vers le profil véhicule
+              { from: 21.0, to: 22.8, s: 1.28, origin: "640px 940px" }, // vers le total de la 1re carte
+            ],
+          });
+          K.tap(K.$("tap0"), t, 9.6);
+          K.ring(K.$("ringV"), t, 9.7, 12.9);
+          K.$("s4").style.opacity = K.p(t, 13.0, 13.12); // réglages fermés → liste triée par prix
+          K.ring(K.$("ringL"), t, 14.0, 17.9);
+          K.tap(K.$("tap1"), t, 17.8);
+          K.$("s5").style.opacity = K.p(t, 18.0, 18.08); // tap « Coût/trajet » → liste re-triée
+          K.ring(K.$("ringC"), t, 19.0);
+        },
+      });
+    </script>
+  </body>
+</html>
