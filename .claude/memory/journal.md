@@ -194,3 +194,21 @@ Reste à faire avant ou après le lancement : fusionner `development` dans `main
 - [BDR-023](decisions/BDR-023.md) — convention UTM du lancement
 - [LRN-017](learnings/LRN-017.md) — le scanner de liens Meta crée des visites et des erreurs WebGL
 - [BLK-015](blockers/BLK-015.md) — visites sans aucun `session_ended`, surtout sur mobile
+
+## 2026-10-10
+
+Session consacrée à la publication de la vidéo 02 et à la musique des vidéos promo. Baptiste a remarqué que les six vidéos de `brag-output/` avaient la même musique : le kit `brag-series` synthétisait un seul morceau, seuls les repères changeaient.
+
+Côté suivi, le lien de bio a été contrôlé dans PostHog : le clic du jour remonte bien en `instagram` / `bio`. Instagram ajoute `utm_content=link_in_bio` et un `fbclid` sans toucher aux UTM déjà posés. Seulement quatre visites Instagram en quatre jours, toutes depuis la ville de Baptiste, donc aucun visiteur externe par la bio pour l'instant. Les liens de story des six vidéos ont été ajoutés à `share-copy.txt`, avec `utm_content=<nn>-<angle>`.
+
+Côté musique, il a fallu trois versions. La première posait 6 variantes en dur dans le skill ; les vidéos 02 à 06 ont été re-rendues avec, la 01 déjà publiée restant intacte. Baptiste a refusé le principe : à la 7e vidéo ça bouclait. La deuxième tirait le morceau du numéro de vidéo, refusée aussi puisque chaque projet aurait eu les mêmes morceaux. La troisième est la bonne : l'ambiance se définit par série dans `theme.js`, le kit ne garde que des instruments et un compositeur, et la graine est le nom de la série. Les morceaux 01 à 06 de FaisTonPlein sont figés dans le thème, et une comparaison d'empreintes a confirmé que leur son n'a pas changé entre la première et la troisième version, donc pas de second re-rendu.
+
+Le skill `brag-series` a été mis à jour hors dépôt (`audio.cjs`, `render.cjs`, `kit.js`, `SKILL.md` avec une section « Ambiance sonore »). Commit `c2fedb2` sur `development`, non poussé. Rien au changelog. Toutes les entrées sont restées locales à la demande de Baptiste.
+
+Reste à faire : écouter la vidéo 02 avant de la publier, personne n'ayant entendu les nouveaux morceaux ; valider ou corriger les mots d'ambiance « posé, confiant, un peu nocturne », écrits par Claude ; après la publication de la story, vérifier dans PostHog ce qu'Instagram fait de `utm_content` ; pousser `development`.
+
+**Entrées clés :**
+
+- [BDR-024](decisions/BDR-024.md) — ambiance sonore par série, rien dans le skill
+- [BLK-016](blockers/BLK-016.md) — trois versions avant de répondre au besoin
+- [LRN-021](learnings/LRN-021.md) — ce qu'Instagram ajoute aux liens

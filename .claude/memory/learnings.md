@@ -26,3 +26,6 @@ register: learnings
 | [LRN-018](learnings/LRN-018.md) | 2026-10-08 | Un bloqueur DNS local casse l'OAuth du MCP PostHog | #dns #pihole #posthog #mcp #oauth #err-name-not-resolved |
 | [LRN-019](learnings/LRN-019.md) | 2026-10-08 | `visibilitychange` seul, `beforeunload` en plus double le beacon | #visibilitychange #beforeunload #beacon #analytics #double-count |
 | [LRN-020](learnings/LRN-020.md) | 2026-10-08 | `session_ended` : sans UTM, plusieurs par visite | #posthog #session-ended #utm #beacon #dashboard #uniques |
+| [LRN-021](learnings/LRN-021.md) | 2026-10-10 | Instagram complète les UTM sans écraser ceux déjà posés | #instagram #utm #posthog #fbclid #link-in-bio #acquisition |
+| [LRN-022](learnings/LRN-022.md) | 2026-10-10 | Skill générateur : réglages côté projet + graine du projet | #skill #generateur #seed #config-projet #hardcode #brag-series #reutilisation |
+| [LRN-023](learnings/LRN-023.md) | 2026-10-10 | Prouver un refactor de générateur par empreinte des sorties | #refactor #hash #non-regression #audio #generateur #verification |
