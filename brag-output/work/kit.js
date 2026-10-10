@@ -144,6 +144,7 @@ window.defineVideo = ({
     poster,
     stills,
     cues: { ...cues, drop: reveal.in, duration },
+    music: THEME.music && { seed: THEME.name, ...THEME.music },
   };
   window.seek = (t) => {
     // Entrées / sorties génériques : data-in, data-out, data-dx, data-dy, data-pop

@@ -69,7 +69,8 @@ const launch = () =>
 
   const wav = path.join(dir, "audio.wav"),
     out = path.join(__dirname, "..");
-  buildAudio(video.cues, wav);
+  // un morceau par vidéo, composé d'après son numéro dans l'ambiance de la série (THEME.music)
+  buildAudio({ track: parseInt(name) || 1, ...video.cues }, video.music, wav);
   ff(
     "-framerate",
     String(FPS),

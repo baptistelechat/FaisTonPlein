@@ -20,6 +20,8 @@ Le prix de l'essence, on ne le choisit pas. Sa station, si.
 
 👉 faistonplein.vercel.app
 
+🔗 Lien story : https://faistonplein.vercel.app/?utm_source=instagram&utm_medium=story&utm_campaign=launch&utm_content=01-lancement
+
 
 === 02-bureau.mp4 ===
 Gazole : 2,377 €/L en moyenne en France. Et près de chez vous ? 🖥️
@@ -38,6 +40,8 @@ Vous voyez d'un coup d'œil si votre station habituelle est une bonne affaire ou
 
 👉 faistonplein.vercel.app
 
+🔗 Lien story : https://faistonplein.vercel.app/?utm_source=instagram&utm_medium=story&utm_campaign=launch&utm_content=02-bureau
+
 
 === 03-cout-reel.mp4 ===
 Le 2e meilleur prix est à 14,5 km. Ça vaut le détour ? 🚗
@@ -53,6 +57,8 @@ Dans la vidéo, la station classée 2e au prix seul est à 14,5 km. Trajet compr
 Plein + trajet : c'est ce total-là que vous payez vraiment.
 
 👉 faistonplein.vercel.app
+
+🔗 Lien story : https://faistonplein.vercel.app/?utm_source=instagram&utm_medium=story&utm_campaign=launch&utm_content=03-cout-reel
 
 
 === 04-historique.mp4 ===
@@ -70,6 +76,8 @@ Vous repérez vite la station qui suit le marché, et celle qui reste chère quo
 
 👉 faistonplein.vercel.app
 
+🔗 Lien story : https://faistonplein.vercel.app/?utm_source=instagram&utm_medium=story&utm_campaign=launch&utm_content=04-historique
+
 
 === 05-carburants.mp4 ===
 SP98 : 2,276 €/L. E85 : 0,904 €/L. 2,5× moins cher au litre. ⛽
@@ -84,6 +92,8 @@ Vous roulez avec deux voitures à la maison ? Un tap pour passer de l'une à l'a
 
 👉 faistonplein.vercel.app
 
+🔗 Lien story : https://faistonplein.vercel.app/?utm_source=instagram&utm_medium=story&utm_campaign=launch&utm_content=05-carburants
+
 
 === 06-installable.mp4 ===
 Pas d'App Store. Pas de compte. Un tap, c'est installé. 📲
@@ -97,3 +107,5 @@ Elle garde aussi en mémoire les départements que vous avez déjà consultés. 
 Rien à télécharger depuis un store, rien à renseigner sur vous. Juste les prix.
 
 👉 faistonplein.vercel.app
+
+🔗 Lien story : https://faistonplein.vercel.app/?utm_source=instagram&utm_medium=story&utm_campaign=launch&utm_content=06-installable

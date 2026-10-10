@@ -1,24 +1,100 @@
-// Bande-son de la série, synthétisée : musique + bruitages écrits ensemble, en la mineur, 120 BPM (1 temps = 0,5 s).
-// Même morceau pour toutes les vidéos ; seuls les repères (cues) changent :
+// Bande-son d'une série, synthétisée : musique + bruitages écrits ensemble, 120 BPM (1 temps = 0,5 s).
+// Ce fichier ne contient aucun morceau : seulement les instruments et un compositeur.
+// L'ambiance vient du thème du projet (THEME.music, écrit à la création de la série) :
+//   mood   : les mots validés avec l'auteur, pour mémoire
+//   seed   : graine de la série (par défaut son nom) — deux séries ne tirent pas les mêmes morceaux
+//   scale  : gamme, en demi-tons depuis la tonique (7 notes)
+//   keys   : [min, max] transposition en demi-tons autour de la
+//   degrees: degrés de la gamme autorisés comme accords (0 = tonique)
+//   kicks  : motifs de grosse caisse autorisés (croches frappées dans la mesure, 0-7)
+//   tone   : brillance des timbres (1 = neutre, moins = plus feutré, plus = plus brillant)
+//   arpEvery : 1 = arpège en croches, 2 = en noires (plus calme)
+//   tracks : { n: morceau } morceaux figés, pour ne jamais changer la musique d'une vidéo publiée
+// Chaque vidéo a son morceau, composé d'après la graine et son numéro : re-rendre redonne le même,
+// une nouvelle vidéo en reçoit un nouveau dans la même ambiance, jamais identique à un précédent de la série.
+// Repères (cues) par vidéo :
 //   duration, drop (entrée du beat = reveal), arp (entrée de l'arpège), clap (entrée du clap),
-//   taps [t], whooshes [[t, durée, gain]], bells [[t, note MIDI, gain, déclin]]
+//   taps [t], whooshes [[t, durée, gain]], bells [[t, note MIDI, gain, déclin]],
+//   track (numéro de la vidéo, fourni par render.cjs), take (optionnel : autre tirage si le morceau déplaît)
+// Les notes des bells s'écrivent en la mineur : elles sont ramenées dans la gamme puis transposées.
 // Les repères rythmiques doivent tomber sur un temps (multiples de 0,5 s).
 const fs = require("node:fs");
 const SR = 44100;
 const hz = (m) => 440 * 2 ** ((m - 69) / 12);
 const sin = (f, t) => Math.sin(2 * Math.PI * f * t);
-const CHORDS = [
-  [57, 60, 64, 67],
-  [53, 57, 60, 64],
-  [52, 55, 60, 64],
-  [50, 55, 59, 62],
-]; // Am7, Fmaj7, C/E, G
-const ROOTS = [33, 29, 36, 31];
+
+// Tirage reproductible à partir d'un texte
+const rng = (text) => {
+  let h = 2166136261;
+  for (const ch of text) h = Math.imul(h ^ ch.charCodeAt(0), 16777619) >>> 0;
+  let seed = (h % 2147483646) + 1;
+  return (k) => (seed = (seed * 16807) % 2147483647) % k;
+};
+// Un morceau = { key, chords: 4 accords de 4 notes MIDI écrits en la, roots: 4 basses, arp: ordre des voix sur 8 croches, kick }
+const compose = (m, n, take) => {
+  const pick = rng(`${m.seed}:${n}:${take}`);
+  const note = (i) => m.scale[i % 7] + 12 * Math.floor(i / 7);
+  const degs = [];
+  while (degs.length < 4) {
+    const d = m.degrees[pick(m.degrees.length)];
+    // pas deux fois le même accord de suite, ni en bouclant
+    if (d !== degs[degs.length - 1] && !(degs.length === 3 && d === degs[0]))
+      degs.push(d);
+  }
+  const arp = [0];
+  while (arp.length < 8) {
+    const v = pick(4);
+    if (v !== arp[arp.length - 1]) arp.push(v);
+  }
+  return {
+    key: m.keys[0] + pick(m.keys[1] - m.keys[0] + 1),
+    // accord de septième empilé dans la gamme, voix resserrées sur une octave
+    chords: degs.map((d) =>
+      [0, 2, 4, 6]
+        .map((i) => 50 + ((note(d + i) + 7) % 12))
+        .sort((x, y) => x - y),
+    ),
+    roots: degs.map((d) => 33 + m.scale[d]),
+    arp,
+    kick: m.kicks[pick(m.kicks.length)],
+  };
+};
+const trackOf = (m, n, take = 0) => {
+  // On rejoue la série depuis la vidéo 1 pour écarter tout morceau déjà pris : jamais deux fois le même dans une série
+  const taken = [];
+  let t;
+  for (let i = 1; i <= n; i++) {
+    t = m.tracks?.[i];
+    for (let k = i === n ? take : 0; !t; k++) {
+      const c = compose(m, i, k);
+      if (!taken.includes(JSON.stringify(c))) t = c;
+    }
+    taken.push(JSON.stringify(t));
+  }
+  return t;
+};
 
 module.exports = (
-  { duration, drop, arp, clap, taps, whooshes, bells },
+  { duration, drop, arp, clap, taps, whooshes, bells, track = 1, take },
+  music,
   outPath,
 ) => {
+  if (!music?.scale)
+    throw new Error(
+      "THEME.music manquant : définir l'ambiance de la série dans theme.js (voir SKILL.md, étape 1)",
+    );
+  const M = { seed: "serie", tone: 1, arpEvery: 1, ...music };
+  const V = trackOf(M, track, take);
+  const CHORDS = V.chords.map((c) => c.map((m) => m + V.key));
+  // Ramène une note écrite en la mineur sur la gamme de la série (au plus près, vers le haut d'abord)
+  const snap = (m) => {
+    const pc = (((m - 57) % 12) + 12) % 12;
+    return (
+      m + ([0, 1, -1, 2].find((d) => M.scale.includes((pc + d + 12) % 12)) ?? 0)
+    );
+  };
+  // La basse reste dans la même octave quelle que soit la tonalité (trop grave, un téléphone ne la rend pas)
+  const ROOTS = V.roots.map((r) => 28 + ((((r + V.key - 28) % 12) + 12) % 12));
   const N = Math.round(SR * duration),
     end = duration - 1; // dernier temps = accord final
   const L = new Float32Array(N),
@@ -53,7 +129,9 @@ module.exports = (
           return (
             0.028 *
             env *
-            (sin(f, t) + 0.3 * sin(2 * f, t) + 0.08 * sin(3 * f, t)) *
+            (sin(f, t) +
+              0.3 * M.tone * sin(2 * f, t) +
+              0.08 * M.tone * sin(3 * f, t)) *
             (i === 0 ? 1.2 : 1)
           );
         });
@@ -79,8 +157,8 @@ module.exports = (
     // Arpège en croches avec écho pointé
     for (let k = 0; k < 8; k++) {
       const t1 = t0 + k * 0.25;
-      if (t1 < arp || t1 >= end) continue;
-      const f = hz(chord[[0, 2, 1, 3, 2, 1, 3, 2][k]] + 12);
+      if (t1 < arp || t1 >= end || k % M.arpEvery) continue;
+      const f = hz(chord[V.arp[k]] + 12);
       [
         [0, 1],
         [0.375, 0.35],
@@ -93,7 +171,10 @@ module.exports = (
           0.4,
           (k % 2 ? 0.5 : -0.5) * (e % 2 ? -1 : 1),
           (t) =>
-            0.055 * g * Math.exp(-t / 0.09) * (sin(f, t) + 0.3 * sin(3 * f, t)),
+            0.055 *
+            g *
+            Math.exp(-t / 0.09) *
+            (sin(f, t) + 0.3 * M.tone * sin(3 * f, t)),
         ),
       );
     }
@@ -101,19 +182,25 @@ module.exports = (
 
   // Rythmique
   const kicks = [];
-  for (let t0 = drop; t0 <= end; t0 += 0.5) {
-    kicks.push(t0);
-    add(
-      DL,
-      DR,
-      t0,
-      0.3,
-      0,
-      (t) =>
-        0.5 *
-        Math.exp(-t / 0.09) *
-        Math.sin(2 * Math.PI * (45 * t + (65 / 30) * (1 - Math.exp(-30 * t)))),
-    );
+  for (let t0 = drop; t0 <= end; t0 += 0.25) {
+    const onBeat = Math.round((t0 - drop) * 4) % 2 === 0;
+    if (t0 === drop || V.kick.includes(Math.round(t0 * 4) % 8)) {
+      kicks.push(t0);
+      add(
+        DL,
+        DR,
+        t0,
+        0.3,
+        0,
+        (t) =>
+          0.5 *
+          Math.exp(-t / 0.09) *
+          Math.sin(
+            2 * Math.PI * (45 * t + (65 / 30) * (1 - Math.exp(-30 * t))),
+          ),
+      );
+    }
+    if (!onBeat) continue;
     if (t0 >= arp && t0 < end) {
       let prev = 0;
       add(DL, DR, t0 + 0.25, 0.06, 0.3, (t) => {
@@ -134,7 +221,7 @@ module.exports = (
 
   // Bruitages, dans la tonalité
   const bell = (t0, m, g, dec = 0.5, pan = 0) => {
-    const f = hz(m);
+    const f = hz(snap(m) + V.key);
     add(
       DL,
       DR,

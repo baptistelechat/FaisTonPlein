@@ -1,6 +1,8 @@
 # Brag plan — FaisTonPlein
 
-> **Série (même DA, kit partagé dans `work/`)** — `kit.css` + `kit.js` (style, cadres téléphone/navigateur, reveal et outro communs), `audio.cjs` (même morceau, repères par vidéo), `render.cjs <nom>`.
+> **Série (même DA, kit partagé dans `work/`)** — `kit.css` + `kit.js` (style, cadres téléphone/navigateur, reveal et outro communs), `audio.cjs` (instruments + compositeur : un morceau par vidéo dans l'ambiance de la série, repères par vidéo), `render.cjs <nom>`.
+>
+> **Ambiance sonore** — posé, confiant, un peu nocturne (`music` dans `work/theme.js`). Les morceaux des vidéos 01 à 06 y sont figés ; toute nouvelle vidéo reçoit un nouveau morceau dans cette ambiance.
 > Une vidéo = un fichier `work/<nom>.html` (hook + scènes + repères). Captures de la prod : `node capture.cjs desktop|cost`.
 >
 > | Vidéo          | Durée  | Angle                                                                                      |
